@@ -1,7 +1,13 @@
+import '../../features/bookmarks/data/bookmarks_repository_impl.dart';
+import '../../features/bookmarks/domain/bookmarks_repository.dart';
 import '../../features/details/data/details_repository_impl.dart';
 import '../../features/details/domain/details_repository.dart';
 import '../../features/feed/data/feed_repository_impl.dart';
 import '../../features/feed/domain/feed_repository.dart';
+import '../../features/outbox/data/outbox_repository_impl.dart';
+import '../../features/outbox/domain/outbox_repository.dart';
+import '../../features/reactions/data/reactions_repository_impl.dart';
+import '../../features/reactions/domain/reactions_repository.dart';
 import '../../features/search/data/search_repository_impl.dart';
 import '../../features/search/domain/search_repository.dart';
 import '../network/api_client.dart';
@@ -52,5 +58,10 @@ class ServiceLocator {
     register<FeedRepository>(FeedRepositoryImpl(apiClient, localStorage));
     register<DetailsRepository>(DetailsRepositoryImpl(apiClient, localStorage));
     register<SearchRepository>(SearchRepositoryImpl(apiClient, localStorage));
+
+    final outbox = OutboxRepositoryImpl(apiClient, localStorage);
+    register<OutboxRepository>(outbox);
+    register<ReactionsRepository>(ReactionsRepositoryImpl(apiClient, outbox));
+    register<BookmarksRepository>(BookmarksRepositoryImpl(apiClient, localStorage, outbox));
   }
 }

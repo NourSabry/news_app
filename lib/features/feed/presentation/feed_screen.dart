@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../app/widgets/live_article_card.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/empty_view.dart';
@@ -9,7 +10,6 @@ import '../../../core/widgets/pagination_footer.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../details/presentation/article_details_screen.dart';
 import 'bloc/feed_bloc.dart';
-import 'widgets/article_card.dart';
 import 'widgets/feed_header.dart';
 import 'widgets/new_stories_banner.dart';
 import 'widgets/trending_topics.dart';
@@ -128,7 +128,7 @@ class _FeedScreenState extends State<FeedScreen> {
         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.lg),
         itemBuilder: (_, index) {
           final article = state.articles[index];
-          return ArticleCard(
+          return LiveArticleCard(
             key: ValueKey(article.id),
             article: article,
             topicName: state.topicNameFor(article.topicId),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../app/article_sync.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -37,29 +38,34 @@ class _DetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<DetailsBloc>().state;
+    final article = context.liveArticle(state.article);
     return Scaffold(
-      body: BlocBuilder<DetailsBloc, DetailsState>(
-        builder: (context, state) => CustomScrollView(
-          slivers: [
-            DetailsAppBar(imageUrl: state.article.image),
+      body: CustomScrollView(
+        slivers: [
+          DetailsAppBar(
+            imageUrl: article.image,
+            isBookmarked: article.isBookmarked,
+            onBookmark: () => context.toggleBookmark(article),
+          ),
+          SliverToBoxAdapter(
+            child: DetailsHeader(
+              article: article,
+              topicName: state.topicName,
+              fromCache: state.fromCache && !state.isLoading,
+              onLike: () => context.toggleLike(article),
+            ),
+          ),
+          _buildBody(context, state),
+          if (state.related.isNotEmpty)
             SliverToBoxAdapter(
-              child: DetailsHeader(
-                article: state.article,
-                topicName: state.topicName,
-                fromCache: state.fromCache && !state.isLoading,
+              child: RelatedStories(
+                articles: state.related,
+                onTap: (article) => _openArticle(context, article),
               ),
             ),
-            _buildBody(context, state),
-            if (state.related.isNotEmpty)
-              SliverToBoxAdapter(
-                child: RelatedStories(
-                  articles: state.related,
-                  onTap: (article) => _openArticle(context, article),
-                ),
-              ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
-          ],
-        ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
+        ],
       ),
     );
   }

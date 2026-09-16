@@ -8,6 +8,7 @@ class MockApiClient implements ApiClient {
   List<Article>? _cachedArticles;
   List<Topic>? _cachedTopics;
   Map<String, List<String>>? _cachedSources;
+  final Set<String> _bookmarkIds = {'a_flutter_roadmap', 'a_startup_funding'};
 
   bool simulateOffline = false;
   bool simulateError = false;
@@ -213,17 +214,26 @@ class MockApiClient implements ApiClient {
       };
     }
 
-    final articles = await _loadArticles();
-    final article = articles.firstWhere((a) => a.id == articleId);
-    final newLiked = !article.isLiked;
-
+    final article = await _toggleLike(articleId, expectedVersion);
     return {
       'status': 'success',
       'articleId': articleId,
       'reaction': reaction,
-      'likes': article.likes + (newLiked ? 1 : -1),
-      'version': expectedVersion + 1,
+      'likes': article.likes,
+      'version': article.version,
     };
+  }
+
+  Future<Article> _toggleLike(String articleId, int expectedVersion) async {
+    final articles = await _loadArticles();
+    final index = articles.indexWhere((a) => a.id == articleId);
+    final article = articles[index];
+    final liked = !article.isLiked;
+    return articles[index] = article.copyWith(
+      isLiked: liked,
+      likes: article.likes + (liked ? 1 : -1),
+      version: expectedVersion + 1,
+    );
   }
 
   @override
@@ -232,12 +242,17 @@ class MockApiClient implements ApiClient {
     required bool bookmarked,
   }) async {
     await _simulateNetwork();
+    _setBookmark(articleId, bookmarked);
+  }
+
+  void _setBookmark(String articleId, bool bookmarked) {
+    bookmarked ? _bookmarkIds.add(articleId) : _bookmarkIds.remove(articleId);
   }
 
   @override
   Future<List<String>> getBookmarkIds() async {
     await _simulateNetwork();
-    return ['a_flutter_roadmap', 'a_startup_funding'];
+    return _bookmarkIds.toList();
   }
 
   @override
@@ -290,12 +305,25 @@ class MockApiClient implements ApiClient {
     required List<OutboxEntry> mutations,
   }) async {
     await _simulateNetwork();
+    for (final mutation in mutations) {
+      await _applyMutation(mutation);
+    }
     return {
       'status': 'success',
       'newVersion': baseVersion + 1,
       'applied': mutations.map((m) => m.idempotencyKey).toList(),
       'conflicts': <Map<String, dynamic>>[],
     };
+  }
+
+  Future<void> _applyMutation(OutboxEntry entry) async {
+    final articleId = entry.payload['articleId'] as String;
+    switch (entry.operation) {
+      case OutboxOperation.toggleReaction:
+        await _toggleLike(articleId, entry.payload['expectedVersion'] as int);
+      case OutboxOperation.setBookmark:
+        _setBookmark(articleId, entry.payload['bookmarked'] as bool);
+    }
   }
 
   @override

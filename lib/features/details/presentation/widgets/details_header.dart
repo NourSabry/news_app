@@ -4,17 +4,20 @@ import '../../../../core/models/models.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../../../../core/widgets/topic_badge.dart';
+import '../../../reactions/presentation/widgets/engagement_row.dart';
 
 class DetailsHeader extends StatelessWidget {
   final Article article;
   final String topicName;
   final bool fromCache;
+  final VoidCallback? onLike;
 
   const DetailsHeader({
     super.key,
     required this.article,
     required this.topicName,
     required this.fromCache,
+    this.onLike,
   });
 
   @override
@@ -37,6 +40,10 @@ class DetailsHeader extends StatelessWidget {
             const _Note(icon: Icons.offline_pin_rounded, label: 'Showing saved copy'),
           ],
           const SizedBox(height: AppSpacing.lg),
+          const Divider(height: 1),
+          const SizedBox(height: AppSpacing.sm),
+          EngagementRow(article: article, onLike: onLike),
+          const SizedBox(height: AppSpacing.sm),
           const Divider(height: 1),
         ],
       ),

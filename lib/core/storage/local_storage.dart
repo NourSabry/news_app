@@ -76,6 +76,8 @@ class LocalStorage {
         .toList();
   }
 
+  Stream<int> watchOutboxCount() => _outbox.watch().map((_) => _outbox.length);
+
   Future<void> clearOutbox() async {
     await _outbox.clear();
   }

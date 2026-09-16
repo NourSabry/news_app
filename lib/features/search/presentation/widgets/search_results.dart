@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../app/widgets/live_article_card.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/pagination_footer.dart';
-import '../../../feed/presentation/widgets/article_card.dart';
 import '../bloc/search_bloc.dart';
 
 class SearchResults extends StatelessWidget {
@@ -30,7 +30,7 @@ class SearchResults extends StatelessWidget {
           return PaginationFooter(isLoadingMore: state.isLoadingMore, hasMore: state.hasMore);
         }
         final article = results[index];
-        return ArticleCard(
+        return LiveArticleCard(
           key: ValueKey(article.id),
           article: article,
           topicName: state.topicNameFor(article.topicId),

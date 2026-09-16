@@ -1,4 +1,6 @@
-class OutboxEntry {
+import 'package:equatable/equatable.dart';
+
+class OutboxEntry extends Equatable {
   final String idempotencyKey;
   final String operation;
   final Map<String, dynamic> payload;
@@ -38,4 +40,12 @@ class OutboxEntry {
       'createdAt': createdAt.toIso8601String(),
     };
   }
+
+  @override
+  List<Object?> get props => [idempotencyKey, operation, payload, createdAt];
+}
+
+sealed class OutboxOperation {
+  static const String toggleReaction = 'toggleReaction';
+  static const String setBookmark = 'setBookmark';
 }

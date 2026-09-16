@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../outbox/presentation/widgets/network_debug_menu.dart';
 
 class FeedHeader extends StatelessWidget {
   const FeedHeader({super.key});
@@ -11,15 +13,22 @@ class FeedHeader extends StatelessWidget {
     final now = DateTime.now();
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            DateFormat('EEEE, MMM d').format(now).toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1.2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  DateFormat('EEEE, MMM d').format(now).toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1.2),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(_greetingFor(now.hour), style: theme.textTheme.headlineLarge),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(_greetingFor(now.hour), style: theme.textTheme.headlineLarge),
+          if (kDebugMode) const NetworkDebugMenu(),
         ],
       ),
     );

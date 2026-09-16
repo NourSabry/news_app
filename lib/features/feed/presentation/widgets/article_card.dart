@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/models/models.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../../core/widgets/topic_badge.dart';
+import '../../../bookmarks/presentation/widgets/bookmark_button.dart';
+import '../../../reactions/presentation/widgets/engagement_row.dart';
 
 class ArticleCard extends StatelessWidget {
   final Article article;
   final String topicName;
   final bool compact;
   final VoidCallback? onTap;
+  final VoidCallback? onLike;
+  final VoidCallback? onBookmark;
 
   const ArticleCard({
     super.key,
@@ -19,6 +21,8 @@ class ArticleCard extends StatelessWidget {
     this.topicName = '',
     this.compact = false,
     this.onTap,
+    this.onLike,
+    this.onBookmark,
   });
 
   @override
@@ -62,7 +66,7 @@ class ArticleCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         _buildByline(context),
         const SizedBox(height: AppSpacing.md),
-        _buildStats(context),
+        _buildStats(),
       ],
     );
   }
@@ -124,48 +128,12 @@ class ArticleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStats(BuildContext context) {
-    final theme = Theme.of(context);
-    final mutedColor = theme.colorScheme.onSurfaceVariant;
+  Widget _buildStats() {
     return Row(
       children: [
-        _StatItem(
-          icon: article.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-          color: article.isLiked ? AppColors.liked : mutedColor,
-          count: article.likes,
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        _StatItem(
-          icon: Icons.chat_bubble_outline_rounded,
-          color: mutedColor,
-          count: article.comments,
-        ),
+        EngagementRow(article: article, onLike: onLike),
         const Spacer(),
-        if (article.isBookmarked)
-          Icon(Icons.bookmark_rounded, size: 18, color: theme.colorScheme.primary),
-      ],
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final int count;
-
-  const _StatItem({required this.icon, required this.color, required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: AppSpacing.xs),
-        Text(
-          NumberFormat.compact().format(count),
-          style: theme.textTheme.labelMedium?.copyWith(color: color),
-        ),
+        BookmarkButton(isBookmarked: article.isBookmarked, onTap: onBookmark, compact: true),
       ],
     );
   }
