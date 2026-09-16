@@ -13,6 +13,13 @@ class MockApiClient implements ApiClient {
   bool simulateError = false;
   bool simulateConflict = false;
   int _latencyMs = 400;
+  int _refreshCount = 0;
+
+  static const _breakingHeadlines = [
+    'Breaking: Major Tech Conference Announces Surprise Keynote',
+    'Breaking: Central Bank Signals Rate Decision Ahead of Schedule',
+    'Breaking: Championship Final Rescheduled After Weather Delay',
+  ];
 
   set latencyMs(int value) => _latencyMs = value;
 
@@ -236,11 +243,44 @@ class MockApiClient implements ApiClient {
   @override
   Future<FeedUpdate> getFeedUpdates(DateTime since) async {
     await _simulateNetwork();
+    final articles = await _loadArticles();
+    final fresh = _createBreakingArticle(articles.first);
+    articles.insert(0, fresh);
+    _bumpEngagement(articles, 'a_flutter_roadmap');
     return FeedUpdate(
-      newItems: ['a_ai_policy'],
+      newItems: [fresh.id],
       updatedItems: ['a_flutter_roadmap'],
       deletedItems: [],
       serverTime: DateTime.now(),
+    );
+  }
+
+  Article _createBreakingArticle(Article template) {
+    final index = _refreshCount++;
+    return template.copyWith(
+      id: 'a_breaking_$index',
+      title: _breakingHeadlines[index % _breakingHeadlines.length],
+      summary: 'Developing story. Details are being updated as they come in.',
+      image: 'https://picsum.photos/seed/breaking-$index/900/600',
+      publishedAt: DateTime.now(),
+      updatedAt: null,
+      likes: 0,
+      comments: 0,
+      isLiked: false,
+      isBookmarked: false,
+      version: 1,
+    );
+  }
+
+  void _bumpEngagement(List<Article> articles, String id) {
+    final index = articles.indexWhere((a) => a.id == id);
+    if (index == -1) return;
+    final article = articles[index];
+    articles[index] = article.copyWith(
+      likes: article.likes + 3,
+      comments: article.comments + 1,
+      version: article.version + 1,
+      updatedAt: DateTime.now(),
     );
   }
 

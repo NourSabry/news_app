@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../core/di/service_locator.dart';
 import '../core/widgets/offline_banner.dart';
+import '../features/feed/domain/feed_repository.dart';
+import '../features/feed/presentation/bloc/feed_bloc.dart';
+import '../features/feed/presentation/feed_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -60,7 +65,11 @@ class _AppShellState extends State<AppShell> {
     return IndexedStack(
       index: _currentIndex,
       children: [
-        const _PlaceholderTab(title: 'Home', icon: Icons.home_rounded),
+        BlocProvider(
+          create: (_) => FeedBloc(ServiceLocator.instance.get<FeedRepository>())
+            ..add(const LoadFeed()),
+          child: const FeedScreen(),
+        ),
         const _PlaceholderTab(title: 'Explore', icon: Icons.search_rounded),
         const _PlaceholderTab(title: 'Saved', icon: Icons.bookmark_rounded),
       ],
