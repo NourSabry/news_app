@@ -1,0 +1,112 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/event_transformers.dart';
+import '../../../../core/utils/future_extensions.dart';
+import '../../domain/search_repository.dart';
+import 'search_event.dart';
+import 'search_state.dart';
+
+export 'search_event.dart';
+export 'search_state.dart';
+
+class SearchBloc extends Bloc<SearchEvent, SearchState> {
+  static const debounceDuration = Duration(milliseconds: 400);
+  static const searchErrorMessage = "Couldn't search right now";
+  static const loadMoreErrorMessage = "Couldn't load more results";
+
+  final SearchRepository _repository;
+
+  SearchBloc(this._repository) : super(const SearchState()) {
+    on<SearchStarted>(_onStarted);
+    on<QueryChanged>(_onQueryChanged, transformer: debounceRestartable(debounceDuration));
+    on<SubmitSearch>(_onSubmit);
+    on<LoadMoreResults>(_onLoadMore);
+    on<TopicFilterChanged>(_onTopicChanged);
+    on<ClearSearch>(_onClear);
+    on<ClearRecentSearches>(_onClearRecent);
+  }
+
+  Future<void> _onStarted(SearchStarted event, Emitter<SearchState> emit) async {
+    emit(state.copyWith(recentSearches: _repository.getRecentSearches()));
+    final topics = await _repository.getTopics().orFallback(state.topics);
+    emit(state.copyWith(topics: topics));
+  }
+
+  Future<void> _onQueryChanged(QueryChanged event, Emitter<SearchState> emit) async {
+    final query = event.query.trim();
+    if (query.isEmpty) return _onClear(const ClearSearch(), emit);
+    if (state.hasSearched && state.query == query) return;
+
+    emit(state.copyWith(query: query, hasSearched: false, errorMessage: null));
+    final suggestions = await _repository.getSuggestions(query).orFallback(const <String>[]);
+    emit(state.copyWith(suggestions: suggestions));
+  }
+
+  Future<void> _onSubmit(SubmitSearch event, Emitter<SearchState> emit) async {
+    final query = event.query.trim();
+    if (query.isEmpty) return;
+
+    await _repository.addRecentSearch(query);
+    emit(state.copyWith(query: query, recentSearches: _repository.getRecentSearches()));
+    await _search(emit);
+  }
+
+  Future<void> _search(Emitter<SearchState> emit) async {
+    emit(state.copyWith(
+      hasSearched: true,
+      isLoading: true,
+      results: const [],
+      suggestions: const [],
+      nextCursor: null,
+      errorMessage: null,
+    ));
+    try {
+      final page = await _repository.search(query: state.query, topic: state.selectedTopicId);
+      emit(state.copyWith(results: page.data, nextCursor: page.nextCursor, isLoading: false));
+    } catch (_) {
+      emit(state.copyWith(isLoading: false, errorMessage: searchErrorMessage));
+    }
+  }
+
+  Future<void> _onLoadMore(LoadMoreResults event, Emitter<SearchState> emit) async {
+    if (!state.canLoadMore) return;
+
+    emit(state.copyWith(isLoadingMore: true, errorMessage: null));
+    try {
+      final page = await _repository.search(
+        query: state.query,
+        topic: state.selectedTopicId,
+        cursor: state.nextCursor,
+      );
+      emit(state.copyWith(
+        results: [...state.results, ...page.data],
+        nextCursor: page.nextCursor,
+        isLoadingMore: false,
+      ));
+    } catch (_) {
+      emit(state.copyWith(isLoadingMore: false, errorMessage: loadMoreErrorMessage));
+    }
+  }
+
+  Future<void> _onTopicChanged(TopicFilterChanged event, Emitter<SearchState> emit) async {
+    emit(state.copyWith(selectedTopicId: event.topicId));
+    if (state.hasSearched) await _search(emit);
+  }
+
+  void _onClear(ClearSearch event, Emitter<SearchState> emit) {
+    emit(state.copyWith(
+      query: '',
+      suggestions: const [],
+      results: const [],
+      nextCursor: null,
+      hasSearched: false,
+      isLoading: false,
+      isLoadingMore: false,
+      errorMessage: null,
+    ));
+  }
+
+  Future<void> _onClearRecent(ClearRecentSearches event, Emitter<SearchState> emit) async {
+    await _repository.clearRecentSearches();
+    emit(state.copyWith(recentSearches: const []));
+  }
+}

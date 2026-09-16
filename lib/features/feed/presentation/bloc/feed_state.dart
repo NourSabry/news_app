@@ -32,12 +32,7 @@ class FeedState extends Equatable {
   bool get isEmpty => articles.isEmpty;
   bool get hasPending => pendingArticles.isNotEmpty;
 
-  String topicNameFor(String topicId) {
-    for (final topic in topics) {
-      if (topic.id == topicId) return topic.name;
-    }
-    return '';
-  }
+  String topicNameFor(String topicId) => topics.nameFor(topicId);
 
   FeedState copyWith({
     FeedStatus? status,

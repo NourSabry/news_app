@@ -4,17 +4,20 @@ import '../../../core/models/models.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/empty_view.dart';
 import '../../../core/widgets/error_view.dart';
+import '../../../core/utils/snack_bar.dart';
+import '../../../core/widgets/pagination_footer.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../details/presentation/article_details_screen.dart';
 import 'bloc/feed_bloc.dart';
 import 'widgets/article_card.dart';
-import 'widgets/feed_footer.dart';
 import 'widgets/feed_header.dart';
 import 'widgets/new_stories_banner.dart';
 import 'widgets/trending_topics.dart';
 
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({super.key});
+  final ValueChanged<String>? onTrendingTap;
+
+  const FeedScreen({super.key, this.onTrendingTap});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -57,12 +60,6 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -72,7 +69,7 @@ class _FeedScreenState extends State<FeedScreen> {
             current.errorMessage != null &&
             previous.errorMessage != current.errorMessage &&
             !current.isEmpty,
-        listener: (context, state) => _showError(context, state.errorMessage!),
+        listener: (context, state) => showSnackBarMessage(context, state.errorMessage!),
         builder: (context, state) => Stack(
           alignment: Alignment.topCenter,
           children: [
@@ -108,10 +105,15 @@ class _FeedScreenState extends State<FeedScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           const SliverToBoxAdapter(child: FeedHeader()),
-          SliverToBoxAdapter(child: TrendingTopics(topics: state.trending)),
+          SliverToBoxAdapter(
+            child: TrendingTopics(
+              topics: state.trending,
+              onTopicTap: (topic) => widget.onTrendingTap?.call(topic.label),
+            ),
+          ),
           _buildArticles(state),
           SliverToBoxAdapter(
-            child: FeedFooter(isLoadingMore: state.isLoadingMore, hasMore: state.hasMore),
+            child: PaginationFooter(isLoadingMore: state.isLoadingMore, hasMore: state.hasMore),
           ),
         ],
       ),

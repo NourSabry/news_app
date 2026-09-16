@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/future_extensions.dart';
 import '../../domain/feed_delta.dart';
 import '../../domain/feed_repository.dart';
 import 'feed_event.dart';
@@ -27,8 +28,8 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     try {
       final (page, topics, trending) = await (
         _repository.fetchPage(),
-        _orFallback(_repository.getTopics(), state.topics),
-        _orFallback(_repository.getTrending(), state.trending),
+        _repository.getTopics().orFallback(state.topics),
+        _repository.getTrending().orFallback(state.trending),
       ).wait;
       emit(state.copyWith(
         status: FeedStatus.success,
@@ -87,7 +88,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     try {
       final (delta, trending) = await (
         _repository.fetchUpdates(),
-        _orFallback(_repository.getTrending(), state.trending),
+        _repository.getTrending().orFallback(state.trending),
       ).wait;
       emit(state.copyWith(
         articles: _applyDelta(state.articles, delta),
@@ -132,9 +133,5 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
   Map<String, Article> _indexById(List<Article> articles) {
     return {for (final article in articles) article.id: article};
-  }
-
-  Future<T> _orFallback<T>(Future<T> future, T fallback) {
-    return future.catchError((Object _) => fallback);
   }
 }

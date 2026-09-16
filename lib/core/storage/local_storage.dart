@@ -106,13 +106,21 @@ class LocalStorage {
     await _meta.put('onboarding_completed', 'true');
   }
 
-  List<String> getSelectedTopicIds() {
-    final raw = _meta.get('selected_topics');
-    if (raw == null) return [];
-    return (json.decode(raw) as List<dynamic>).map((e) => e as String).toList();
-  }
+  List<String> getSelectedTopicIds() => _getMetaList('selected_topics');
 
   Future<void> setSelectedTopicIds(List<String> ids) async {
     await _meta.put('selected_topics', json.encode(ids));
+  }
+
+  List<String> getRecentSearches() => _getMetaList('recent_searches');
+
+  Future<void> setRecentSearches(List<String> queries) async {
+    await _meta.put('recent_searches', json.encode(queries));
+  }
+
+  List<String> _getMetaList(String key) {
+    final raw = _meta.get(key);
+    if (raw == null) return [];
+    return (json.decode(raw) as List<dynamic>).map((e) => e as String).toList();
   }
 }

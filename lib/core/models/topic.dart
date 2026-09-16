@@ -30,3 +30,12 @@ class Topic extends Equatable {
   @override
   List<Object?> get props => [id];
 }
+
+extension TopicLookup on List<Topic> {
+  String nameFor(String id) {
+    for (final topic in this) {
+      if (topic.id == id) return topic.name;
+    }
+    return '';
+  }
+}

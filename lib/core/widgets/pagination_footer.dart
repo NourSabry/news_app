@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../theme/app_spacing.dart';
 
-class FeedFooter extends StatelessWidget {
+class PaginationFooter extends StatelessWidget {
   final bool isLoadingMore;
   final bool hasMore;
 
-  const FeedFooter({super.key, required this.isLoadingMore, required this.hasMore});
+  const PaginationFooter({super.key, required this.isLoadingMore, required this.hasMore});
 
   @override
   Widget build(BuildContext context) {

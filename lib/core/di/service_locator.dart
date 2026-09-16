@@ -1,5 +1,9 @@
+import '../../features/details/data/details_repository_impl.dart';
+import '../../features/details/domain/details_repository.dart';
 import '../../features/feed/data/feed_repository_impl.dart';
 import '../../features/feed/domain/feed_repository.dart';
+import '../../features/search/data/search_repository_impl.dart';
+import '../../features/search/domain/search_repository.dart';
 import '../network/api_client.dart';
 import '../network/mock_api_client.dart';
 import '../storage/local_storage.dart';
@@ -46,5 +50,7 @@ class ServiceLocator {
     register<MockApiClient>(apiClient);
 
     register<FeedRepository>(FeedRepositoryImpl(apiClient, localStorage));
+    register<DetailsRepository>(DetailsRepositoryImpl(apiClient, localStorage));
+    register<SearchRepository>(SearchRepositoryImpl(apiClient, localStorage));
   }
 }

@@ -5,16 +5,19 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../../../../core/widgets/cached_image.dart';
+import '../../../../core/widgets/topic_badge.dart';
 
 class ArticleCard extends StatelessWidget {
   final Article article;
   final String topicName;
+  final bool compact;
   final VoidCallback? onTap;
 
   const ArticleCard({
     super.key,
     required this.article,
     this.topicName = '',
+    this.compact = false,
     this.onTap,
   });
 
@@ -29,19 +32,8 @@ class ArticleCard extends StatelessWidget {
           children: [
             _buildImage(),
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeadline(context),
-                  const SizedBox(height: AppSpacing.xs),
-                  _buildSummary(context),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildByline(context),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildStats(context),
-                ],
-              ),
+              padding: EdgeInsets.all(compact ? AppSpacing.md : AppSpacing.lg),
+              child: compact ? _buildCompactContent(context) : _buildFullContent(context),
             ),
           ],
         ),
@@ -49,24 +41,51 @@ class ArticleCard extends StatelessWidget {
     );
   }
 
+  Widget _buildCompactContent(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeadline(context),
+        const SizedBox(height: AppSpacing.xs),
+        _buildByline(context),
+      ],
+    );
+  }
+
+  Widget _buildFullContent(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeadline(context),
+        const SizedBox(height: AppSpacing.xs),
+        _buildSummary(context),
+        const SizedBox(height: AppSpacing.md),
+        _buildByline(context),
+        const SizedBox(height: AppSpacing.md),
+        _buildStats(context),
+      ],
+    );
+  }
+
   Widget _buildImage() {
     return Stack(
       children: [
-        CachedImage(imageUrl: article.image, height: 180, borderRadius: 0),
+        CachedImage(imageUrl: article.image, height: compact ? 110 : 180, borderRadius: 0),
         if (topicName.isNotEmpty)
           Positioned(
             top: AppSpacing.md,
             left: AppSpacing.md,
-            child: _TopicBadge(label: topicName),
+            child: TopicBadge(label: topicName, onImage: true),
           ),
       ],
     );
   }
 
   Widget _buildHeadline(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Text(
       article.title,
-      style: Theme.of(context).textTheme.titleLarge,
+      style: compact ? textTheme.titleMedium : textTheme.titleLarge,
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
@@ -87,7 +106,7 @@ class ArticleCard extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            '${article.source} · ${article.author.name}',
+            compact ? article.source : '${article.source} · ${article.author.name}',
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w600,
@@ -125,32 +144,6 @@ class ArticleCard extends StatelessWidget {
         if (article.isBookmarked)
           Icon(Icons.bookmark_rounded, size: 18, color: theme.colorScheme.primary),
       ],
-    );
-  }
-}
-
-class _TopicBadge extends StatelessWidget {
-  final String label;
-
-  const _TopicBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.4,
-        ),
-      ),
     );
   }
 }

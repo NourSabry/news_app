@@ -5,6 +5,9 @@ import '../core/widgets/offline_banner.dart';
 import '../features/feed/domain/feed_repository.dart';
 import '../features/feed/presentation/bloc/feed_bloc.dart';
 import '../features/feed/presentation/feed_screen.dart';
+import '../features/search/domain/search_repository.dart';
+import '../features/search/presentation/bloc/search_bloc.dart';
+import '../features/search/presentation/search_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -14,7 +17,22 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  static const _exploreIndex = 1;
+
   int _currentIndex = 0;
+  late final SearchBloc _searchBloc =
+      SearchBloc(ServiceLocator.instance.get<SearchRepository>())..add(const SearchStarted());
+
+  @override
+  void dispose() {
+    _searchBloc.close();
+    super.dispose();
+  }
+
+  void _searchTrending(String label) {
+    _searchBloc.add(SubmitSearch(label));
+    setState(() => _currentIndex = _exploreIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +86,9 @@ class _AppShellState extends State<AppShell> {
         BlocProvider(
           create: (_) => FeedBloc(ServiceLocator.instance.get<FeedRepository>())
             ..add(const LoadFeed()),
-          child: const FeedScreen(),
+          child: FeedScreen(onTrendingTap: _searchTrending),
         ),
-        const _PlaceholderTab(title: 'Explore', icon: Icons.search_rounded),
+        BlocProvider.value(value: _searchBloc, child: const SearchScreen()),
         const _PlaceholderTab(title: 'Saved', icon: Icons.bookmark_rounded),
       ],
     );
