@@ -1,0 +1,273 @@
+[
+  {
+    "id":"a_flutter_roadmap",
+    "title":"Flutter Team Shares the Next Performance Roadmap",
+    "summary":"New rendering and tooling work targets smoother apps across all platforms.",
+    "source":"Mobile Daily",
+    "author":{"id":"u_maya","name":"Maya Chen","avatar":"https://picsum.photos/seed/maya/120","bio":"Mobile technology editor covering Flutter and cross-platform development."},
+    "topicId":"t_technology",
+    "publishedAt":"2026-09-14T08:30:00Z",
+    "updatedAt":"2026-09-14T09:12:00Z",
+    "image":"https://picsum.photos/seed/flutter-news/900/600",
+    "tags":["flutter","mobile","performance"],
+    "likes":184,"comments":29,"isLiked":false,"isBookmarked":true,
+    "readTimeMinutes":5,
+    "body":[
+      {"type":"paragraph","text":"The Flutter team has unveiled a comprehensive roadmap focused on startup time optimization and rendering performance improvements that will benefit developers building complex applications."},
+      {"type":"image","url":"https://picsum.photos/seed/rendering/900/500"},
+      {"type":"paragraph","text":"Key areas of focus include reducing shader compilation jank, improving memory usage patterns, and introducing new DevTools capabilities for performance profiling."},
+      {"type":"quote","text":"Performance is a product feature. Every millisecond matters when you are building experiences that users love."},
+      {"type":"paragraph","text":"The team also announced plans to improve hot reload reliability and introduce new testing utilities that will make it easier to write performance regression tests."}
+    ],
+    "related":["a_architecture_patterns","a_dart_tooling"],
+    "version":3
+  },
+  {
+    "id":"a_clean_energy",
+    "title":"Battery Breakthrough Improves Grid Storage Efficiency",
+    "summary":"Researchers report longer cycle life and lower degradation in early trials of new solid-state cells.",
+    "source":"Science Journal",
+    "author":{"id":"u_omar","name":"Omar Hassan","avatar":"https://picsum.photos/seed/omar/120","bio":"Science correspondent specializing in energy and climate technology."},
+    "topicId":"t_science",
+    "publishedAt":"2026-09-14T06:10:00Z",
+    "image":"https://picsum.photos/seed/energy/900/600",
+    "tags":["energy","research","climate"],
+    "likes":96,"comments":11,"isLiked":true,"isBookmarked":false,
+    "readTimeMinutes":7,
+    "body":[
+      {"type":"paragraph","text":"A team of researchers has demonstrated a new solid-state battery chemistry that could dramatically improve the economics of grid-scale energy storage."},
+      {"type":"paragraph","text":"The breakthrough centers on a novel electrolyte material that maintains conductivity over thousands of charge cycles without the degradation seen in current lithium-ion solutions."},
+      {"type":"image","url":"https://picsum.photos/seed/battery/900/500"},
+      {"type":"quote","text":"This could be the missing piece for making renewable energy truly reliable at scale."}
+    ],
+    "related":["a_solar_farms","a_climate_policy"],
+    "version":2
+  },
+  {
+    "id":"a_market_week",
+    "title":"Markets Open Higher as Technology Shares Advance",
+    "summary":"Investors watch inflation data and earnings guidance from major tech companies.",
+    "source":"Market Brief",
+    "author":{"id":"u_lina","name":"Lina Adel","avatar":"https://picsum.photos/seed/lina/120","bio":"Financial markets analyst and columnist."},
+    "topicId":"t_business",
+    "publishedAt":"2026-09-13T19:45:00Z",
+    "image":"https://picsum.photos/seed/market/900/600",
+    "tags":["markets","technology","investing"],
+    "likes":51,"comments":8,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":4,
+    "body":[
+      {"type":"paragraph","text":"Major indices opened higher on Monday as investors digested positive earnings signals from the technology sector and awaited key inflation data later this week."},
+      {"type":"paragraph","text":"Technology shares led the advance with semiconductor and cloud computing companies posting strong pre-market gains."}
+    ],
+    "related":["a_startup_funding"],
+    "version":1
+  },
+  {
+    "id":"a_architecture_patterns",
+    "title":"Clean Architecture Patterns for Modern Mobile Apps",
+    "summary":"A practical guide to structuring Flutter and native apps for testability and scale.",
+    "source":"TechWire",
+    "author":{"id":"u_sarah","name":"Sarah Kim","avatar":"https://picsum.photos/seed/sarah/120","bio":"Software architect and open-source contributor."},
+    "topicId":"t_technology",
+    "publishedAt":"2026-09-13T14:20:00Z",
+    "image":"https://picsum.photos/seed/architecture/900/600",
+    "tags":["architecture","mobile","best-practices"],
+    "likes":212,"comments":34,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":8,
+    "body":[
+      {"type":"paragraph","text":"Building mobile applications that scale requires deliberate architectural decisions made early in the development process."},
+      {"type":"paragraph","text":"This guide walks through practical patterns for separating concerns, managing dependencies, and structuring code for long-term maintainability."},
+      {"type":"quote","text":"The best architecture is the one your team can understand and evolve."}
+    ],
+    "related":["a_flutter_roadmap","a_dart_tooling"],
+    "version":1
+  },
+  {
+    "id":"a_dart_tooling",
+    "title":"Dart Tooling Upgrades Accelerate Developer Workflows",
+    "summary":"New analyzer rules, formatter improvements, and package management enhancements ship this quarter.",
+    "source":"Future Stack",
+    "author":{"id":"u_alex","name":"Alex Rivera","avatar":"https://picsum.photos/seed/alex/120","bio":"Developer tools engineer and Dart ecosystem contributor."},
+    "topicId":"t_technology",
+    "publishedAt":"2026-09-13T10:00:00Z",
+    "image":"https://picsum.photos/seed/dart-tools/900/600",
+    "tags":["dart","tooling","developer-experience"],
+    "likes":78,"comments":15,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":5,
+    "body":[
+      {"type":"paragraph","text":"The Dart team has released a set of tooling improvements designed to make everyday development faster and more reliable."},
+      {"type":"paragraph","text":"Highlights include smarter code completion, faster analysis, and improved support for large monorepo setups."}
+    ],
+    "related":["a_flutter_roadmap"],
+    "version":1
+  },
+  {
+    "id":"a_startup_funding",
+    "title":"Early-Stage Funding Rebounds in Q3 After Two Quiet Quarters",
+    "summary":"Seed and Series A rounds increase as investor confidence returns to enterprise software.",
+    "source":"Startup Post",
+    "author":{"id":"u_james","name":"James Wright","avatar":"https://picsum.photos/seed/james/120","bio":"Venture capital and startup ecosystem reporter."},
+    "topicId":"t_business",
+    "publishedAt":"2026-09-12T16:30:00Z",
+    "image":"https://picsum.photos/seed/startup/900/600",
+    "tags":["startups","funding","venture-capital"],
+    "likes":67,"comments":12,"isLiked":false,"isBookmarked":true,
+    "readTimeMinutes":6,
+    "body":[
+      {"type":"paragraph","text":"After two quarters of cautious deployment, venture capital firms are showing renewed appetite for early-stage enterprise software companies."},
+      {"type":"quote","text":"The fundamentals are strong again. We are seeing better unit economics and more realistic valuations."}
+    ],
+    "related":["a_market_week"],
+    "version":1
+  },
+  {
+    "id":"a_tennis_finals",
+    "title":"Underdog Reaches Grand Slam Final After Historic Run",
+    "summary":"An unseeded player defeats three top-ten opponents to reach the championship match.",
+    "source":"Match Point",
+    "author":{"id":"u_nina","name":"Nina Petrova","avatar":"https://picsum.photos/seed/nina/120","bio":"Tennis and racket sports correspondent."},
+    "topicId":"t_sports",
+    "publishedAt":"2026-09-12T12:15:00Z",
+    "image":"https://picsum.photos/seed/tennis/900/600",
+    "tags":["tennis","grand-slam","sports"],
+    "likes":340,"comments":89,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":4,
+    "body":[
+      {"type":"paragraph","text":"In one of the most remarkable runs in recent Grand Slam history, an unseeded qualifier has battled through to the championship final."},
+      {"type":"image","url":"https://picsum.photos/seed/tennis-court/900/500"},
+      {"type":"paragraph","text":"The journey included victories over three top-ten players, each match going the distance in thrilling five-set battles."}
+    ],
+    "related":["a_football_transfer"],
+    "version":1
+  },
+  {
+    "id":"a_football_transfer",
+    "title":"Record Transfer Window Reshapes League Title Race",
+    "summary":"Big spending clubs reshape their squads ahead of a competitive season.",
+    "source":"Arena News",
+    "author":{"id":"u_carlos","name":"Carlos Mendez","avatar":"https://picsum.photos/seed/carlos/120","bio":"Football transfer specialist and tactical analyst."},
+    "topicId":"t_sports",
+    "publishedAt":"2026-09-11T20:00:00Z",
+    "image":"https://picsum.photos/seed/football/900/600",
+    "tags":["football","transfers","premier-league"],
+    "likes":189,"comments":45,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":5,
+    "body":[
+      {"type":"paragraph","text":"The summer transfer window has closed with record spending across Europe's top leagues, fundamentally altering the competitive landscape."},
+      {"type":"paragraph","text":"Several clubs have made strategic investments in young talent while others have prioritized experienced players to make immediate impacts."}
+    ],
+    "related":["a_tennis_finals"],
+    "version":1
+  },
+  {
+    "id":"a_mental_health",
+    "title":"New Research Links Sleep Quality to Long-Term Cognitive Health",
+    "summary":"A longitudinal study reveals strong connections between sleep patterns and brain health over decades.",
+    "source":"Health Today",
+    "author":{"id":"u_priya","name":"Priya Sharma","avatar":"https://picsum.photos/seed/priya/120","bio":"Health and neuroscience writer."},
+    "topicId":"t_health",
+    "publishedAt":"2026-09-11T09:30:00Z",
+    "image":"https://picsum.photos/seed/sleep/900/600",
+    "tags":["health","sleep","neuroscience"],
+    "likes":156,"comments":22,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":6,
+    "body":[
+      {"type":"paragraph","text":"A 30-year longitudinal study has provided the strongest evidence yet linking consistent sleep quality to long-term cognitive function and reduced dementia risk."},
+      {"type":"quote","text":"Sleep is not a luxury. It is a fundamental pillar of brain health that we can actively protect."}
+    ],
+    "related":["a_nutrition_study"],
+    "version":1
+  },
+  {
+    "id":"a_ai_policy",
+    "title":"Global AI Governance Framework Gains Momentum",
+    "summary":"Major economies align on principles for responsible AI deployment across critical sectors.",
+    "source":"TechWire",
+    "author":{"id":"u_david","name":"David Park","avatar":"https://picsum.photos/seed/david/120","bio":"Technology policy and regulation correspondent."},
+    "topicId":"t_technology",
+    "publishedAt":"2026-09-14T11:00:00Z",
+    "image":"https://picsum.photos/seed/ai-policy/900/600",
+    "tags":["ai","policy","governance"],
+    "likes":124,"comments":31,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":7,
+    "body":[
+      {"type":"paragraph","text":"Representatives from 40 nations have agreed on a shared framework for governing artificial intelligence deployment in healthcare, finance, and critical infrastructure."},
+      {"type":"paragraph","text":"The framework establishes common standards for transparency, accountability, and human oversight while leaving room for national adaptation."}
+    ],
+    "related":["a_architecture_patterns"],
+    "version":1
+  },
+  {
+    "id":"a_solar_farms",
+    "title":"Floating Solar Farms Expand Across Southeast Asia",
+    "summary":"Countries with limited land area turn to water-based solar installations to meet clean energy targets.",
+    "source":"Science Journal",
+    "author":{"id":"u_omar","name":"Omar Hassan","avatar":"https://picsum.photos/seed/omar/120"},
+    "topicId":"t_science",
+    "publishedAt":"2026-09-10T07:45:00Z",
+    "image":"https://picsum.photos/seed/solar/900/600",
+    "tags":["solar","energy","asia"],
+    "likes":88,"comments":14,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":5,
+    "body":[
+      {"type":"paragraph","text":"Floating solar installations are rapidly expanding across reservoirs and coastal waters in Southeast Asia."},
+      {"type":"image","url":"https://picsum.photos/seed/floating-solar/900/500"}
+    ],
+    "related":["a_clean_energy"],
+    "version":1
+  },
+  {
+    "id":"a_nutrition_study",
+    "title":"Mediterranean Diet Shows Protective Effects on Heart Health",
+    "summary":"A large-scale trial confirms significant cardiovascular benefits from plant-forward eating patterns.",
+    "source":"Wellness Post",
+    "author":{"id":"u_emma","name":"Emma Laurent","avatar":"https://picsum.photos/seed/emma/120"},
+    "topicId":"t_health",
+    "publishedAt":"2026-09-09T15:20:00Z",
+    "image":"https://picsum.photos/seed/nutrition/900/600",
+    "tags":["nutrition","heart-health","research"],
+    "likes":201,"comments":27,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":5,
+    "body":[
+      {"type":"paragraph","text":"The largest randomized trial to date on dietary patterns has confirmed that a Mediterranean-style diet significantly reduces cardiovascular events over a five-year period."}
+    ],
+    "related":["a_mental_health"],
+    "version":1
+  },
+  {
+    "id":"a_art_exhibition",
+    "title":"Immersive Digital Art Exhibition Opens in Three Cities",
+    "summary":"A traveling exhibition blends projection mapping with interactive installations exploring climate themes.",
+    "source":"Culture Desk",
+    "author":{"id":"u_mia","name":"Mia Zhang","avatar":"https://picsum.photos/seed/mia/120"},
+    "topicId":"t_culture",
+    "publishedAt":"2026-09-08T18:00:00Z",
+    "image":"https://picsum.photos/seed/digital-art/900/600",
+    "tags":["art","digital","exhibition"],
+    "likes":143,"comments":19,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":4,
+    "body":[
+      {"type":"paragraph","text":"Three major cities are hosting a simultaneous digital art experience that uses projection mapping and sensor technology to create immersive environments."}
+    ],
+    "related":[],
+    "version":1
+  },
+  {
+    "id":"a_climate_policy",
+    "title":"New Carbon Pricing Mechanism Launches in Major Economy",
+    "summary":"A cap-and-trade system aims to reduce industrial emissions by 40 percent within a decade.",
+    "source":"Discovery Wire",
+    "author":{"id":"u_omar","name":"Omar Hassan","avatar":"https://picsum.photos/seed/omar/120"},
+    "topicId":"t_science",
+    "publishedAt":"2026-09-07T11:30:00Z",
+    "image":"https://picsum.photos/seed/climate/900/600",
+    "tags":["climate","policy","emissions"],
+    "likes":72,"comments":18,"isLiked":false,"isBookmarked":false,
+    "readTimeMinutes":6,
+    "body":[
+      {"type":"paragraph","text":"A major economy has launched an ambitious carbon pricing mechanism that sets declining caps on industrial emissions over the next decade."}
+    ],
+    "related":["a_clean_energy","a_solar_farms"],
+    "version":1
+  }
+]

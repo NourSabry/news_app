@@ -1,0 +1,8 @@
+{
+  "t_technology": ["TechWire", "Future Stack", "Mobile Daily"],
+  "t_business": ["Market Brief", "Global Ledger", "Startup Post"],
+  "t_sports": ["Match Point", "Arena News", "The Final Whistle"],
+  "t_science": ["Science Journal", "Lab Report", "Discovery Wire"],
+  "t_health": ["Health Today", "Wellness Post", "MedLine Brief"],
+  "t_culture": ["Culture Desk", "Art Weekly", "The Stage"]
+}

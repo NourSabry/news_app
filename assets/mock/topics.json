@@ -1,0 +1,8 @@
+[
+  {"id":"t_technology","name":"Technology","icon":"devices"},
+  {"id":"t_business","name":"Business","icon":"business"},
+  {"id":"t_sports","name":"Sports","icon":"sports_soccer"},
+  {"id":"t_science","name":"Science","icon":"science"},
+  {"id":"t_health","name":"Health","icon":"health_and_safety"},
+  {"id":"t_culture","name":"Culture","icon":"palette"}
+]
