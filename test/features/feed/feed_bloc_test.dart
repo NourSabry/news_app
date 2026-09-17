@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:news_app/core/connectivity/connectivity_cubit.dart';
 import 'package:news_app/core/models/models.dart';
+import 'package:news_app/features/feed/domain/feed_delta.dart';
 import 'package:news_app/features/feed/domain/feed_repository.dart';
 import 'package:news_app/features/feed/presentation/bloc/feed_bloc.dart';
 
@@ -135,6 +136,25 @@ void main() {
     verify: (bloc) {
       expect(bloc.state.articles.map((a) => a.id), ['new-topic']);
     },
+  );
+
+  blocTest<FeedBloc, FeedState>(
+    'a refresh that removes a story notices it and drops it from the feed (T1, G3)',
+    build: () {
+      when(() => repository.fetchUpdates()).thenAnswer((_) async => const FeedDelta(
+            deletedIds: ['a'],
+          ));
+      when(() => repository.getTrending()).thenAnswer((_) async => const []);
+      return FeedBloc(repository, connectivity);
+    },
+    seed: () => FeedState(status: FeedStatus.success, articles: [article('a'), article('b')]),
+    act: (bloc) => bloc.add(const RefreshFeed()),
+    skip: 1,
+    expect: () => [
+      isA<FeedState>()
+          .having((s) => s.articles.map((a) => a.id), 'articles', ['b'])
+          .having((s) => s.notice, 'notice', '1 story removed by publisher'),
+    ],
   );
 
   blocTest<FeedBloc, FeedState>(
