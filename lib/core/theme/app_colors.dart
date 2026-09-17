@@ -17,7 +17,10 @@ sealed class AppColors {
   static const Color lightRed = Color(0xFFC8321E);
   static const Color lightRedSoft = Color(0xFFF6E4E0);
   static const Color lightSuccess = Color(0xFF2F6B4F);
-  static const Color lightWarning = Color(0xFF9A6B12);
+  // Darkened from the original 9A6B12 (G6/README contrast table) — that
+  // shade was 4.23:1 against lightPaper, just under the 4.5:1 AA minimum
+  // for the "Saved copy · Xh ago" caption text that uses it.
+  static const Color lightWarning = Color(0xFF8A6010);
 
   static const Color darkPaper = Color(0xFF121110);
   static const Color darkPaperRaised = Color(0xFF1A1917);
