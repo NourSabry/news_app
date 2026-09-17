@@ -9,13 +9,22 @@ sealed class AppSpacing {
   static const double xxl = 24;
   static const double xxxl = 32;
 
-  static const EdgeInsets screenPadding = EdgeInsets.symmetric(horizontal: lg);
+  /// Horizontal gutter (Part 6.3).
+  static const double gutter = 20;
+
+  static const EdgeInsets screenPadding = EdgeInsets.symmetric(horizontal: gutter);
   static const EdgeInsets cardPadding = EdgeInsets.all(md);
   static const EdgeInsets chipPadding = EdgeInsets.symmetric(horizontal: md, vertical: sm);
 
-  static const double radiusSm = 8;
-  static const double radiusMd = 12;
-  static const double radiusLg = 16;
-  static const double radiusXl = 20;
-  static const double radiusFull = 100;
+  /// Corner radius on images and tiles (Part 6.3). No 12–16 px "card" radii.
+  static const double radiusImage = 4;
+
+  /// Corner radius on the few pills (new-stories, pending sync).
+  static const double radiusPill = 999;
+
+  static const double radiusSm = radiusImage;
+  static const double radiusMd = radiusImage;
+  static const double radiusLg = radiusImage;
+  static const double radiusXl = radiusImage;
+  static const double radiusFull = radiusPill;
 }

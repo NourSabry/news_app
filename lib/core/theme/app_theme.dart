@@ -11,28 +11,25 @@ sealed class AppTheme {
   static ThemeData _buildTheme(Brightness brightness) {
     final isLight = brightness == Brightness.light;
 
-    final background = isLight ? AppColors.lightBackground : AppColors.darkBackground;
-    final surface = isLight ? AppColors.lightSurface : AppColors.darkSurface;
-    final textPrimary = isLight ? AppColors.lightTextPrimary : AppColors.darkTextPrimary;
-    final textSecondary = isLight ? AppColors.lightTextSecondary : AppColors.darkTextSecondary;
-    final accent = isLight ? AppColors.lightAccent : AppColors.darkAccent;
-    final divider = isLight ? AppColors.lightDivider : AppColors.darkDivider;
-    final navBarBg = isLight ? AppColors.lightNavBarBackground : AppColors.darkNavBarBackground;
-    final navBarSelected = isLight ? AppColors.lightNavBarSelected : AppColors.darkNavBarSelected;
-    final navBarUnselected = isLight ? AppColors.lightNavBarUnselected : AppColors.darkNavBarUnselected;
+    final paper = isLight ? AppColors.lightPaper : AppColors.darkPaper;
+    final paperRaised = isLight ? AppColors.lightPaperRaised : AppColors.darkPaperRaised;
+    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
+    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
+    final rule = isLight ? AppColors.lightRule : AppColors.darkRule;
+    final red = isLight ? AppColors.lightRed : AppColors.darkRed;
 
     final colorScheme = ColorScheme(
       brightness: brightness,
-      primary: accent,
+      primary: red,
       onPrimary: AppColors.white,
-      secondary: accent,
-      onSecondary: AppColors.white,
-      error: AppColors.error,
+      secondary: ink,
+      onSecondary: paper,
+      error: red,
       onError: AppColors.white,
-      surface: surface,
-      onSurface: textPrimary,
-      onSurfaceVariant: textSecondary,
-      outline: divider,
+      surface: paper,
+      onSurface: ink,
+      onSurfaceVariant: inkMuted,
+      outline: rule,
       shadow: AppColors.black.withValues(alpha: isLight ? 0.06 : 0.3),
     );
 
@@ -41,85 +38,66 @@ sealed class AppTheme {
       brightness: brightness,
       fontFamily: 'Inter',
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: background,
-      dividerColor: divider,
+      scaffoldBackgroundColor: paper,
+      dividerColor: rule,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: AppBarTheme(
-        backgroundColor: background,
-        foregroundColor: textPrimary,
+        backgroundColor: paper,
+        foregroundColor: ink,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTextStyles.headlineSmall.copyWith(color: textPrimary),
+        titleTextStyle: AppTextStyles.headlineS.copyWith(color: ink),
         systemOverlayStyle: isLight
             ? SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent)
             : SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: navBarBg,
-        selectedItemColor: navBarSelected,
-        unselectedItemColor: navBarUnselected,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        selectedLabelStyle: AppTextStyles.labelSmall.copyWith(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: AppTextStyles.labelSmall,
-      ),
       cardTheme: CardThemeData(
-        color: isLight ? AppColors.lightCardBackground : AppColors.darkCardBackground,
-        elevation: isLight ? 0.5 : 0,
+        color: paperRaised,
+        elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          side: isLight ? BorderSide.none : BorderSide(color: divider, width: 0.5),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+          side: BorderSide(color: rule, width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isLight ? AppColors.lightSearchBar : AppColors.darkSearchBar,
-        hintStyle: AppTextStyles.bodyMedium.copyWith(color: textSecondary),
+        fillColor: paperRaised,
+        hintStyle: AppTextStyles.body.copyWith(color: inkMuted),
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+          borderSide: BorderSide(color: rule),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+          borderSide: BorderSide(color: rule),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          borderSide: BorderSide(color: accent, width: 1.5),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+          borderSide: BorderSide(color: ink, width: 1.5),
         ),
-      ),
-      chipTheme: ChipThemeData(
-        backgroundColor: isLight ? AppColors.lightChipBackground : AppColors.darkChipBackground,
-        selectedColor: isLight ? AppColors.lightChipSelected : AppColors.darkChipSelected,
-        labelStyle: AppTextStyles.labelMedium.copyWith(color: textPrimary),
-        secondaryLabelStyle: AppTextStyles.labelMedium.copyWith(
-          color: isLight ? AppColors.lightChipTextSelected : AppColors.darkChipTextSelected,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusFull)),
-        side: BorderSide.none,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isLight ? AppColors.lightTextPrimary : AppColors.darkCardBackground,
-        contentTextStyle: AppTextStyles.bodyMedium.copyWith(color: isLight ? AppColors.white : AppColors.darkTextPrimary),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+        backgroundColor: ink,
+        contentTextStyle: AppTextStyles.body.copyWith(color: paper),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusImage)),
         behavior: SnackBarBehavior.floating,
       ),
       textTheme: TextTheme(
-        headlineLarge: AppTextStyles.headlineLarge.copyWith(color: textPrimary),
-        headlineMedium: AppTextStyles.headlineMedium.copyWith(color: textPrimary),
-        headlineSmall: AppTextStyles.headlineSmall.copyWith(color: textPrimary),
-        titleLarge: AppTextStyles.titleLarge.copyWith(color: textPrimary),
-        titleMedium: AppTextStyles.titleMedium.copyWith(color: textPrimary),
-        bodyLarge: AppTextStyles.bodyLarge.copyWith(color: textPrimary),
-        bodyMedium: AppTextStyles.bodyMedium.copyWith(color: textPrimary),
-        bodySmall: AppTextStyles.bodySmall.copyWith(color: textSecondary),
-        labelLarge: AppTextStyles.labelLarge.copyWith(color: textPrimary),
-        labelMedium: AppTextStyles.labelMedium.copyWith(color: textSecondary),
-        labelSmall: AppTextStyles.labelSmall.copyWith(color: textSecondary),
+        displayLarge: AppTextStyles.displayL.copyWith(color: ink),
+        headlineLarge: AppTextStyles.displayL.copyWith(color: ink),
+        headlineMedium: AppTextStyles.headlineM.copyWith(color: ink),
+        headlineSmall: AppTextStyles.headlineS.copyWith(color: ink),
+        titleLarge: AppTextStyles.headlineS.copyWith(color: ink),
+        titleMedium: AppTextStyles.label.copyWith(color: ink),
+        bodyLarge: AppTextStyles.body.copyWith(color: ink),
+        bodyMedium: AppTextStyles.bodyS.copyWith(color: ink),
+        bodySmall: AppTextStyles.caption.copyWith(color: inkMuted),
+        labelLarge: AppTextStyles.label.copyWith(color: ink),
+        labelMedium: AppTextStyles.caption.copyWith(color: inkMuted),
+        labelSmall: AppTextStyles.overline.copyWith(color: inkMuted),
       ),
     );
   }

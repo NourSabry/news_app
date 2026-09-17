@@ -1,50 +1,93 @@
 import 'package:flutter/material.dart';
 
+/// "The Edition" colour tokens (Part 6.1). No `Color(0x…)` literal may
+/// appear anywhere else in the app — every colour used by a widget must
+/// resolve through one of these tokens.
 sealed class AppColors {
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
 
-  static const Color lightBackground = Color(0xFFF8F9FA);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightCardBackground = Color(0xFFFFFFFF);
-  static const Color lightDivider = Color(0xFFE8E8E8);
-  static const Color lightTextPrimary = Color(0xFF1A1A2E);
-  static const Color lightTextSecondary = Color(0xFF6B7280);
-  static const Color lightTextTertiary = Color(0xFF9CA3AF);
-  static const Color lightAccent = Color(0xFF2A6470);
-  static const Color lightAccentLight = Color(0xFFE8F4F6);
-  static const Color lightSearchBar = Color(0xFFF1F3F5);
-  static const Color lightChipBackground = Color(0xFFF1F3F5);
-  static const Color lightChipSelected = Color(0xFF1A1A2E);
-  static const Color lightChipTextSelected = Color(0xFFFFFFFF);
-  static const Color lightNavBarBackground = Color(0xFFFFFFFF);
-  static const Color lightNavBarSelected = Color(0xFF1A1A2E);
-  static const Color lightNavBarUnselected = Color(0xFF9CA3AF);
-  static const Color lightShimmerBase = Color(0xFFE0E0E0);
-  static const Color lightShimmerHighlight = Color(0xFFF5F5F5);
+  static const Color lightPaper = Color(0xFFF7F3EA);
+  static const Color lightPaperRaised = Color(0xFFFFFDF8);
+  static const Color lightInk = Color(0xFF141311);
+  static const Color lightInkMuted = Color(0xFF5C5852);
+  static const Color lightInkFaint = Color(0xFF9C968C);
+  static const Color lightRule = Color(0xFFD9D3C6);
+  static const Color lightRuleStrong = Color(0xFF141311);
+  static const Color lightRed = Color(0xFFC8321E);
+  static const Color lightRedSoft = Color(0xFFF6E4E0);
+  static const Color lightSuccess = Color(0xFF2F6B4F);
+  static const Color lightWarning = Color(0xFF9A6B12);
 
-  static const Color darkBackground = Color(0xFF0F1117);
-  static const Color darkSurface = Color(0xFF161821);
-  static const Color darkCardBackground = Color(0xFF1C1F2B);
-  static const Color darkDivider = Color(0xFF2A2D3A);
-  static const Color darkTextPrimary = Color(0xFFF1F2F6);
-  static const Color darkTextSecondary = Color(0xFF9CA3AF);
-  static const Color darkTextTertiary = Color(0xFF6B7280);
-  static const Color darkAccent = Color(0xFF4DA8B8);
-  static const Color darkAccentLight = Color(0xFF1A2F35);
-  static const Color darkSearchBar = Color(0xFF1C1F2B);
-  static const Color darkChipBackground = Color(0xFF1C1F2B);
-  static const Color darkChipSelected = Color(0xFFF1F2F6);
-  static const Color darkChipTextSelected = Color(0xFF0F1117);
-  static const Color darkNavBarBackground = Color(0xFF161821);
-  static const Color darkNavBarSelected = Color(0xFFF1F2F6);
-  static const Color darkNavBarUnselected = Color(0xFF6B7280);
-  static const Color darkShimmerBase = Color(0xFF2A2D3A);
-  static const Color darkShimmerHighlight = Color(0xFF3A3D4A);
+  static const Color darkPaper = Color(0xFF121110);
+  static const Color darkPaperRaised = Color(0xFF1A1917);
+  static const Color darkInk = Color(0xFFEFE9DC);
+  static const Color darkInkMuted = Color(0xFFA39D93);
+  static const Color darkInkFaint = Color(0xFF6B665E);
+  static const Color darkRule = Color(0xFF2A2825);
+  static const Color darkRuleStrong = Color(0xFFEFE9DC);
+  static const Color darkRed = Color(0xFFE5533E);
+  static const Color darkRedSoft = Color(0xFF3A1F1B);
+  static const Color darkSuccess = Color(0xFF6FB58F);
+  static const Color darkWarning = Color(0xFFD9A441);
 
-  static const Color error = Color(0xFFDC3545);
-  static const Color success = Color(0xFF28A745);
-  static const Color warning = Color(0xFFFFC107);
-  static const Color liked = Color(0xFFE53E3E);
-  static const Color bookmarked = Color(0xFF2A6470);
+  // Section tints — used for topic tag text/rule only, never large fills
+  // except onboarding tiles (Part 6.1).
+  static const Color lightTintTechnology = Color(0xFF345E8C);
+  static const Color lightTintBusiness = Color(0xFF8A6A1E);
+  static const Color lightTintSports = Color(0xFF2F6B4F);
+  static const Color lightTintScience = Color(0xFF5A4C8C);
+  static const Color lightTintHealth = Color(0xFFB04E3C);
+  static const Color lightTintCulture = Color(0xFF7A3E6B);
+
+  static const Color darkTintTechnology = Color(0xFF7FA9D6);
+  static const Color darkTintBusiness = Color(0xFFD2B15C);
+  static const Color darkTintSports = Color(0xFF6FB58F);
+  static const Color darkTintScience = Color(0xFFA497D6);
+  static const Color darkTintHealth = Color(0xFFE0876F);
+  static const Color darkTintCulture = Color(0xFFC58AB6);
+
+  static const Map<String, Color> _lightTints = {
+    'Technology': lightTintTechnology,
+    'Business': lightTintBusiness,
+    'Sports': lightTintSports,
+    'Science': lightTintScience,
+    'Health': lightTintHealth,
+    'Culture': lightTintCulture,
+  };
+
+  static const Map<String, Color> _darkTints = {
+    'Technology': darkTintTechnology,
+    'Business': darkTintBusiness,
+    'Sports': darkTintSports,
+    'Science': darkTintScience,
+    'Health': darkTintHealth,
+    'Culture': darkTintCulture,
+  };
+
+  /// Section tint for a topic name, falling back to [inkMuted] for topics
+  /// not in the six core sections.
+  static Color sectionTint(String topicName, Brightness brightness) {
+    final tints = brightness == Brightness.light ? _lightTints : _darkTints;
+    return tints[topicName] ?? (brightness == Brightness.light ? lightInkMuted : darkInkMuted);
+  }
+
+  // Legacy aliases kept until the remaining screens are restyled
+  // (onboarding, saved list, shimmer, topic picker, offline banner,
+  // engagement row). Kept only so those files keep resolving colours
+  // through `AppColors` instead of a literal until they are rewritten.
+  static const Color warning = lightWarning;
+  static const Color success = lightSuccess;
+  static const Color error = lightRed;
+  static const Color liked = lightRed;
+  static const Color lightAccent = lightRed;
+  static const Color darkAccent = darkRed;
+  static const Color lightBackground = lightPaper;
+  static const Color darkBackground = darkPaper;
+  static const Color lightCardBackground = lightPaperRaised;
+  static const Color darkCardBackground = darkPaperRaised;
+  static const Color lightShimmerBase = lightRule;
+  static const Color darkShimmerBase = darkRule;
+  static const Color lightShimmerHighlight = lightPaperRaised;
+  static const Color darkShimmerHighlight = darkPaperRaised;
 }
