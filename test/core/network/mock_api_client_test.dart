@@ -1,6 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:news_app/core/models/models.dart';
 import 'package:news_app/core/network/mock_api_client.dart';
 import 'package:news_app/core/storage/key_value_store.dart';
+
+Article _found(ArticleResult result) {
+  return switch (result) {
+    ArticleFound(:final article) => article,
+    ArticleUnavailable() => throw StateError('expected ArticleFound'),
+  };
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +28,7 @@ void main() {
 
     final second = MockApiClient(store: store)..latencyMs = 0;
     final ids = await second.getBookmarkIds();
-    final article = await second.getArticle('a_flutter_roadmap');
+    final article = _found(await second.getArticle('a_flutter_roadmap'));
 
     expect(ids.toSet(), {'a_startup_funding', 'a_battery_breakthrough'});
     expect(article.isLiked, isTrue);
@@ -69,6 +77,28 @@ void main() {
     expect(byAuthor.data.length, greaterThanOrEqualTo(3));
   });
 
+  test('getArticle(unavailableArticleId) is always unavailable (G3)', () async {
+    final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
+
+    final result = await client.getArticle(MockApiClient.unavailableArticleId);
+
+    expect(result, isA<ArticleUnavailable>());
+    expect((result as ArticleUnavailable).reason, 'removed_by_publisher');
+  });
+
+  test('a real feed article is reported deleted on the second refresh, not the first (G3)', () async {
+    final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
+
+    final first = await client.getFeedUpdates(DateTime.now());
+    final second = await client.getFeedUpdates(DateTime.now());
+
+    expect(first.deletedItems, isEmpty);
+    expect(second.deletedItems, isNotEmpty);
+
+    final afterDeletion = await client.getArticle(second.deletedItems.first);
+    expect(afterDeletion, isA<ArticleUnavailable>());
+  });
+
   test('resetServerState clears persisted bookmarks and article overrides', () async {
     final store = MemoryStore();
     final first = MockApiClient(store: store)..latencyMs = 0;
@@ -83,7 +113,7 @@ void main() {
     await first.resetServerState();
 
     final ids = await first.getBookmarkIds();
-    final article = await first.getArticle('a_flutter_roadmap');
+    final article = _found(await first.getArticle('a_flutter_roadmap'));
     expect(ids.toSet(), {'a_flutter_roadmap', 'a_startup_funding'});
     expect(article.isLiked, isFalse);
     expect(article.likes, 184);

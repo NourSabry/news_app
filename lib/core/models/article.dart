@@ -22,6 +22,11 @@ class Article extends Equatable {
   final List<String>? related;
   final int version;
 
+  /// True when the publisher removed this story (G3). Set locally when a
+  /// fetch resolves to [ArticleUnavailable] — never round-trips through
+  /// the API/cache JSON, since it isn't the article's own data.
+  final bool isUnavailable;
+
   const Article({
     required this.id,
     required this.title,
@@ -41,6 +46,7 @@ class Article extends Equatable {
     this.body,
     this.related,
     this.version = 1,
+    this.isUnavailable = false,
   });
 
   Article copyWith({
@@ -62,6 +68,7 @@ class Article extends Equatable {
     List<ContentBlock>? body,
     List<String>? related,
     int? version,
+    bool? isUnavailable,
   }) {
     return Article(
       id: id ?? this.id,
@@ -82,6 +89,7 @@ class Article extends Equatable {
       body: body ?? this.body,
       related: related ?? this.related,
       version: version ?? this.version,
+      isUnavailable: isUnavailable ?? this.isUnavailable,
     );
   }
 
@@ -134,5 +142,5 @@ class Article extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, version, isLiked, isBookmarked, likes];
+  List<Object?> get props => [id, version, isLiked, isBookmarked, likes, isUnavailable];
 }

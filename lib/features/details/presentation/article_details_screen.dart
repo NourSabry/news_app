@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/halftone_painter.dart';
 import '../../../core/widgets/state_view.dart';
+import '../../bookmarks/presentation/bloc/bookmarks_bloc.dart';
 import '../domain/details_repository.dart';
 import 'bloc/details_bloc.dart';
 import 'widgets/article_body.dart';
@@ -78,6 +79,27 @@ class _DetailsViewState extends State<_DetailsView> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<DetailsBloc>().state;
+
+    if (state.isUnavailable) {
+      final isBookmarked = context.select<BookmarksBloc, bool>(
+        (bloc) => bloc.state.contains(state.article.id),
+      );
+      return Scaffold(
+        body: SafeArea(
+          child: StateView(
+            shape: HalftoneShape.radial,
+            halftoneOpacity: 0.5,
+            title: 'This story was pulled.',
+            body: "The publisher removed it, so it's no longer available.",
+            primaryActionLabel: 'Back to the feed',
+            onPrimaryAction: () => Navigator.of(context).popUntil((route) => route.isFirst),
+            secondaryActionLabel: isBookmarked ? 'Remove from saved' : null,
+            onSecondaryAction: isBookmarked ? () => context.toggleBookmark(state.article) : null,
+          ),
+        ),
+      );
+    }
+
     final article = context.liveArticle(state.article);
     final brightness = Theme.of(context).brightness;
     final isLight = brightness == Brightness.light;

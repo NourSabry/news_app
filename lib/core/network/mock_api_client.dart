@@ -31,6 +31,15 @@ class MockApiClient implements ApiClient {
   int latencyMs = 400;
   int _refreshCount = 0;
 
+  /// Always unavailable (G3) — a fixed id for deep-link/error-path testing
+  /// (X3), not present in the feed dataset.
+  static const unavailableArticleId = 'a_removed_story';
+
+  /// The real feed article `getFeedUpdates` reports as deleted on the
+  /// second refresh (G3).
+  static const _deletableArticleId = 'a_startup_funding';
+  final Set<String> _deletedIds = {};
+
   Set<String> get _bookmarkIds {
     if (_bookmarkIdsCache != null) return _bookmarkIdsCache!;
     final raw = _store.get(_bookmarkIdsKey);
@@ -202,13 +211,15 @@ class MockApiClient implements ApiClient {
   }
 
   @override
-  Future<Article> getArticle(String id) async {
+  Future<ArticleResult> getArticle(String id) async {
     await _simulateNetwork();
+    if (id == unavailableArticleId || _deletedIds.contains(id)) {
+      return const ArticleUnavailable('removed_by_publisher');
+    }
     final articles = await _loadArticles();
-    return articles.firstWhere(
-      (a) => a.id == id,
-      orElse: () => throw Exception('Article not found: $id'),
-    );
+    final index = articles.indexWhere((a) => a.id == id);
+    if (index == -1) return const ArticleUnavailable('removed_by_publisher');
+    return ArticleFound(articles[index]);
   }
 
   @override
@@ -357,10 +368,19 @@ class MockApiClient implements ApiClient {
     final fresh = _createBreakingArticle(articles.first);
     articles.insert(0, fresh);
     _bumpEngagement(articles, 'a_flutter_roadmap');
+
+    // On the second refresh (and not before), the publisher pulls a story
+    // (G3) — reported once, in deletedItems, same as a real delta feed.
+    final deleted = <String>[];
+    if (_refreshCount >= 2 && _deletedIds.add(_deletableArticleId)) {
+      articles.removeWhere((a) => a.id == _deletableArticleId);
+      deleted.add(_deletableArticleId);
+    }
+
     return FeedUpdate(
       newItems: [fresh.id],
       updatedItems: ['a_flutter_roadmap'],
-      deletedItems: [],
+      deletedItems: deleted,
       serverTime: DateTime.now(),
     );
   }

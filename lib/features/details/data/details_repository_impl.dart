@@ -13,10 +13,10 @@ class DetailsRepositoryImpl implements DetailsRepository {
   Article? getCachedArticle(String id) => _storage.getCachedArticle(id);
 
   @override
-  Future<Article> fetchArticle(String id) async {
-    final article = await _api.getArticle(id);
-    await _storage.cacheArticle(article);
-    return article;
+  Future<ArticleResult> fetchArticle(String id) async {
+    final result = await _api.getArticle(id);
+    if (result is ArticleFound) await _storage.cacheArticle(result.article);
+    return result;
   }
 
   @override
@@ -27,7 +27,8 @@ class DetailsRepositoryImpl implements DetailsRepository {
 
   Future<Article?> _fetchOrCached(String id) async {
     try {
-      return await fetchArticle(id);
+      final result = await fetchArticle(id);
+      return result is ArticleFound ? result.article : null;
     } catch (_) {
       return getCachedArticle(id);
     }

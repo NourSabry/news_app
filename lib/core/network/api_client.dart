@@ -14,7 +14,7 @@ abstract class ApiClient {
     String? trendingLabel,
   });
 
-  Future<Article> getArticle(String id);
+  Future<ArticleResult> getArticle(String id);
 
   Future<FeedResponse> search({
     required String query,

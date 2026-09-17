@@ -71,7 +71,8 @@ class FeedRepositoryImpl implements FeedRepository {
   }
 
   Future<List<Article>> _fetchArticles(List<String> ids) async {
-    final articles = await Future.wait(ids.map(_api.getArticle));
+    final results = await Future.wait(ids.map(_api.getArticle));
+    final articles = results.whereType<ArticleFound>().map((r) => r.article).toList();
     await Future.wait(articles.map(_storage.cacheArticle));
     return articles;
   }

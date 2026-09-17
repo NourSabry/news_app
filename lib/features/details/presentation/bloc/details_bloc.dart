@@ -24,20 +24,31 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
       isLoading: true,
       fromCache: cached != null,
       errorMessage: null,
+      unavailableReason: null,
     ));
     try {
-      final (article, topics) = await (
+      final (result, topics) = await (
         _repository.fetchArticle(state.article.id),
         _repository.getTopics().orFallback(state.topics),
       ).wait;
-      emit(state.copyWith(article: article, topics: topics, isLoading: false, fromCache: false));
+      switch (result) {
+        case ArticleFound(:final article):
+          emit(state.copyWith(article: article, topics: topics, isLoading: false, fromCache: false));
+        case ArticleUnavailable(:final reason):
+          emit(state.copyWith(
+            topics: topics,
+            isLoading: false,
+            fromCache: false,
+            unavailableReason: reason,
+          ));
+      }
     } catch (_) {
       emit(state.copyWith(
         isLoading: false,
         errorMessage: state.hasBody ? null : loadErrorMessage,
       ));
     }
-    await _loadRelated(emit);
+    if (!state.isUnavailable) await _loadRelated(emit);
   }
 
   Future<void> _loadRelated(Emitter<DetailsState> emit) async {

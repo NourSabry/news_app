@@ -44,9 +44,10 @@ class EditionArticleCard extends StatelessWidget {
             ? ArticleCardVariant.brief
             : _effectiveVariant;
 
-    final label =
-        '${article.title}. $topicName, ${TimeFormatter.relative(article.publishedAt)}. '
-        '${article.likes} likes, ${article.comments} comments${article.isBookmarked ? ', saved' : ''}';
+    final label = article.isUnavailable
+        ? '${article.title}. No longer available.'
+        : '${article.title}. $topicName, ${TimeFormatter.relative(article.publishedAt)}. '
+            '${article.likes} likes, ${article.comments} comments${article.isBookmarked ? ', saved' : ''}';
 
     return Semantics(
       button: true,
@@ -54,11 +55,15 @@ class EditionArticleCard extends StatelessWidget {
       onTap: onTap,
       child: InkWell(
         onTap: onTap,
-        child: switch (effective) {
-          ArticleCardVariant.lead => _LeadLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
-          ArticleCardVariant.standard => _StandardLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
-          ArticleCardVariant.brief => _BriefLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
-        },
+        child: Opacity(
+          // Greyed, per Part 6.8 — never silently dropped (G3).
+          opacity: article.isUnavailable ? 0.5 : 1,
+          child: switch (effective) {
+            ArticleCardVariant.lead => _LeadLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
+            ArticleCardVariant.standard => _StandardLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
+            ArticleCardVariant.brief => _BriefLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
+          },
+        ),
       ),
     );
   }
@@ -66,13 +71,18 @@ class EditionArticleCard extends StatelessWidget {
 
 class _SectionTag extends StatelessWidget {
   final String topicName;
+  final bool isUnavailable;
 
-  const _SectionTag({required this.topicName});
+  const _SectionTag({required this.topicName, this.isUnavailable = false});
 
   @override
   Widget build(BuildContext context) {
-    if (topicName.isEmpty) return const SizedBox.shrink();
     final brightness = Theme.of(context).brightness;
+    if (isUnavailable) {
+      final inkFaint = brightness == Brightness.light ? AppColors.lightInkFaint : AppColors.darkInkFaint;
+      return Text('NO LONGER AVAILABLE', style: AppTextStyles.overline.copyWith(color: inkFaint));
+    }
+    if (topicName.isEmpty) return const SizedBox.shrink();
     final tint = AppColors.sectionTint(topicName, brightness);
     return Text(topicName.toUpperCase(), style: AppTextStyles.overline.copyWith(color: tint));
   }
@@ -145,7 +155,7 @@ class _LeadLayout extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _SectionTag(topicName: topicName),
+                      _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
                       const SizedBox(height: AppSpacing.xs),
                       Text(article.title, style: AppTextStyles.displayL.copyWith(color: onOverlay), maxLines: 3, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: AppSpacing.xs),
@@ -189,7 +199,7 @@ class _StandardLayout extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SectionTag(topicName: topicName),
+                  _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
                   const SizedBox(height: AppSpacing.xs),
                   Text(article.title, style: AppTextStyles.headlineM.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: AppSpacing.xs),
@@ -233,7 +243,7 @@ class _BriefLayout extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTag(topicName: topicName),
+        _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
         const SizedBox(height: AppSpacing.xs),
         Text(article.title, style: AppTextStyles.headlineS.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
         const SizedBox(height: AppSpacing.xs),

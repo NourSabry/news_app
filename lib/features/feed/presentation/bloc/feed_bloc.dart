@@ -138,11 +138,21 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         trending: trending,
         lastSyncedAt: _repository.getLastSyncTime(),
         isRefreshing: false,
-        notice: delta.isEmpty ? noNewStoriesMessage : null,
+        notice: _refreshNotice(delta),
       ));
     } catch (_) {
       emit(state.copyWith(isRefreshing: false, errorMessage: refreshErrorMessage));
     }
+  }
+
+  /// "1 story removed by publisher" takes priority over "no new stories"
+  /// (G3) — a refresh that removed something is never reported as a no-op.
+  String? _refreshNotice(FeedDelta delta) {
+    if (delta.deletedIds.isNotEmpty) {
+      final count = delta.deletedIds.length;
+      return '$count ${count == 1 ? 'story' : 'stories'} removed by publisher';
+    }
+    return delta.isEmpty ? noNewStoriesMessage : null;
   }
 
   void _onShowPending(ShowPendingArticles event, Emitter<FeedState> emit) {

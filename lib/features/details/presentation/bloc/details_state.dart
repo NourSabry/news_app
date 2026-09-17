@@ -11,6 +11,10 @@ class DetailsState extends Equatable {
   final bool fromCache;
   final String? errorMessage;
 
+  /// Plain-language reason the publisher pulled this story (G3), or null
+  /// while it's still available.
+  final String? unavailableReason;
+
   const DetailsState({
     required this.article,
     this.related = const [],
@@ -18,9 +22,11 @@ class DetailsState extends Equatable {
     this.isLoading = false,
     this.fromCache = false,
     this.errorMessage,
+    this.unavailableReason,
   });
 
   bool get hasBody => article.body != null;
+  bool get isUnavailable => unavailableReason != null;
   String get topicName => topics.nameFor(article.topicId);
 
   DetailsState copyWith({
@@ -30,6 +36,7 @@ class DetailsState extends Equatable {
     bool? isLoading,
     bool? fromCache,
     Object? errorMessage = _unset,
+    Object? unavailableReason = _unset,
   }) {
     return DetailsState(
       article: article ?? this.article,
@@ -38,9 +45,13 @@ class DetailsState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       fromCache: fromCache ?? this.fromCache,
       errorMessage: identical(errorMessage, _unset) ? this.errorMessage : errorMessage as String?,
+      unavailableReason: identical(unavailableReason, _unset)
+          ? this.unavailableReason
+          : unavailableReason as String?,
     );
   }
 
   @override
-  List<Object?> get props => [article, related, topics, isLoading, fromCache, errorMessage];
+  List<Object?> get props =>
+      [article, related, topics, isLoading, fromCache, errorMessage, unavailableReason];
 }

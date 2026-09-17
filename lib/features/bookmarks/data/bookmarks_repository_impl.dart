@@ -75,16 +75,35 @@ class BookmarksRepositoryImpl implements BookmarksRepository {
     return articles.whereType<Article>().toList();
   }
 
+  /// Never drops a saved id silently (G3) — an unavailable story still
+  /// shows in Saved, greyed with "No longer available", using whatever
+  /// was cached at bookmark time (bookmarking always caches the article).
   Future<Article?> _cachedOrFetched(String id) async {
     final cached = _storage.getCachedArticle(id);
-    if (cached != null) return cached;
     try {
-      final article = await _api.getArticle(id);
-      await _storage.cacheArticle(article);
-      return article;
+      final result = await _api.getArticle(id);
+      switch (result) {
+        case ArticleFound(:final article):
+          await _storage.cacheArticle(article);
+          return article;
+        case ArticleUnavailable():
+          return (cached ?? _unavailableStub(id)).copyWith(isUnavailable: true);
+      }
     } catch (_) {
-      return null;
+      return cached;
     }
+  }
+
+  Article _unavailableStub(String id) {
+    return Article(
+      id: id,
+      title: 'No longer available',
+      summary: '',
+      source: '',
+      author: const Author(id: '', name: ''),
+      topicId: '',
+      publishedAt: DateTime.now(),
+    );
   }
 
   @override

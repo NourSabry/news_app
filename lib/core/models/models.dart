@@ -1,4 +1,5 @@
 export 'article.dart';
+export 'article_result.dart';
 export 'author.dart';
 export 'content_block.dart';
 export 'feed_response.dart';
