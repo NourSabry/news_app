@@ -102,6 +102,8 @@ class _FreshnessBannerState extends State<FreshnessBanner> {
                 if (widget.variant == FreshnessBannerVariant.stale && widget.onRefresh != null)
                   Semantics(
                     button: true,
+                    container: true,
+                    excludeSemantics: true,
                     label: 'Refresh',
                     child: InkWell(
                       onTap: widget.onRefresh,

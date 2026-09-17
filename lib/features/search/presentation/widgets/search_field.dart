@@ -41,6 +41,8 @@ class SearchField extends StatelessWidget {
               ? null
               : Semantics(
                   button: true,
+                  container: true,
+                  excludeSemantics: true,
                   label: 'Clear search',
                   child: IconButton(
                     icon: Icon(Icons.close_rounded, color: inkFaint),

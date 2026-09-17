@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -20,7 +21,22 @@ class MockCacheManager extends Mock implements BaseCacheManager {}
 const flutterTitle = 'Flutter Team Shares the Next Performance Roadmap';
 const batteryTitle = 'Battery Breakthrough Improves Grid Storage Efficiency';
 
+/// `NewsApp` wires a real `DeepLinkController` (X3), which talks to the
+/// `app_links` plugin over platform channels that don't exist in a widget
+/// test — without a mock handler, that throws `MissingPluginException` and
+/// fails the test even when every visible assertion passes.
+void _mockAppLinksChannel() {
+  const messages = MethodChannel('com.llfbandit.app_links/messages');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(messages, (call) async => null);
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockStreamHandler(
+    const EventChannel('com.llfbandit.app_links/events'),
+    MockStreamHandler.inline(onListen: (arguments, events) {}),
+  );
+}
+
 Future<MockApiClient> bootstrap({bool onboarded = false}) async {
+  _mockAppLinksChannel();
   final storage = LocalStorage.inMemory();
   if (onboarded) await storage.setOnboardingCompleted(true);
 
@@ -34,6 +50,14 @@ Future<MockApiClient> bootstrap({bool onboarded = false}) async {
         headers: any(named: 'headers'),
         withProgress: any(named: 'withProgress'),
       )).thenAnswer((_) => Stream.error(Exception('No images in tests')));
+  // cached_network_image's static evictFromCache() (called from image
+  // lifecycle hooks, e.g. on dispose) bypasses whatever cacheManager a
+  // CachedNetworkImage was built with and falls back to this static's real
+  // DefaultCacheManager() — which then hits path_provider/sqflite platform
+  // channels that don't exist in a widget test. Redirecting it here means
+  // every fallback path is the same safe mock, not just the ones this app's
+  // own widgets pass explicitly.
+  CachedNetworkImageProvider.defaultCacheManager = images;
 
   final api = MockApiClient()..latencyMs = 0;
   rootBundle.clear();

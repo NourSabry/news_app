@@ -53,10 +53,15 @@ class EditionArticleCard extends StatelessWidget {
 
     return Semantics(
       button: true,
+      container: true,
       label: label,
       onTap: onTap,
       child: InkWell(
         onTap: onTap,
+        // The outer Semantics node above is the single source of truth for
+        // this card (G6/T4) — without this, InkWell's own auto-generated
+        // button semantics shows up as a second, unlabelled tappable node.
+        excludeFromSemantics: true,
         child: Opacity(
           // Greyed, per Part 6.8 — never silently dropped (G3).
           opacity: article.isUnavailable ? 0.5 : 1,
@@ -81,8 +86,9 @@ class _SectionTag extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     if (isUnavailable) {
-      final inkFaint = brightness == Brightness.light ? AppColors.lightInkFaint : AppColors.darkInkFaint;
-      return Text('NO LONGER AVAILABLE', style: AppTextStyles.overline.copyWith(color: inkFaint));
+      // inkMuted, not inkFaint (G6/T4) — see engagement_row.
+      final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
+      return Text('NO LONGER AVAILABLE', style: AppTextStyles.overline.copyWith(color: inkMuted));
     }
     if (topicName.isEmpty) return const SizedBox.shrink();
     final tint = AppColors.sectionTint(topicName, brightness);

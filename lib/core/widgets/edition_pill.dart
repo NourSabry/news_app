@@ -60,6 +60,8 @@ class EditionPill extends StatelessWidget {
               onTap: onRemove,
               child: Semantics(
                 button: true,
+                container: true,
+                excludeSemantics: true,
                 label: 'Remove $label filter',
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.xs),
@@ -76,6 +78,8 @@ class EditionPill extends StatelessWidget {
 
     return Semantics(
       button: true,
+      container: true,
+      excludeSemantics: true,
       label: label,
       child: GestureDetector(onTap: onTap, child: pill),
     );

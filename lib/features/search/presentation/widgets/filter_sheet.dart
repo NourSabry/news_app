@@ -215,6 +215,8 @@ class _ChoiceRow extends StatelessWidget {
 
     return Semantics(
       button: true,
+      container: true,
+      excludeSemantics: true,
       selected: selected,
       label: label,
       child: InkWell(

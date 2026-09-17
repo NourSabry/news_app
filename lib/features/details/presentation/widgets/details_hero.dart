@@ -99,6 +99,8 @@ class _CircleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      container: true,
+      excludeSemantics: true,
       label: label,
       child: Material(
         color: AppColors.lightInk.withValues(alpha: 0.55),
@@ -107,8 +109,9 @@ class _CircleButton extends StatelessWidget {
           onTap: onTap,
           customBorder: const CircleBorder(),
           child: SizedBox(
-            width: 44,
-            height: 44,
+            // androidTapTargetGuideline wants 48×48 (G6/T4).
+            width: 48,
+            height: 48,
             child: Center(child: Icon(icon, size: 20, color: AppColors.white)),
           ),
         ),

@@ -83,6 +83,7 @@ class InkButton extends StatelessWidget {
 
     return Semantics(
       button: true,
+      container: true,
       enabled: !_disabled,
       label: label,
       excludeSemantics: true,

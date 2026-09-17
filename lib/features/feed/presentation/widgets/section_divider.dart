@@ -13,14 +13,16 @@ class SectionDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final inkFaint = brightness == Brightness.light ? AppColors.lightInkFaint : AppColors.darkInkFaint;
+    // inkMuted, not inkFaint (G6/T4) — inkFaint doesn't meet WCAG AA
+    // against paper at this size; reserve it for decorative icons.
+    final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('MORE IN ${topicName.toUpperCase()}', style: AppTextStyles.overline.copyWith(color: inkFaint)),
+          Text('MORE IN ${topicName.toUpperCase()}', style: AppTextStyles.overline.copyWith(color: inkMuted)),
           const SizedBox(height: AppSpacing.sm),
           const Hairline(),
         ],

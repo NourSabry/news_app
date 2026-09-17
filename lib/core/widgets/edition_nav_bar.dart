@@ -119,6 +119,8 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      container: true,
+      excludeSemantics: true,
       selected: selected,
       label: item.label,
       child: InkWell(

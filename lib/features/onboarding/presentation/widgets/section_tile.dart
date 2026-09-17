@@ -28,10 +28,13 @@ class SectionTile extends StatelessWidget {
     final paperRaised = isLight ? AppColors.lightPaperRaised : AppColors.darkPaperRaised;
     final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
     final inkFaint = isLight ? AppColors.lightInkFaint : AppColors.darkInkFaint;
+    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
     final tint = AppColors.sectionTint(topic.name, brightness);
 
     return Semantics(
       button: true,
+      container: true,
+      excludeSemantics: true,
       selected: isSelected,
       label: topic.name,
       child: InkWell(
@@ -69,7 +72,8 @@ class SectionTile extends StatelessWidget {
                       if (articleCount != null)
                         Text(
                           '$articleCount ${articleCount == 1 ? 'story' : 'stories'} this week',
-                          style: AppTextStyles.caption.copyWith(color: inkFaint),
+                          // inkMuted, not inkFaint (G6/T4) — see engagement_row.
+                          style: AppTextStyles.caption.copyWith(color: inkMuted),
                         ),
                     ],
                   ),

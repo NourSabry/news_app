@@ -54,6 +54,8 @@ class _NewStoriesBannerState extends State<NewStoriesBanner> {
           opacity: isVisible ? 1 : 0,
           child: Semantics(
             button: true,
+            container: true,
+            excludeSemantics: true,
             label: _label,
             child: Material(
               color: ink,

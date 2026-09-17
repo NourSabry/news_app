@@ -12,7 +12,7 @@ import '../../../../core/widgets/hairline.dart';
 /// besides the nav bar.
 class EditionMastheadHeader extends SliverPersistentHeaderDelegate {
   static const double expandedHeight = 144;
-  static const double collapsedHeight = 52;
+  static const double collapsedHeight = 56;
 
   final List<TrendingTopic> trending;
   final String? scope;
@@ -117,11 +117,15 @@ class _ExpandedMasthead extends StatelessWidget {
               ),
               Semantics(
                 button: true,
+                container: true,
+                excludeSemantics: true,
                 label: 'Search',
                 child: IconButton(icon: const Icon(Icons.search_rounded), onPressed: onSearchTap),
               ),
               Semantics(
                 button: true,
+                container: true,
+                excludeSemantics: true,
                 label: 'Settings',
                 child: IconButton(icon: const Icon(Icons.settings_outlined), onPressed: onSettingsTap),
               ),
@@ -158,9 +162,10 @@ class _CollapsedBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         SizedBox(
-          // 44×44 tap targets (G6) — was 36×36, tightened only for the
-          // the redesign overflow fix; collapsedHeight grew to fit it back.
-          height: 44,
+          // 48×48 tap targets (G6/T4, androidTapTargetGuideline) — was
+          // 36×36, tightened only for the the redesign overflow fix;
+          // collapsedHeight grew to fit it back.
+          height: 48,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
             child: Row(
@@ -169,9 +174,11 @@ class _CollapsedBar extends StatelessWidget {
                 const Spacer(),
                 Semantics(
                   button: true,
+                  container: true,
+                  excludeSemantics: true,
                   label: 'Search',
                   child: IconButton(
-                    constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+                    constraints: const BoxConstraints.tightFor(width: 48, height: 48),
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.search_rounded),
                     onPressed: onSearchTap,
@@ -179,9 +186,11 @@ class _CollapsedBar extends StatelessWidget {
                 ),
                 Semantics(
                   button: true,
+                  container: true,
+                  excludeSemantics: true,
                   label: 'Settings',
                   child: IconButton(
-                    constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+                    constraints: const BoxConstraints.tightFor(width: 48, height: 48),
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.settings_outlined),
                     onPressed: onSettingsTap,
@@ -227,6 +236,8 @@ class _TickerRow extends StatelessWidget {
           ],
           Semantics(
             button: true,
+            container: true,
+            excludeSemantics: true,
             label: 'Trending: ${topics[i].label}',
             child: InkWell(
               onTap: () => onTopicTap(topics[i].label),
@@ -271,6 +282,8 @@ class _ScopeRow extends StatelessWidget {
           ),
           Semantics(
             button: true,
+            container: true,
+            excludeSemantics: true,
             label: 'Clear trending filter',
             child: InkWell(
               onTap: onClear,

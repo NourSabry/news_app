@@ -22,6 +22,8 @@ class TopicToggleRow extends StatelessWidget {
 
     return Semantics(
       button: true,
+      container: true,
+      excludeSemantics: true,
       selected: isSelected,
       label: topic.name,
       child: InkWell(

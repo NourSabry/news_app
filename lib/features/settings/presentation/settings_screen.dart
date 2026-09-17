@@ -88,6 +88,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Semantics(
                     button: true,
+                    container: true,
+                    excludeSemantics: true,
                     label: 'Back',
                     child: IconButton(
                       icon: Icon(Icons.arrow_back_rounded, color: ink),

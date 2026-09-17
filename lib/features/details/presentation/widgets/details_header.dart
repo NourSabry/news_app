@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -138,7 +140,15 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 14,
       backgroundColor: ink,
-      foregroundImage: avatar == null ? null : CachedNetworkImageProvider(avatar),
+      foregroundImage: avatar == null
+          ? null
+          : CachedNetworkImageProvider(
+              avatar,
+              cacheManager: ServiceLocator.instance.get<BaseCacheManager>(),
+            ),
+      // A broken avatar URL falls back to the initial-letter child instead
+      // of reporting an unhandled paint-time exception.
+      onForegroundImageError: avatar == null ? null : (_, _) {},
       child: Text(
         author.name.isEmpty ? '?' : author.name[0].toUpperCase(),
         style: AppTextStyles.label.copyWith(color: paper),

@@ -42,6 +42,8 @@ class DetailsBottomBar extends StatelessWidget {
                   Expanded(child: EngagementRow(article: article, onLike: onLike, onBookmark: onBookmark)),
                   Semantics(
                     button: true,
+                    container: true,
+                    excludeSemantics: true,
                     label: 'Share',
                     child: InkWell(
                       onTap: onShare,
