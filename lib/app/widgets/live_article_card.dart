@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import '../../core/models/models.dart';
-import '../../features/feed/presentation/widgets/article_card.dart';
+import '../../features/feed/presentation/widgets/article_cards.dart';
 import '../article_sync.dart';
 
 class LiveArticleCard extends StatelessWidget {
   final Article article;
   final String topicName;
-  final bool compact;
+  final ArticleCardVariant variant;
   final VoidCallback? onTap;
 
   const LiveArticleCard({
     super.key,
     required this.article,
     this.topicName = '',
-    this.compact = false,
+    this.variant = ArticleCardVariant.standard,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final live = context.liveArticle(article);
-    return ArticleCard(
+    return EditionArticleCard(
       article: live,
       topicName: topicName,
-      compact: compact,
+      variant: variant,
       onTap: onTap,
       onLike: () => context.toggleLike(live),
       onBookmark: () => context.toggleBookmark(live),
