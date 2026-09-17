@@ -19,6 +19,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   final FeedRepository _repository;
   final ConnectivityCubit _connectivity;
 
+  /// Bumped by every event that replaces the feed from a clean slate
+  /// (a fresh load or a scope change) — never by `LoadMoreFeed`/
+  /// `RefreshFeed`, which are continuations of the current load (G5).
+  /// A stale continuation whose captured generation no longer matches
+  /// drops its result instead of merging it into a feed it doesn't belong
+  /// to (e.g. a slow load-more page landing after a topic change).
+  int _generation = 0;
+
   FeedBloc(this._repository, this._connectivity) : super(const FeedState()) {
     on<LoadFeed>(_onLoad);
     on<LoadMoreFeed>(_onLoadMore);
@@ -29,6 +37,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   }
 
   Future<void> _onLoad(FeedEvent event, Emitter<FeedState> emit) async {
+    final generation = ++_generation;
     // Serve the cache immediately when there is one, instead of a
     // skeleton flash, then silently refresh — the same "cached first,
     // then live" shape DetailsBloc already uses. This is also what lets
@@ -50,6 +59,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         _repository.getTrending().orFallback(state.trending),
         _repository.getCacheTtlMinutes().orFallback(state.cacheTtlMinutes),
       ).wait;
+      if (generation != _generation) return;
       emit(state.copyWith(
         status: FeedStatus.success,
         articles: page.data,
@@ -63,11 +73,13 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         isOffline: !_connectivity.isConnected,
       ));
     } catch (_) {
+      if (generation != _generation) return;
       _recoverFromCache(emit);
     }
   }
 
   Future<void> _onScopeChanged(FeedScopeChanged event, Emitter<FeedState> emit) async {
+    final generation = ++_generation;
     emit(state.copyWith(
       status: FeedStatus.loading,
       scope: event.label,
@@ -77,6 +89,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     ));
     try {
       final page = await _repository.fetchPage(scope: event.label);
+      if (generation != _generation) return;
       emit(state.copyWith(
         status: FeedStatus.success,
         articles: page.data,
@@ -84,6 +97,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         isRefreshing: false,
       ));
     } catch (_) {
+      if (generation != _generation) return;
       emit(state.copyWith(
         status: FeedStatus.failure,
         errorMessage: loadErrorMessage,
@@ -117,15 +131,20 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     final canLoad = state.status == FeedStatus.success && state.hasMore;
     if (!canLoad || state.isLoadingMore || state.isRefreshing) return;
 
+    final generation = _generation;
     emit(state.copyWith(isLoadingMore: true, errorMessage: null));
     try {
       final page = await _repository.fetchPage(cursor: state.nextCursor, scope: state.scope);
+      // A topic/scope change mid-flight replaced the feed this page was
+      // meant to extend (G5) — merging it now would corrupt the new feed.
+      if (generation != _generation) return;
       emit(state.copyWith(
         articles: _merge(state.articles, page.data),
         nextCursor: page.nextCursor,
         isLoadingMore: false,
       ));
     } catch (_) {
+      if (generation != _generation) return;
       emit(state.copyWith(isLoadingMore: false, errorMessage: loadMoreErrorMessage));
     }
   }
@@ -134,12 +153,16 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     if (state.isRefreshing) return;
     if (state.isEmpty) return _onLoad(const LoadFeed(), emit);
 
+    final generation = _generation;
     emit(state.copyWith(isRefreshing: true, errorMessage: null, notice: null));
     try {
       final (delta, trending) = await (
         _repository.fetchUpdates(),
         _repository.getTrending().orFallback(state.trending),
       ).wait;
+      // Same guard as load-more (G5): a topic/scope change mid-flight
+      // means this delta no longer applies to the feed now shown.
+      if (generation != _generation) return;
       emit(state.copyWith(
         articles: _applyDelta(state.articles, delta),
         pendingArticles: _merge(_unseen(delta.newArticles), state.pendingArticles),
@@ -150,6 +173,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         isOffline: !_connectivity.isConnected,
       ));
     } catch (_) {
+      if (generation != _generation) return;
       emit(state.copyWith(
         isRefreshing: false,
         errorMessage: refreshErrorMessage,

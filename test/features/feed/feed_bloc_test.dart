@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -102,6 +104,37 @@ void main() {
           .having((s) => s.isOffline, 'isOffline', isTrue)
           .having((s) => s.freshness, 'freshness', FeedFreshness.offline),
     ],
+  );
+
+  final loadMoreCompleter = Completer<FeedResponse>();
+  blocTest<FeedBloc, FeedState>(
+    'a slow load-more page is dropped if a topic change lands first (G5)',
+    build: () {
+      when(() => repository.fetchPage(cursor: 'next', scope: null))
+          .thenAnswer((_) => loadMoreCompleter.future);
+      when(() => repository.fetchPage(scope: null))
+          .thenAnswer((_) async => page([article('new-topic')]));
+      return FeedBloc(repository, connectivity);
+    },
+    seed: () => FeedState(
+      status: FeedStatus.success,
+      articles: [article('a')],
+      nextCursor: 'next',
+    ),
+    act: (bloc) async {
+      bloc.add(const LoadMoreFeed());
+      await Future<void>.delayed(Duration.zero);
+      // The topic change lands and completes fully before the load-more
+      // page (still in flight) resolves — the exact ordering G5 guards
+      // against.
+      bloc.add(const TopicSelectionChanged());
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      loadMoreCompleter.complete(page([article('late')]));
+    },
+    wait: const Duration(milliseconds: 20),
+    verify: (bloc) {
+      expect(bloc.state.articles.map((a) => a.id), ['new-topic']);
+    },
   );
 
   blocTest<FeedBloc, FeedState>(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -131,6 +133,30 @@ void main() {
       searched().copyWith(isLoadingMore: true),
       searched().copyWith(results: [article('a'), article('b')], nextCursor: null),
     ],
+  );
+
+  final loadMoreCompleter = Completer<FeedResponse>();
+  blocTest<SearchBloc, SearchState>(
+    'a slow load-more page is dropped if a new search lands first (G5)',
+    build: () {
+      when(() => repository.search(query: 'flutter', filters: SearchFilters.none, cursor: 'search_2'))
+          .thenAnswer((_) => loadMoreCompleter.future);
+      when(() => repository.search(query: 'other', filters: SearchFilters.none))
+          .thenAnswer((_) async => page([article('other')]));
+      return SearchBloc(repository);
+    },
+    seed: searched,
+    act: (bloc) async {
+      bloc.add(const LoadMoreResults());
+      await Future<void>.delayed(Duration.zero);
+      // The new search lands and finishes before the delayed load-more
+      // page resolves — the out-of-order arrival G5 guards against.
+      bloc.add(const SubmitSearch('other'));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      loadMoreCompleter.complete(page([article('late')]));
+    },
+    wait: const Duration(milliseconds: 20),
+    verify: (bloc) => expect(bloc.state.results.map((a) => a.id), ['other']),
   );
 
   blocTest<SearchBloc, SearchState>(

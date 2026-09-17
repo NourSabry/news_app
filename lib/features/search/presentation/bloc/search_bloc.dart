@@ -15,6 +15,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
   final SearchRepository _repository;
 
+  /// Bumped every time [_search] starts a fresh result set (G5) — an
+  /// in-flight `LoadMoreResults` whose captured generation no longer
+  /// matches drops its page instead of appending it to results it no
+  /// longer belongs to.
+  int _generation = 0;
+
   SearchBloc(this._repository) : super(const SearchState()) {
     on<SearchStarted>(_onStarted);
     on<QueryChanged>(_onQueryChanged, transformer: debounceRestartable(debounceDuration));
@@ -59,6 +65,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<void> _search(Emitter<SearchState> emit) async {
+    final generation = ++_generation;
     emit(state.copyWith(
       hasSearched: true,
       isLoading: true,
@@ -69,8 +76,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     ));
     try {
       final page = await _repository.search(query: state.query, filters: state.filters);
+      if (generation != _generation) return;
       emit(state.copyWith(results: page.data, nextCursor: page.nextCursor, isLoading: false));
     } catch (_) {
+      if (generation != _generation) return;
       emit(state.copyWith(isLoading: false, errorMessage: searchErrorMessage));
     }
   }
@@ -78,6 +87,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   Future<void> _onLoadMore(LoadMoreResults event, Emitter<SearchState> emit) async {
     if (!state.canLoadMore) return;
 
+    final generation = _generation;
     emit(state.copyWith(isLoadingMore: true, errorMessage: null));
     try {
       final page = await _repository.search(
@@ -85,12 +95,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         filters: state.filters,
         cursor: state.nextCursor,
       );
+      // A new search started mid-flight replaced the results this page
+      // was meant to extend (G5) — appending it now would corrupt them.
+      if (generation != _generation) return;
       emit(state.copyWith(
         results: [...state.results, ...page.data],
         nextCursor: page.nextCursor,
         isLoadingMore: false,
       ));
     } catch (_) {
+      if (generation != _generation) return;
       emit(state.copyWith(isLoadingMore: false, errorMessage: loadMoreErrorMessage));
     }
   }
