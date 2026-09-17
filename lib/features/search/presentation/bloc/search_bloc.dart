@@ -43,9 +43,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
   Future<void> _onSubmit(SubmitSearch event, Emitter<SearchState> emit) async {
     final query = event.query.trim();
-    if (query.isEmpty) return;
+    // An empty query with no explicit filters is just the field losing
+    // focus — but "Browse sections" submits an empty query with an
+    // explicit topic filter, which is a real browse action.
+    if (query.isEmpty && event.filters == null) return;
 
-    await _repository.addRecentSearch(query);
+    if (query.isNotEmpty) await _repository.addRecentSearch(query);
     emit(state.copyWith(
       query: query,
       filters: event.filters ?? state.filters,

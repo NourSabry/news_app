@@ -3,19 +3,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/snack_bar.dart';
-import '../../../core/widgets/empty_view.dart';
-import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/halftone_painter.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../core/widgets/state_view.dart';
 import '../../details/presentation/article_details_screen.dart';
+import '../domain/search_filters.dart';
 import 'bloc/search_bloc.dart';
-import 'widgets/recent_searches.dart';
+import 'widgets/explore_landing.dart';
+import 'widgets/filter_chips_row.dart';
 import 'widgets/search_field.dart';
 import 'widgets/search_results.dart';
 import 'widgets/suggestion_list.dart';
-import 'widgets/topic_filter_chips.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final FocusNode? focusNode;
+
+  const SearchScreen({super.key, this.focusNode});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -93,18 +96,19 @@ class _SearchScreenState extends State<SearchScreen> {
           builder: (context, state) => Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.md),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.lg, AppSpacing.gutter, AppSpacing.md),
                 child: SearchField(
                   controller: _textController,
+                  focusNode: widget.focusNode,
                   onChanged: _onTextChanged,
                   onSubmitted: (text) => _bloc.add(SubmitSearch(text)),
                   onClear: _onClear,
                 ),
               ),
-              TopicFilterChips(
-                topics: state.topics,
-                selectedId: state.filters.topicId,
-                onSelected: (id) => _bloc.add(TopicFilterChanged(id)),
+              FilterChipsRow(
+                filters: state.filters,
+                topicName: state.filters.topicId == null ? '' : state.topicNameFor(state.filters.topicId!),
+                onRemoveTopic: () => _bloc.add(const TopicFilterChanged(null)),
               ),
               Expanded(child: _buildBody(state)),
             ],
@@ -116,15 +120,18 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildBody(SearchState state) {
     if (state.query.isEmpty) {
-      return RecentSearches(
+      return ExploreLanding(
         queries: state.recentSearches,
-        onTap: (query) => _bloc.add(SubmitSearch(query)),
+        topics: state.topics,
+        onQueryTap: (query) => _bloc.add(SubmitSearch(query)),
         onClear: () => _bloc.add(const ClearRecentSearches()),
+        onTopicTap: (topic) => _bloc.add(SubmitSearch('', filters: SearchFilters(topicId: topic.id))),
       );
     }
     if (!state.hasSearched) {
       return SuggestionList(
         suggestions: state.suggestions,
+        query: state.query,
         onTap: (suggestion) => _bloc.add(SubmitSearch(suggestion)),
       );
     }
@@ -136,11 +143,22 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildEmptyResults(SearchState state) {
     final error = state.errorMessage;
     if (error != null) {
-      return ErrorView(message: error, onRetry: () => _bloc.add(SubmitSearch(state.query)));
+      return StateView(
+        shape: HalftoneShape.diagonal,
+        title: 'Search is offline.',
+        body: "We'll try again when you're back online.",
+        primaryActionLabel: 'Retry',
+        onPrimaryAction: () => _bloc.add(SubmitSearch(state.query)),
+      );
     }
-    return EmptyView(
-      message: 'No results for "${state.query}"',
-      icon: Icons.search_off_rounded,
+    return StateView(
+      shape: HalftoneShape.wave,
+      title: 'Nothing on the wire for "${state.query}".',
+      body: 'No stories match your search.',
+      secondaryActionLabel: state.filters.isEmpty ? null : 'Try fewer filters',
+      onSecondaryAction: state.filters.isEmpty
+          ? null
+          : () => _bloc.add(SubmitSearch(state.query, filters: SearchFilters.none)),
     );
   }
 }
