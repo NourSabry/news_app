@@ -40,10 +40,24 @@ class LoadMoreResults extends SearchEvent {
   const LoadMoreResults();
 }
 
-class TopicFilterChanged extends SearchEvent {
+/// Applies a full filter set from the filter sheet or a removable chip
+/// (G1). Re-runs the current search if one has been submitted, keeping
+/// the query.
+class FiltersChanged extends SearchEvent {
+  final SearchFilters filters;
+
+  const FiltersChanged(this.filters);
+
+  @override
+  List<Object?> get props => [filters];
+}
+
+/// Loads the source list for the filter sheet's Source section, scoped
+/// to [topicId] (or all sources when null).
+class SourcesRequested extends SearchEvent {
   final String? topicId;
 
-  const TopicFilterChanged(this.topicId);
+  const SourcesRequested(this.topicId);
 
   @override
   List<Object?> get props => [topicId];

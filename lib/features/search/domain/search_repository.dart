@@ -12,6 +12,10 @@ abstract class SearchRepository {
 
   Future<List<Topic>> getTopics();
 
+  /// Sources available for a topic (or all sources when [topicId] is
+  /// null), for the filter sheet's Source section.
+  Future<List<String>> getSources({String? topicId});
+
   List<String> getRecentSearches();
 
   Future<void> addRecentSearch(String query);

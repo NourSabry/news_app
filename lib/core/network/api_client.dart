@@ -22,6 +22,8 @@ abstract class ApiClient {
     int pageSize = 10,
     String? topic,
     String? source,
+    DateTime? publishedFrom,
+    DateTime? publishedTo,
   });
 
   Future<List<String>> getSuggestions(String query);

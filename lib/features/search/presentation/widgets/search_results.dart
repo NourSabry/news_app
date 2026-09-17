@@ -6,7 +6,15 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/pagination_footer.dart';
 import '../../../feed/presentation/widgets/article_cards.dart';
+import '../../domain/search_filters.dart';
 import '../bloc/search_bloc.dart';
+
+const _datePresetCaptionLabels = {
+  DateRangePreset.today: 'today',
+  DateRangePreset.past7Days: 'past 7 days',
+  DateRangePreset.past30Days: 'past 30 days',
+  DateRangePreset.custom: 'custom range',
+};
 
 class SearchResults extends StatelessWidget {
   final SearchState state;
@@ -55,9 +63,13 @@ class _ResultsCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
-    final topic = state.filters.topicId == null ? null : state.topicNameFor(state.filters.topicId!);
     final count = state.results.length;
-    final scope = topic == null ? '' : ' in $topic';
+    final parts = [
+      if (state.filters.topicId != null) state.topicNameFor(state.filters.topicId!),
+      if (state.filters.source != null) state.filters.source!,
+      if (state.filters.date != null) _datePresetCaptionLabels[state.filters.date!.preset]!,
+    ];
+    final scope = parts.isEmpty ? '' : ' in ${parts.join(', ')}';
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Text(

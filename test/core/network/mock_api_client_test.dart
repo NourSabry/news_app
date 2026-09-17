@@ -39,6 +39,36 @@ void main() {
     expect(aiPolicy.data.map((a) => a.id), contains('a_ai_policy'));
   });
 
+  test('search honours a publishedAt range (G1)', () async {
+    final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
+
+    final result = await client.search(
+      query: '',
+      publishedFrom: DateTime.parse('2026-09-13T00:00:00Z'),
+      publishedTo: DateTime.parse('2026-09-14T23:59:59Z'),
+    );
+
+    expect(result.data, isNotEmpty);
+    expect(
+      result.data.every((a) =>
+          !a.publishedAt.isBefore(DateTime.parse('2026-09-13T00:00:00Z')) &&
+          !a.publishedAt.isAfter(DateTime.parse('2026-09-14T23:59:59Z'))),
+      isTrue,
+    );
+    expect(result.data.map((a) => a.id), isNot(contains('a_solar_farms')));
+  });
+
+  test('search also matches on source name and author name (G1)', () async {
+    final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
+
+    final bySource = await client.search(query: 'TechWire');
+    final byAuthor = await client.search(query: 'Omar Hassan');
+
+    expect(bySource.data.map((a) => a.id), containsAll(['a_architecture_patterns', 'a_ai_policy']));
+    expect(byAuthor.data.every((a) => a.author.name == 'Omar Hassan'), isTrue);
+    expect(byAuthor.data.length, greaterThanOrEqualTo(3));
+  });
+
   test('resetServerState clears persisted bookmarks and article overrides', () async {
     final store = MemoryStore();
     final first = MockApiClient(store: store)..latencyMs = 0;

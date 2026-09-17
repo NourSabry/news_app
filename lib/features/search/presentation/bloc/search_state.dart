@@ -11,6 +11,8 @@ class SearchState extends Equatable {
   final String? nextCursor;
   final SearchFilters filters;
   final List<Topic> topics;
+  final List<String> sources;
+  final bool isLoadingSources;
   final List<String> recentSearches;
   final bool hasSearched;
   final bool isLoading;
@@ -24,6 +26,8 @@ class SearchState extends Equatable {
     this.nextCursor,
     this.filters = SearchFilters.none,
     this.topics = const [],
+    this.sources = const [],
+    this.isLoadingSources = false,
     this.recentSearches = const [],
     this.hasSearched = false,
     this.isLoading = false,
@@ -43,6 +47,8 @@ class SearchState extends Equatable {
     Object? nextCursor = _unset,
     SearchFilters? filters,
     List<Topic>? topics,
+    List<String>? sources,
+    bool? isLoadingSources,
     List<String>? recentSearches,
     bool? hasSearched,
     bool? isLoading,
@@ -56,6 +62,8 @@ class SearchState extends Equatable {
       nextCursor: identical(nextCursor, _unset) ? this.nextCursor : nextCursor as String?,
       filters: filters ?? this.filters,
       topics: topics ?? this.topics,
+      sources: sources ?? this.sources,
+      isLoadingSources: isLoadingSources ?? this.isLoadingSources,
       recentSearches: recentSearches ?? this.recentSearches,
       hasSearched: hasSearched ?? this.hasSearched,
       isLoading: isLoading ?? this.isLoading,
@@ -72,6 +80,8 @@ class SearchState extends Equatable {
         nextCursor,
         filters,
         topics,
+        sources,
+        isLoadingSources,
         recentSearches,
         hasSearched,
         isLoading,

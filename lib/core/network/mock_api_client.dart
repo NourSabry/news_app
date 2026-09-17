@@ -217,6 +217,8 @@ class MockApiClient implements ApiClient {
     int pageSize = 10,
     String? topic,
     String? source,
+    DateTime? publishedFrom,
+    DateTime? publishedTo,
   }) async {
     await _simulateNetwork();
     final articles = await _loadArticles();
@@ -225,10 +227,14 @@ class MockApiClient implements ApiClient {
     final filtered = articles.where((a) {
       final matchesQuery = a.title.toLowerCase().contains(lowerQuery) ||
           a.summary.toLowerCase().contains(lowerQuery) ||
-          a.tags.any((t) => t.toLowerCase().contains(lowerQuery));
+          a.tags.any((t) => t.toLowerCase().contains(lowerQuery)) ||
+          a.source.toLowerCase().contains(lowerQuery) ||
+          a.author.name.toLowerCase().contains(lowerQuery);
       final matchesTopic = topic == null || topic.isEmpty || a.topicId == topic;
       final matchesSource = source == null || source.isEmpty || a.source == source;
-      return matchesQuery && matchesTopic && matchesSource;
+      final matchesFrom = publishedFrom == null || !a.publishedAt.isBefore(publishedFrom);
+      final matchesTo = publishedTo == null || !a.publishedAt.isAfter(publishedTo);
+      return matchesQuery && matchesTopic && matchesSource && matchesFrom && matchesTo;
     }).toList()
       ..sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
 

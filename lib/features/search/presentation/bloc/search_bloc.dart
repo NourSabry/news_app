@@ -20,7 +20,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<QueryChanged>(_onQueryChanged, transformer: debounceRestartable(debounceDuration));
     on<SubmitSearch>(_onSubmit);
     on<LoadMoreResults>(_onLoadMore);
-    on<TopicFilterChanged>(_onTopicChanged);
+    on<FiltersChanged>(_onFiltersChanged);
+    on<SourcesRequested>(_onSourcesRequested, transformer: debounceRestartable(Duration.zero));
     on<ClearSearch>(_onClear);
     on<ClearRecentSearches>(_onClearRecent);
   }
@@ -94,9 +95,15 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
   }
 
-  Future<void> _onTopicChanged(TopicFilterChanged event, Emitter<SearchState> emit) async {
-    emit(state.copyWith(filters: state.filters.copyWith(topicId: event.topicId)));
+  Future<void> _onFiltersChanged(FiltersChanged event, Emitter<SearchState> emit) async {
+    emit(state.copyWith(filters: event.filters));
     if (state.hasSearched) await _search(emit);
+  }
+
+  Future<void> _onSourcesRequested(SourcesRequested event, Emitter<SearchState> emit) async {
+    emit(state.copyWith(isLoadingSources: true));
+    final sources = await _repository.getSources(topicId: event.topicId).orFallback(const []);
+    emit(state.copyWith(sources: sources, isLoadingSources: false));
   }
 
   void _onClear(ClearSearch event, Emitter<SearchState> emit) {

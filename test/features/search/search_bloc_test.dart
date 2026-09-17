@@ -143,7 +143,7 @@ void main() {
       return SearchBloc(repository);
     },
     seed: searched,
-    act: (bloc) => bloc.add(const TopicFilterChanged('t_technology')),
+    act: (bloc) => bloc.add(const FiltersChanged(SearchFilters(topicId: 't_technology'))),
     expect: () => [
       searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
       searched().copyWith(
@@ -218,6 +218,32 @@ void main() {
     act: (bloc) => bloc.add(const ClearSearch()),
     expect: () => [
       const SearchState(recentSearches: ['flutter']),
+    ],
+  );
+
+  blocTest<SearchBloc, SearchState>(
+    'filters are preserved across a query change (G1)',
+    build: () {
+      when(() => repository.getSuggestions('flutter')).thenAnswer((_) async => const []);
+      return SearchBloc(repository);
+    },
+    seed: () => const SearchState(filters: SearchFilters(topicId: 't_technology')),
+    act: (bloc) => bloc.add(const QueryChanged('flutter')),
+    wait: debounceWait,
+    verify: (bloc) => expect(bloc.state.filters, const SearchFilters(topicId: 't_technology')),
+  );
+
+  blocTest<SearchBloc, SearchState>(
+    'SourcesRequested loads the source list for the filter sheet (G1)',
+    build: () {
+      when(() => repository.getSources(topicId: 't_technology'))
+          .thenAnswer((_) async => ['Mobile Daily', 'TechWire']);
+      return SearchBloc(repository);
+    },
+    act: (bloc) => bloc.add(const SourcesRequested('t_technology')),
+    expect: () => [
+      const SearchState(isLoadingSources: true),
+      const SearchState(sources: ['Mobile Daily', 'TechWire']),
     ],
   );
 

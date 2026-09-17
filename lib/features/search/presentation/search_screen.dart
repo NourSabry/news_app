@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/snack_bar.dart';
+import '../../../core/widgets/edition_pill.dart';
 import '../../../core/widgets/halftone_painter.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/state_view.dart';
@@ -11,6 +12,7 @@ import '../domain/search_filters.dart';
 import 'bloc/search_bloc.dart';
 import 'widgets/explore_landing.dart';
 import 'widgets/filter_chips_row.dart';
+import 'widgets/filter_sheet.dart';
 import 'widgets/search_field.dart';
 import 'widgets/search_results.dart';
 import 'widgets/suggestion_list.dart';
@@ -74,6 +76,11 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  Future<void> _openFilterSheet(SearchState state) async {
+    final applied = await FilterSheet.show(context, initial: state.filters, topics: state.topics);
+    if (applied != null) _bloc.add(FiltersChanged(applied));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -105,10 +112,20 @@ class _SearchScreenState extends State<SearchScreen> {
                   onClear: _onClear,
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, 0, AppSpacing.gutter, AppSpacing.sm),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: EditionPill(
+                    label: state.filters.isEmpty ? 'Filters' : 'Filters (${state.filters.activeCount})',
+                    onTap: () => _openFilterSheet(state),
+                  ),
+                ),
+              ),
               FilterChipsRow(
                 filters: state.filters,
                 topicName: state.filters.topicId == null ? '' : state.topicNameFor(state.filters.topicId!),
-                onRemoveTopic: () => _bloc.add(const TopicFilterChanged(null)),
+                onChanged: (filters) => _bloc.add(FiltersChanged(filters)),
               ),
               Expanded(child: _buildBody(state)),
             ],

@@ -22,8 +22,17 @@ class SearchRepositoryImpl implements SearchRepository {
       query: query,
       topic: filters.topicId,
       source: filters.source,
+      publishedFrom: filters.date?.from,
+      publishedTo: filters.date?.to,
       page: _pageFrom(cursor),
     );
+  }
+
+  @override
+  Future<List<String>> getSources({String? topicId}) async {
+    final byTopic = await _api.getSources(topicId: topicId);
+    if (topicId != null) return byTopic[topicId] ?? [];
+    return byTopic.values.expand((sources) => sources).toSet().toList()..sort();
   }
 
   int _pageFrom(String? cursor) {
