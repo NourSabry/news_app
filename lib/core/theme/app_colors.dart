@@ -71,23 +71,4 @@ sealed class AppColors {
     final tints = brightness == Brightness.light ? _lightTints : _darkTints;
     return tints[topicName] ?? (brightness == Brightness.light ? lightInkMuted : darkInkMuted);
   }
-
-  // Legacy aliases kept until the remaining screens are restyled
-  // (onboarding, saved list, shimmer, topic picker, offline banner,
-  // engagement row). Kept only so those files keep resolving colours
-  // through `AppColors` instead of a literal until they are rewritten.
-  static const Color warning = lightWarning;
-  static const Color success = lightSuccess;
-  static const Color error = lightRed;
-  static const Color liked = lightRed;
-  static const Color lightAccent = lightRed;
-  static const Color darkAccent = darkRed;
-  static const Color lightBackground = lightPaper;
-  static const Color darkBackground = darkPaper;
-  static const Color lightCardBackground = lightPaperRaised;
-  static const Color darkCardBackground = darkPaperRaised;
-  static const Color lightShimmerBase = lightRule;
-  static const Color darkShimmerBase = darkRule;
-  static const Color lightShimmerHighlight = lightPaperRaised;
-  static const Color darkShimmerHighlight = darkPaperRaised;
 }
