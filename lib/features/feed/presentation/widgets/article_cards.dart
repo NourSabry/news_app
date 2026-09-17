@@ -44,9 +44,11 @@ class EditionArticleCard extends StatelessWidget {
             ? ArticleCardVariant.brief
             : _effectiveVariant;
 
+    // "{title}. {source}, {relative time}. {likes} likes, {comments}
+    // comments{, saved}" (G6) — one Semantics node read in a single swipe.
     final label = article.isUnavailable
         ? '${article.title}. No longer available.'
-        : '${article.title}. $topicName, ${TimeFormatter.relative(article.publishedAt)}. '
+        : '${article.title}. ${article.source}, ${TimeFormatter.relative(article.publishedAt)}. '
             '${article.likes} likes, ${article.comments} comments${article.isBookmarked ? ', saved' : ''}';
 
     return Semantics(
@@ -125,46 +127,50 @@ class _LeadLayout extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-          child: Stack(
-            children: [
-              AspectRatio(
-                aspectRatio: 4 / 3,
-                child: CachedImage(imageUrl: article.image, borderRadius: 0),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0, 0.45, 1],
-                      colors: [
-                        overlayBase.withValues(alpha: 0.5),
-                        overlayBase.withValues(alpha: 0.72),
-                        overlayBase.withValues(alpha: 0.94),
+        // Decorative (G6): the card's own Semantics label already carries
+        // this same title/section/byline info as one node.
+        ExcludeSemantics(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+            child: Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: CachedImage(imageUrl: article.image, borderRadius: 0),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0, 0.45, 1],
+                        colors: [
+                          overlayBase.withValues(alpha: 0.5),
+                          overlayBase.withValues(alpha: 0.72),
+                          overlayBase.withValues(alpha: 0.94),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(article.title, style: AppTextStyles.displayL.copyWith(color: onOverlay), maxLines: 3, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: AppSpacing.xs),
+                        _Byline(article: article, color: onOverlay.withValues(alpha: 0.8)),
                       ],
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(article.title, style: AppTextStyles.displayL.copyWith(color: onOverlay), maxLines: 3, overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: AppSpacing.xs),
-                      _Byline(article: article, color: onOverlay.withValues(alpha: 0.8)),
-                    ],
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -192,29 +198,33 @@ class _StandardLayout extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(article.title, style: AppTextStyles.headlineM.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(article.summary, style: AppTextStyles.bodyS.copyWith(color: inkMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: AppSpacing.sm),
-                  _Byline(article: article, color: inkMuted),
-                ],
+        // Decorative (G6): the card's own Semantics label already carries
+        // this same title/section/byline info as one node.
+        ExcludeSemantics(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(article.title, style: AppTextStyles.headlineM.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(article.summary, style: AppTextStyles.bodyS.copyWith(color: inkMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: AppSpacing.sm),
+                    _Byline(article: article, color: inkMuted),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-              child: CachedImage(imageUrl: article.image, width: 96, height: 96, borderRadius: 0),
-            ),
-          ],
+              const SizedBox(width: AppSpacing.md),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+                child: CachedImage(imageUrl: article.image, width: 96, height: 96, borderRadius: 0),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         EngagementRow(article: article, onLike: onLike, onBookmark: onBookmark),
@@ -243,11 +253,20 @@ class _BriefLayout extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
-        const SizedBox(height: AppSpacing.xs),
-        Text(article.title, style: AppTextStyles.headlineS.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
-        const SizedBox(height: AppSpacing.xs),
-        _Byline(article: article, color: inkMuted),
+        // Decorative (G6): the card's own Semantics label already carries
+        // this same title/section/byline info as one node.
+        ExcludeSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
+              const SizedBox(height: AppSpacing.xs),
+              Text(article.title, style: AppTextStyles.headlineS.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: AppSpacing.xs),
+              _Byline(article: article, color: inkMuted),
+            ],
+          ),
+        ),
         const SizedBox(height: AppSpacing.sm),
         EngagementRow(article: article, onLike: onLike, onBookmark: onBookmark),
         const SizedBox(height: AppSpacing.sm),

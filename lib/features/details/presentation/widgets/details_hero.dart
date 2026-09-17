@@ -59,24 +59,30 @@ class _Image extends StatelessWidget {
     final tint = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
 
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return ColoredBox(
-        color: brightness == Brightness.light ? AppColors.lightPaperRaised : AppColors.darkPaperRaised,
-        child: Center(child: Halftone(shape: HalftoneShape.radial, size: 120, tint: tint)),
+      return ExcludeSemantics(
+        child: ColoredBox(
+          color: brightness == Brightness.light ? AppColors.lightPaperRaised : AppColors.darkPaperRaised,
+          child: Center(child: Halftone(shape: HalftoneShape.radial, size: 120, tint: tint)),
+        ),
       );
     }
 
-    return CachedNetworkImage(
-      imageUrl: imageUrl!,
-      cacheManager: ServiceLocator.instance.get<BaseCacheManager>(),
-      fit: BoxFit.cover,
-      fadeInDuration: AppMotion.transition,
-      placeholder: (context, _) => ColoredBox(
-        color: brightness == Brightness.light ? AppColors.lightPaperRaised : AppColors.darkPaperRaised,
-        child: Center(child: Halftone(shape: HalftoneShape.radial, size: 120, tint: tint)),
-      ),
-      errorWidget: (context, _, _) => ColoredBox(
-        color: brightness == Brightness.light ? AppColors.lightPaperRaised : AppColors.darkPaperRaised,
-        child: Center(child: Halftone(shape: HalftoneShape.radial, size: 120, tint: tint)),
+    // Decorative (G6) — the headline right below already carries the
+    // article title as its own text node.
+    return ExcludeSemantics(
+      child: CachedNetworkImage(
+        imageUrl: imageUrl!,
+        cacheManager: ServiceLocator.instance.get<BaseCacheManager>(),
+        fit: BoxFit.cover,
+        fadeInDuration: AppMotion.transition,
+        placeholder: (context, _) => ColoredBox(
+          color: brightness == Brightness.light ? AppColors.lightPaperRaised : AppColors.darkPaperRaised,
+          child: Center(child: Halftone(shape: HalftoneShape.radial, size: 120, tint: tint)),
+        ),
+        errorWidget: (context, _, _) => ColoredBox(
+          color: brightness == Brightness.light ? AppColors.lightPaperRaised : AppColors.darkPaperRaised,
+          child: Center(child: Halftone(shape: HalftoneShape.radial, size: 120, tint: tint)),
+        ),
       ),
     );
   }
@@ -101,9 +107,9 @@ class _CircleButton extends StatelessWidget {
           onTap: onTap,
           customBorder: const CircleBorder(),
           child: SizedBox(
-            width: 40,
-            height: 40,
-            child: Icon(icon, size: 20, color: AppColors.white),
+            width: 44,
+            height: 44,
+            child: Center(child: Icon(icon, size: 20, color: AppColors.white)),
           ),
         ),
       ),

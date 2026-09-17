@@ -36,16 +36,31 @@ class EngagementRow extends StatelessWidget {
           onTap: onLike,
         ),
         const SizedBox(width: AppSpacing.lg),
-        Icon(Icons.mode_comment_outlined, size: 18, color: inkFaint),
-        const SizedBox(width: AppSpacing.xs),
-        Text(
-          NumberFormat.compact().format(article.comments),
-          style: AppTextStyles.label.copyWith(color: inkFaint),
+        // Its own informational node (G6) rather than merging into
+        // whatever ancestor Semantics happens to wrap this row — on a
+        // card that's already redundant with the card's own label, but
+        // on Details (no such ancestor) it's the only source of this info.
+        Semantics(
+          container: true,
+          label: '${article.comments} ${article.comments == 1 ? 'comment' : 'comments'}',
+          child: ExcludeSemantics(
+            child: Row(
+              children: [
+                Icon(Icons.mode_comment_outlined, size: 18, color: inkFaint),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  NumberFormat.compact().format(article.comments),
+                  style: AppTextStyles.label.copyWith(color: inkFaint),
+                ),
+              ],
+            ),
+          ),
         ),
         const Spacer(),
         Semantics(
           button: true,
           label: article.isBookmarked ? 'Remove from saved' : 'Save for later',
+          onTapHint: article.isBookmarked ? 'remove from saved' : 'save for later',
           child: InkWell(
             onTap: onBookmark,
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -113,6 +128,7 @@ class _LikeButtonState extends State<_LikeButton>
     return Semantics(
       button: true,
       label: widget.isLiked ? 'Unlike' : 'Like',
+      onTapHint: widget.isLiked ? 'unlike' : 'like',
       child: InkWell(
         onTap: inFlight ? null : _handleTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),

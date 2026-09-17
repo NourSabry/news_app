@@ -83,7 +83,12 @@ class _Figure extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CachedImage(imageUrl: url, height: 220, borderRadius: AppSpacing.radiusImage),
+        CachedImage(
+          imageUrl: url,
+          height: 220,
+          borderRadius: AppSpacing.radiusImage,
+          semanticLabel: caption.isEmpty ? null : caption,
+        ),
         if (caption.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(caption, style: AppTextStyles.caption.copyWith(color: inkMuted)),

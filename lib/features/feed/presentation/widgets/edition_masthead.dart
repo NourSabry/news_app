@@ -12,7 +12,7 @@ import '../../../../core/widgets/hairline.dart';
 /// besides the nav bar.
 class EditionMastheadHeader extends SliverPersistentHeaderDelegate {
   static const double expandedHeight = 144;
-  static const double collapsedHeight = 48;
+  static const double collapsedHeight = 52;
 
   final List<TrendingTopic> trending;
   final String? scope;
@@ -158,7 +158,9 @@ class _CollapsedBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         SizedBox(
-          height: 41,
+          // 44×44 tap targets (G6) — was 36×36, tightened only for the
+          // the redesign overflow fix; collapsedHeight grew to fit it back.
+          height: 44,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
             child: Row(
@@ -169,18 +171,17 @@ class _CollapsedBar extends StatelessWidget {
                   button: true,
                   label: 'Search',
                   child: IconButton(
-                    constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+                    constraints: const BoxConstraints.tightFor(width: 44, height: 44),
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.search_rounded),
                     onPressed: onSearchTap,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
                 Semantics(
                   button: true,
                   label: 'Settings',
                   child: IconButton(
-                    constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+                    constraints: const BoxConstraints.tightFor(width: 44, height: 44),
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.settings_outlined),
                     onPressed: onSettingsTap,

@@ -12,6 +12,12 @@ class CachedImage extends StatelessWidget {
   final BoxFit fit;
   final double borderRadius;
 
+  /// A caption/title to read for this image (G6). Leave null for a
+  /// decorative image inside content that's already labelled elsewhere
+  /// (a card, a hero next to its own headline) — it's then excluded from
+  /// the accessibility tree instead of appearing as an unlabelled image.
+  final String? semanticLabel;
+
   const CachedImage({
     super.key,
     required this.imageUrl,
@@ -19,30 +25,34 @@ class CachedImage extends StatelessWidget {
     this.height,
     this.fit = BoxFit.cover,
     this.borderRadius = AppSpacing.radiusLg,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl == null || imageUrl!.isEmpty) {
-      return _placeholder(context);
-    }
+    final content = imageUrl == null || imageUrl!.isEmpty
+        ? _placeholder(context)
+        : ClipRRect(
+            borderRadius: BorderRadius.circular(borderRadius),
+            child: CachedNetworkImage(
+              imageUrl: imageUrl!,
+              cacheManager: ServiceLocator.instance.get<BaseCacheManager>(),
+              width: width,
+              height: height,
+              fit: fit,
+              placeholder: (_, _) => ShimmerLoading(
+                height: height ?? 200,
+                width: width ?? double.infinity,
+                borderRadius: borderRadius,
+              ),
+              errorWidget: (_, _, _) => _placeholder(context),
+            ),
+          );
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: CachedNetworkImage(
-        imageUrl: imageUrl!,
-        cacheManager: ServiceLocator.instance.get<BaseCacheManager>(),
-        width: width,
-        height: height,
-        fit: fit,
-        placeholder: (_, _) => ShimmerLoading(
-          height: height ?? 200,
-          width: width ?? double.infinity,
-          borderRadius: borderRadius,
-        ),
-        errorWidget: (_, _, _) => _placeholder(context),
-      ),
-    );
+    if (semanticLabel != null) {
+      return Semantics(image: true, label: semanticLabel, child: ExcludeSemantics(child: content));
+    }
+    return ExcludeSemantics(child: content);
   }
 
   Widget _placeholder(BuildContext context) {
