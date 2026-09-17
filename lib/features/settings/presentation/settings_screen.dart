@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -5,6 +6,7 @@ import '../../../core/utils/snack_bar.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/topic_picker.dart';
 import 'cubit/settings_cubit.dart';
+import 'widgets/developer_section.dart';
 import 'widgets/settings_section.dart';
 import 'widgets/sync_tile.dart';
 import 'widgets/theme_mode_selector.dart';
@@ -101,6 +103,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          if (kDebugMode)
+            const SettingsSection(title: 'Developer', child: DeveloperSection()),
         ],
       ),
     );

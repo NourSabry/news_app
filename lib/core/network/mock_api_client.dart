@@ -27,7 +27,7 @@ class MockApiClient implements ApiClient {
   bool simulateOffline = false;
   bool simulateError = false;
   bool simulateConflict = false;
-  int _latencyMs = 400;
+  int latencyMs = 400;
   int _refreshCount = 0;
 
   Set<String> get _bookmarkIds {
@@ -74,14 +74,13 @@ class MockApiClient implements ApiClient {
     'Breaking: Championship Final Rescheduled After Weather Delay',
   ];
 
-  set latencyMs(int value) => _latencyMs = value;
 
   Future<void> _simulateNetwork() async {
     if (simulateOffline) {
       throw Exception('No internet connection');
     }
-    if (_latencyMs > 0) {
-      await Future.delayed(Duration(milliseconds: _latencyMs + Random().nextInt(200)));
+    if (latencyMs > 0) {
+      await Future.delayed(Duration(milliseconds: latencyMs + Random().nextInt(200)));
     }
     if (simulateError) {
       throw Exception('Server error');

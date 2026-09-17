@@ -4,6 +4,8 @@ import '../../features/bookmarks/data/bookmarks_repository_impl.dart';
 import '../../features/bookmarks/domain/bookmarks_repository.dart';
 import '../../features/details/data/details_repository_impl.dart';
 import '../../features/details/domain/details_repository.dart';
+import '../../features/devtools/data/dev_tools_repository_impl.dart';
+import '../../features/devtools/domain/dev_tools_repository.dart';
 import '../../features/feed/data/feed_repository_impl.dart';
 import '../../features/feed/domain/feed_repository.dart';
 import '../../features/outbox/data/outbox_repository_impl.dart';
@@ -69,6 +71,8 @@ class ServiceLocator {
     register<DetailsRepository>(DetailsRepositoryImpl(api, localStorage));
     register<SearchRepository>(SearchRepositoryImpl(api, localStorage));
     register<SettingsRepository>(SettingsRepositoryImpl(api, localStorage));
+
+    register<DevToolsRepository>(DevToolsRepositoryImpl(api));
 
     final outbox = OutboxRepositoryImpl(api, localStorage);
     register<OutboxRepository>(outbox);

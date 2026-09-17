@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/time_formatter.dart';
-import '../../../outbox/presentation/widgets/network_debug_menu.dart';
 
 class FeedHeader extends StatelessWidget {
   final DateTime? lastSyncedAt;
@@ -36,7 +34,6 @@ class FeedHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (kDebugMode) const NetworkDebugMenu(),
           IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.settings_outlined),

@@ -1,0 +1,35 @@
+import '../../../core/network/mock_api_client.dart';
+import '../domain/dev_tools_repository.dart';
+
+class DevToolsRepositoryImpl implements DevToolsRepository {
+  final MockApiClient _api;
+
+  DevToolsRepositoryImpl(this._api);
+
+  @override
+  bool get simulateOffline => _api.simulateOffline;
+
+  @override
+  bool get simulateServerError => _api.simulateError;
+
+  @override
+  bool get simulateConflict => _api.simulateConflict;
+
+  @override
+  int get latencyMs => _api.latencyMs;
+
+  @override
+  void setSimulateOffline(bool value) => _api.simulateOffline = value;
+
+  @override
+  void setSimulateServerError(bool value) => _api.simulateError = value;
+
+  @override
+  void setSimulateConflict(bool value) => _api.simulateConflict = value;
+
+  @override
+  void setLatencyMs(int value) => _api.latencyMs = value;
+
+  @override
+  Future<void> resetMockServer() => _api.resetServerState();
+}

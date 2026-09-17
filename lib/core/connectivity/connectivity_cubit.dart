@@ -7,6 +7,7 @@ enum ConnectivityStatus { connected, disconnected }
 class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _subscription;
+  bool _simulatedOffline = false;
 
   ConnectivityCubit({Connectivity? connectivity})
       : _connectivity = connectivity ?? Connectivity(),
@@ -19,8 +20,17 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   }
 
   void _onChanged(List<ConnectivityResult> results) {
+    if (_simulatedOffline) return;
     final isConnected = results.any((r) => r != ConnectivityResult.none);
     emit(isConnected ? ConnectivityStatus.connected : ConnectivityStatus.disconnected);
+  }
+
+  /// Drives the same offline state a real connectivity drop would (B3) —
+  /// Developer settings' "Simulate offline" toggle, not a real network
+  /// change. Real connectivity changes are ignored while this is on.
+  void setSimulatedOffline(bool offline) {
+    _simulatedOffline = offline;
+    emit(offline ? ConnectivityStatus.disconnected : ConnectivityStatus.connected);
   }
 
   bool get isConnected => state == ConnectivityStatus.connected;

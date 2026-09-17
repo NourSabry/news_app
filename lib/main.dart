@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,8 @@ import 'core/di/service_locator.dart';
 import 'core/theme/app_theme.dart';
 import 'features/bookmarks/domain/bookmarks_repository.dart';
 import 'features/bookmarks/presentation/bloc/bookmarks_bloc.dart';
+import 'features/devtools/domain/dev_tools_repository.dart';
+import 'features/devtools/presentation/cubit/dev_tools_cubit.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'features/outbox/domain/outbox_repository.dart';
 import 'features/outbox/presentation/cubit/outbox_cubit.dart';
@@ -49,6 +52,13 @@ class NewsApp extends StatelessWidget {
           create: (_) => BookmarksBloc(locator.get<BookmarksRepository>())
             ..add(const LoadBookmarks()),
         ),
+        if (kDebugMode)
+          BlocProvider(
+            create: (context) => DevToolsCubit(
+              locator.get<DevToolsRepository>(),
+              context.read<ConnectivityCubit>(),
+            ),
+          ),
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         buildWhen: (previous, current) => previous.themeMode != current.themeMode,
