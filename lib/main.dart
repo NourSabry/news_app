@@ -6,11 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app_shell.dart';
 import 'core/connectivity/connectivity_cubit.dart';
 import 'core/di/service_locator.dart';
+import 'core/network/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/bookmarks/domain/bookmarks_repository.dart';
 import 'features/bookmarks/presentation/bloc/bookmarks_bloc.dart';
 import 'features/devtools/domain/dev_tools_repository.dart';
 import 'features/devtools/presentation/cubit/dev_tools_cubit.dart';
+import 'features/feed/domain/feed_repository.dart';
+import 'features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'features/outbox/domain/outbox_repository.dart';
 import 'features/outbox/presentation/cubit/outbox_cubit.dart';
@@ -59,6 +62,12 @@ class NewsApp extends StatelessWidget {
               context.read<ConnectivityCubit>(),
             ),
           ),
+        BlocProvider(
+          create: (_) => OnboardingCubit(
+            locator.get<FeedRepository>(),
+            locator.get<ApiClient>(),
+          ),
+        ),
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         buildWhen: (previous, current) => previous.themeMode != current.themeMode,
@@ -83,6 +92,20 @@ class _AppEntry extends StatelessWidget {
     final completed = context.select<SettingsCubit, bool>(
       (cubit) => cubit.state.onboardingCompleted,
     );
-    return completed ? const AppShell() : const OnboardingScreen();
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: Tween(begin: 0.96, end: 1.0).animate(animation),
+          child: child,
+        ),
+      ),
+      child: completed
+          ? const AppShell(key: ValueKey('shell'))
+          : const OnboardingScreen(key: ValueKey('onboarding')),
+    );
   }
 }
