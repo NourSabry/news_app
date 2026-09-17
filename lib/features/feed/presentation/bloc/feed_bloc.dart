@@ -23,6 +23,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<RefreshFeed>(_onRefresh);
     on<ShowPendingArticles>(_onShowPending);
     on<TopicSelectionChanged>(_onLoad);
+    on<FeedScopeChanged>(_onScopeChanged);
   }
 
   Future<void> _onLoad(FeedEvent event, Emitter<FeedState> emit) async {
@@ -34,7 +35,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     ));
     try {
       final (page, topics, trending) = await (
-        _repository.fetchPage(),
+        _repository.fetchPage(scope: state.scope),
         _repository.getTopics().orFallback(state.topics),
         _repository.getTrending().orFallback(state.trending),
       ).wait;
@@ -50,6 +51,31 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       ));
     } catch (_) {
       _recoverFromCache(emit);
+    }
+  }
+
+  Future<void> _onScopeChanged(FeedScopeChanged event, Emitter<FeedState> emit) async {
+    emit(state.copyWith(
+      status: FeedStatus.loading,
+      scope: event.label,
+      pendingArticles: const [],
+      errorMessage: null,
+      notice: null,
+    ));
+    try {
+      final page = await _repository.fetchPage(scope: event.label);
+      emit(state.copyWith(
+        status: FeedStatus.success,
+        articles: page.data,
+        nextCursor: page.nextCursor,
+        isRefreshing: false,
+      ));
+    } catch (_) {
+      emit(state.copyWith(
+        status: FeedStatus.failure,
+        errorMessage: loadErrorMessage,
+        isRefreshing: false,
+      ));
     }
   }
 
@@ -78,7 +104,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
     emit(state.copyWith(isLoadingMore: true, errorMessage: null));
     try {
-      final page = await _repository.fetchPage(cursor: state.nextCursor);
+      final page = await _repository.fetchPage(cursor: state.nextCursor, scope: state.scope);
       emit(state.copyWith(
         articles: _merge(state.articles, page.data),
         nextCursor: page.nextCursor,

@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:news_app/core/models/models.dart';
+import 'package:news_app/features/search/domain/search_filters.dart';
 import 'package:news_app/features/search/domain/search_repository.dart';
 import 'package:news_app/features/search/presentation/bloc/search_bloc.dart';
 
@@ -84,7 +85,7 @@ void main() {
   blocTest<SearchBloc, SearchState>(
     'submitting stores the recent search and loads results',
     build: () {
-      when(() => repository.search(query: 'flutter', topic: null))
+      when(() => repository.search(query: 'flutter', filters: SearchFilters.none))
           .thenAnswer((_) async => page([article('a')], next: 'search_2'));
       return SearchBloc(repository);
     },
@@ -100,7 +101,8 @@ void main() {
   blocTest<SearchBloc, SearchState>(
     'emits an error when the search fails',
     build: () {
-      when(() => repository.search(query: 'flutter', topic: null)).thenThrow(Exception('offline'));
+      when(() => repository.search(query: 'flutter', filters: SearchFilters.none))
+          .thenThrow(Exception('offline'));
       return SearchBloc(repository);
     },
     act: (bloc) => bloc.add(const SubmitSearch('flutter')),
@@ -119,7 +121,7 @@ void main() {
   blocTest<SearchBloc, SearchState>(
     'appends the next page of results',
     build: () {
-      when(() => repository.search(query: 'flutter', topic: null, cursor: 'search_2'))
+      when(() => repository.search(query: 'flutter', filters: SearchFilters.none, cursor: 'search_2'))
           .thenAnswer((_) async => page([article('b')]));
       return SearchBloc(repository);
     },
@@ -134,21 +136,78 @@ void main() {
   blocTest<SearchBloc, SearchState>(
     'changing the topic filter re-runs the active search',
     build: () {
-      when(() => repository.search(query: 'flutter', topic: 't_technology'))
-          .thenAnswer((_) async => page([article('c')]));
+      when(() => repository.search(
+            query: 'flutter',
+            filters: const SearchFilters(topicId: 't_technology'),
+          )).thenAnswer((_) async => page([article('c')]));
       return SearchBloc(repository);
     },
     seed: searched,
     act: (bloc) => bloc.add(const TopicFilterChanged('t_technology')),
     expect: () => [
-      searched().copyWith(selectedTopicId: 't_technology'),
+      searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
       searched().copyWith(
-        selectedTopicId: 't_technology',
+        filters: const SearchFilters(topicId: 't_technology'),
         isLoading: true,
         results: const [],
         nextCursor: null,
       ),
-      searched().copyWith(selectedTopicId: 't_technology', results: [article('c')], nextCursor: null),
+      searched().copyWith(
+        filters: const SearchFilters(topicId: 't_technology'),
+        results: [article('c')],
+        nextCursor: null,
+      ),
+    ],
+  );
+
+  blocTest<SearchBloc, SearchState>(
+    'an explicit filter set on SubmitSearch replaces a previously set topic (B2)',
+    build: () {
+      when(() => repository.search(query: 'x', filters: SearchFilters.none))
+          .thenAnswer((_) async => page(const []));
+      return SearchBloc(repository);
+    },
+    seed: () => searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
+    act: (bloc) => bloc.add(const SubmitSearch('x', filters: SearchFilters.none)),
+    expect: () => [
+      searched().copyWith(query: 'x', filters: SearchFilters.none),
+      searched().copyWith(
+        query: 'x',
+        filters: SearchFilters.none,
+        hasSearched: true,
+        isLoading: true,
+        results: const [],
+        nextCursor: null,
+      ),
+      searched().copyWith(query: 'x', filters: SearchFilters.none, results: const [], nextCursor: null),
+    ],
+  );
+
+  blocTest<SearchBloc, SearchState>(
+    'submitting without an explicit filter set keeps the current filters',
+    build: () {
+      when(() => repository.search(query: 'x', filters: const SearchFilters(topicId: 't_technology')))
+          .thenAnswer((_) async => page(const []));
+      return SearchBloc(repository);
+    },
+    seed: () => searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
+    act: (bloc) => bloc.add(const SubmitSearch('x')),
+    expect: () => [
+      searched().copyWith(query: 'x', filters: const SearchFilters(topicId: 't_technology')),
+      searched().copyWith(
+        query: 'x',
+        filters: const SearchFilters(topicId: 't_technology'),
+        hasSearched: true,
+        isLoading: true,
+        results: const [],
+        nextCursor: null,
+      ),
+      searched().copyWith(
+        query: 'x',
+        filters: const SearchFilters(topicId: 't_technology'),
+        results: const [],
+        nextCursor: null,
+      ),
     ],
   );
 

@@ -18,9 +18,7 @@ import 'widgets/topic_filter_hint.dart';
 import 'widgets/trending_topics.dart';
 
 class FeedScreen extends StatefulWidget {
-  final ValueChanged<String>? onTrendingTap;
-
-  const FeedScreen({super.key, this.onTrendingTap});
+  const FeedScreen({super.key});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -74,23 +72,35 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: BlocConsumer<FeedBloc, FeedState>(
-        listenWhen: (previous, current) =>
-            _snackMessageFor(current) != null &&
-            _snackMessageFor(previous) != _snackMessageFor(current),
-        listener: (context, state) => showSnackBarMessage(context, _snackMessageFor(state)!),
-        builder: (context, state) => Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            _buildBody(context, state),
-            Positioned(
-              top: AppSpacing.md,
-              child: NewStoriesBanner(
-                count: state.pendingArticles.length,
-                onTap: () => context.read<FeedBloc>().add(const ShowPendingArticles()),
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<FeedBloc, FeedState>(
+            listenWhen: (previous, current) =>
+                _snackMessageFor(current) != null &&
+                _snackMessageFor(previous) != _snackMessageFor(current),
+            listener: (context, state) => showSnackBarMessage(context, _snackMessageFor(state)!),
+          ),
+          BlocListener<FeedBloc, FeedState>(
+            listenWhen: (previous, current) => previous.scope != current.scope,
+            listener: (_, _) {
+              if (_scrollController.hasClients) _scrollController.jumpTo(0);
+            },
+          ),
+        ],
+        child: BlocBuilder<FeedBloc, FeedState>(
+          builder: (context, state) => Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              _buildBody(context, state),
+              Positioned(
+                top: AppSpacing.md,
+                child: NewStoriesBanner(
+                  count: state.pendingArticles.length,
+                  onTap: () => context.read<FeedBloc>().add(const ShowPendingArticles()),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -122,9 +132,12 @@ class _FeedScreenState extends State<FeedScreen> {
           SliverToBoxAdapter(
             child: TrendingTopics(
               topics: state.trending,
-              onTopicTap: (topic) => widget.onTrendingTap?.call(topic.label),
+              onTopicTap: (topic) =>
+                  context.read<FeedBloc>().add(FeedScopeChanged(topic.label)),
             ),
           ),
+          if (state.scope != null)
+            SliverToBoxAdapter(child: _ScopeBanner(label: state.scope!)),
           _buildArticles(state),
           SliverToBoxAdapter(
             child: PaginationFooter(isLoadingMore: state.isLoadingMore, hasMore: state.hasMore),
@@ -149,6 +162,40 @@ class _FeedScreenState extends State<FeedScreen> {
             onTap: () => _openArticle(article),
           );
         },
+      ),
+    );
+  }
+}
+
+/// A minimal "Trending: {label} ✕" scope indicator (B2). Restyled to the
+/// full ticker/scope-bar look in Part 6.6.
+class _ScopeBanner extends StatelessWidget {
+  final String label;
+
+  const _ScopeBanner({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Trending · $label', style: theme.textTheme.titleMedium),
+          ),
+          Semantics(
+            button: true,
+            label: 'Clear trending filter',
+            child: InkWell(
+              onTap: () => context.read<FeedBloc>().add(const FeedScopeChanged(null)),
+              child: const Padding(
+                padding: EdgeInsets.all(AppSpacing.xs),
+                child: Icon(Icons.close_rounded, size: 18),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import '../../../core/models/models.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/local_storage.dart';
+import '../domain/search_filters.dart';
 import '../domain/search_repository.dart';
 
 class SearchRepositoryImpl implements SearchRepository {
@@ -12,8 +13,17 @@ class SearchRepositoryImpl implements SearchRepository {
   SearchRepositoryImpl(this._api, this._storage);
 
   @override
-  Future<FeedResponse> search({required String query, String? topic, String? cursor}) {
-    return _api.search(query: query, topic: topic, page: _pageFrom(cursor));
+  Future<FeedResponse> search({
+    required String query,
+    SearchFilters filters = SearchFilters.none,
+    String? cursor,
+  }) {
+    return _api.search(
+      query: query,
+      topic: filters.topicId,
+      source: filters.source,
+      page: _pageFrom(cursor),
+    );
   }
 
   int _pageFrom(String? cursor) {

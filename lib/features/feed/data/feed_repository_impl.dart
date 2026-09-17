@@ -13,14 +13,20 @@ class FeedRepositoryImpl implements FeedRepository {
   FeedRepositoryImpl(this._api, this._storage);
 
   @override
-  Future<FeedResponse> fetchPage({String? cursor}) async {
-    final response = await _api.getFeed(cursor: cursor, topics: getSelectedTopicIds());
-    if (cursor == null) {
-      await _storage.clearFeedCache();
-      await _storage.setLastSyncTime(DateTime.now());
+  Future<FeedResponse> fetchPage({String? cursor, String? scope}) async {
+    final response = await _api.getFeed(
+      cursor: cursor,
+      topics: scope == null ? getSelectedTopicIds() : const [],
+      trendingLabel: scope,
+    );
+    if (scope == null) {
+      if (cursor == null) {
+        await _storage.clearFeedCache();
+        await _storage.setLastSyncTime(DateTime.now());
+      }
+      await _storage.cacheFeedPage(response.page, response.data);
+      await _storage.setMeta(_cursorKey, response.nextCursor ?? '');
     }
-    await _storage.cacheFeedPage(response.page, response.data);
-    await _storage.setMeta(_cursorKey, response.nextCursor ?? '');
     return response;
   }
 

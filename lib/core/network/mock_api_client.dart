@@ -154,6 +154,7 @@ class MockApiClient implements ApiClient {
     List<String> topics = const [],
     String? source,
     String? cursor,
+    String? trendingLabel,
   }) async {
     await _simulateNetwork();
     final articles = await _loadArticles();
@@ -164,6 +165,9 @@ class MockApiClient implements ApiClient {
     }
     if (source != null && source.isNotEmpty) {
       filtered = filtered.where((a) => a.source == source).toList();
+    }
+    if (trendingLabel != null && trendingLabel.isNotEmpty) {
+      filtered = filtered.where((a) => _matchesTrending(a, trendingLabel)).toList();
     }
 
     filtered.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
@@ -187,6 +191,14 @@ class MockApiClient implements ApiClient {
       total: filtered.length,
       nextCursor: hasMore ? 'feed_${actualPage + 1}' : null,
     );
+  }
+
+  /// Word-level match against an article's tags — "Clean Energy" matches
+  /// an article tagged `energy`, "AI Policy" matches one tagged `policy`.
+  bool _matchesTrending(Article article, String label) {
+    final words = label.toLowerCase().split(RegExp(r'\s+'));
+    final tags = article.tags.map((t) => t.toLowerCase()).toSet();
+    return words.any(tags.contains);
   }
 
   @override

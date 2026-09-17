@@ -103,7 +103,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               TopicFilterChips(
                 topics: state.topics,
-                selectedId: state.selectedTopicId,
+                selectedId: state.filters.topicId,
                 onSelected: (id) => _bloc.add(TopicFilterChanged(id)),
               ),
               Expanded(child: _buildBody(state)),

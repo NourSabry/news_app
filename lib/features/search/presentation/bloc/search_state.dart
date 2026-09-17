@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../../core/models/models.dart';
+import '../../domain/search_filters.dart';
 
 const _unset = Object();
 
@@ -8,7 +9,7 @@ class SearchState extends Equatable {
   final List<String> suggestions;
   final List<Article> results;
   final String? nextCursor;
-  final String? selectedTopicId;
+  final SearchFilters filters;
   final List<Topic> topics;
   final List<String> recentSearches;
   final bool hasSearched;
@@ -21,7 +22,7 @@ class SearchState extends Equatable {
     this.suggestions = const [],
     this.results = const [],
     this.nextCursor,
-    this.selectedTopicId,
+    this.filters = SearchFilters.none,
     this.topics = const [],
     this.recentSearches = const [],
     this.hasSearched = false,
@@ -40,7 +41,7 @@ class SearchState extends Equatable {
     List<String>? suggestions,
     List<Article>? results,
     Object? nextCursor = _unset,
-    Object? selectedTopicId = _unset,
+    SearchFilters? filters,
     List<Topic>? topics,
     List<String>? recentSearches,
     bool? hasSearched,
@@ -53,8 +54,7 @@ class SearchState extends Equatable {
       suggestions: suggestions ?? this.suggestions,
       results: results ?? this.results,
       nextCursor: identical(nextCursor, _unset) ? this.nextCursor : nextCursor as String?,
-      selectedTopicId:
-          identical(selectedTopicId, _unset) ? this.selectedTopicId : selectedTopicId as String?,
+      filters: filters ?? this.filters,
       topics: topics ?? this.topics,
       recentSearches: recentSearches ?? this.recentSearches,
       hasSearched: hasSearched ?? this.hasSearched,
@@ -70,7 +70,7 @@ class SearchState extends Equatable {
         suggestions,
         results,
         nextCursor,
-        selectedTopicId,
+        filters,
         topics,
         recentSearches,
         hasSearched,

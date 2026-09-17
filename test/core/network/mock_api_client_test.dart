@@ -28,6 +28,17 @@ void main() {
     expect(article.version, 4);
   });
 
+  test('getFeed with a trendingLabel matches articles by tag word (B2)', () async {
+    final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
+
+    final cleanEnergy = await client.getFeed(trendingLabel: 'Clean Energy');
+    final aiPolicy = await client.getFeed(trendingLabel: 'AI Policy');
+
+    expect(cleanEnergy.data.map((a) => a.id), contains('a_solar_farms'));
+    expect(cleanEnergy.data.every((a) => a.tags.contains('energy')), isTrue);
+    expect(aiPolicy.data.map((a) => a.id), contains('a_ai_policy'));
+  });
+
   test('resetServerState clears persisted bookmarks and article overrides', () async {
     final store = MemoryStore();
     final first = MockApiClient(store: store)..latencyMs = 0;

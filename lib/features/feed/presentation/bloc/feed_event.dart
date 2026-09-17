@@ -26,3 +26,14 @@ class ShowPendingArticles extends FeedEvent {
 class TopicSelectionChanged extends FeedEvent {
   const TopicSelectionChanged();
 }
+
+/// Scopes the feed to a trending label, or clears the scope back to the
+/// personal feed when [label] is null (B2). Never touches Explore/search.
+class FeedScopeChanged extends FeedEvent {
+  final String? label;
+
+  const FeedScopeChanged(this.label);
+
+  @override
+  List<Object?> get props => [label];
+}

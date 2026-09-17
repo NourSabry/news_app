@@ -46,7 +46,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     if (query.isEmpty) return;
 
     await _repository.addRecentSearch(query);
-    emit(state.copyWith(query: query, recentSearches: _repository.getRecentSearches()));
+    emit(state.copyWith(
+      query: query,
+      filters: event.filters ?? state.filters,
+      recentSearches: _repository.getRecentSearches(),
+    ));
     await _search(emit);
   }
 
@@ -60,7 +64,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       errorMessage: null,
     ));
     try {
-      final page = await _repository.search(query: state.query, topic: state.selectedTopicId);
+      final page = await _repository.search(query: state.query, filters: state.filters);
       emit(state.copyWith(results: page.data, nextCursor: page.nextCursor, isLoading: false));
     } catch (_) {
       emit(state.copyWith(isLoading: false, errorMessage: searchErrorMessage));
@@ -74,7 +78,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     try {
       final page = await _repository.search(
         query: state.query,
-        topic: state.selectedTopicId,
+        filters: state.filters,
         cursor: state.nextCursor,
       );
       emit(state.copyWith(
@@ -88,7 +92,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<void> _onTopicChanged(TopicFilterChanged event, Emitter<SearchState> emit) async {
-    emit(state.copyWith(selectedTopicId: event.topicId));
+    emit(state.copyWith(filters: state.filters.copyWith(topicId: event.topicId)));
     if (state.hasSearched) await _search(emit);
   }
 

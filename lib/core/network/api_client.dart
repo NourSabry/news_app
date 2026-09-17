@@ -11,6 +11,7 @@ abstract class ApiClient {
     List<String> topics = const [],
     String? source,
     String? cursor,
+    String? trendingLabel,
   });
 
   Future<Article> getArticle(String id);

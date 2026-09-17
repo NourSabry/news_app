@@ -12,6 +12,11 @@ class FeedState extends Equatable {
   final List<Topic> topics;
   final List<TrendingTopic> trending;
   final List<String> selectedTopicIds;
+
+  /// The trending label the feed is scoped to (B2), or null for the
+  /// personal feed. Set only by [FeedScopeChanged], never inherited from
+  /// search or any other entry point.
+  final String? scope;
   final DateTime? lastSyncedAt;
   final String? nextCursor;
   final bool isLoadingMore;
@@ -26,6 +31,7 @@ class FeedState extends Equatable {
     this.topics = const [],
     this.trending = const [],
     this.selectedTopicIds = const [],
+    this.scope,
     this.lastSyncedAt,
     this.nextCursor,
     this.isLoadingMore = false,
@@ -47,6 +53,7 @@ class FeedState extends Equatable {
     List<Topic>? topics,
     List<TrendingTopic>? trending,
     List<String>? selectedTopicIds,
+    Object? scope = _unset,
     Object? lastSyncedAt = _unset,
     Object? nextCursor = _unset,
     bool? isLoadingMore,
@@ -61,6 +68,7 @@ class FeedState extends Equatable {
       topics: topics ?? this.topics,
       trending: trending ?? this.trending,
       selectedTopicIds: selectedTopicIds ?? this.selectedTopicIds,
+      scope: identical(scope, _unset) ? this.scope : scope as String?,
       lastSyncedAt: identical(lastSyncedAt, _unset) ? this.lastSyncedAt : lastSyncedAt as DateTime?,
       nextCursor: identical(nextCursor, _unset) ? this.nextCursor : nextCursor as String?,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
@@ -78,6 +86,7 @@ class FeedState extends Equatable {
         topics,
         trending,
         selectedTopicIds,
+        scope,
         lastSyncedAt,
         nextCursor,
         isLoadingMore,

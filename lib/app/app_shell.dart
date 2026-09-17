@@ -23,8 +23,6 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _exploreIndex = 1;
-
   int _currentIndex = 0;
   late final FeedBloc _feedBloc =
       FeedBloc(ServiceLocator.instance.get<FeedRepository>())..add(const LoadFeed());
@@ -36,11 +34,6 @@ class _AppShellState extends State<AppShell> {
     _feedBloc.close();
     _searchBloc.close();
     super.dispose();
-  }
-
-  void _searchTrending(String label) {
-    _searchBloc.add(SubmitSearch(label));
-    setState(() => _currentIndex = _exploreIndex);
   }
 
   @override
@@ -118,7 +111,7 @@ class _AppShellState extends State<AppShell> {
       children: [
         BlocProvider.value(
           value: _feedBloc,
-          child: FeedScreen(onTrendingTap: _searchTrending),
+          child: const FeedScreen(),
         ),
         BlocProvider.value(value: _searchBloc, child: const SearchScreen()),
         const SavedScreen(),
