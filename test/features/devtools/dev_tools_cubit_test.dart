@@ -19,10 +19,12 @@ void main() {
     when(() => repository.simulateOffline).thenReturn(false);
     when(() => repository.simulateServerError).thenReturn(false);
     when(() => repository.simulateConflict).thenReturn(false);
+    when(() => repository.simulateReactionFailure).thenReturn(false);
     when(() => repository.latencyMs).thenReturn(400);
     when(() => repository.setSimulateOffline(any())).thenReturn(null);
     when(() => repository.setSimulateServerError(any())).thenReturn(null);
     when(() => repository.setSimulateConflict(any())).thenReturn(null);
+    when(() => repository.setSimulateReactionFailure(any())).thenReturn(null);
     when(() => repository.setLatencyMs(any())).thenReturn(null);
     when(() => repository.resetMockServer()).thenAnswer((_) async {});
 
@@ -72,6 +74,14 @@ void main() {
     act: (cubit) => cubit.setLatencyMs(2000),
     expect: () => [const DevToolsState(latencyMs: 2000)],
     verify: (_) => verify(() => repository.setLatencyMs(2000)).called(1),
+  );
+
+  blocTest<DevToolsCubit, DevToolsState>(
+    'setSimulateReactionFailure updates state and the repository (G2)',
+    build: () => DevToolsCubit(repository, connectivity),
+    act: (cubit) => cubit.setSimulateReactionFailure(true),
+    expect: () => [const DevToolsState(simulateReactionFailure: true)],
+    verify: (_) => verify(() => repository.setSimulateReactionFailure(true)).called(1),
   );
 
   test('resetMockServer delegates to the repository', () async {

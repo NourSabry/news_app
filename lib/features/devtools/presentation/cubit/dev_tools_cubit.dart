@@ -14,6 +14,7 @@ class DevToolsCubit extends Cubit<DevToolsState> {
           simulateOffline: _repository.simulateOffline,
           simulateServerError: _repository.simulateServerError,
           simulateConflict: _repository.simulateConflict,
+          simulateReactionFailure: _repository.simulateReactionFailure,
           latencyMs: _repository.latencyMs,
         ));
 
@@ -31,6 +32,11 @@ class DevToolsCubit extends Cubit<DevToolsState> {
   void setSimulateConflict(bool value) {
     _repository.setSimulateConflict(value);
     emit(state.copyWith(simulateConflict: value));
+  }
+
+  void setSimulateReactionFailure(bool value) {
+    _repository.setSimulateReactionFailure(value);
+    emit(state.copyWith(simulateReactionFailure: value));
   }
 
   void setLatencyMs(int value) {

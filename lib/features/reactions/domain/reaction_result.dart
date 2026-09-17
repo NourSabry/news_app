@@ -20,3 +20,12 @@ class ReactionConflict extends ReactionResult {
 class ReactionQueued extends ReactionResult {
   const ReactionQueued();
 }
+
+/// The server answered but rejected the mutation (§3.6.3
+/// `TEMPORARY_FAILURE`) — distinct from [ReactionQueued], which means the
+/// request never reached the server at all (G2).
+class ReactionFailed extends ReactionResult {
+  final String message;
+
+  const ReactionFailed(this.message);
+}

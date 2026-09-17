@@ -52,13 +52,17 @@ class ReactionsRepositoryImpl implements ReactionsRepository {
   }
 
   ReactionResult _parse(Map<String, dynamic> response) {
-    if (response['status'] == 'conflict') {
-      final serverState = Map<String, dynamic>.from(response['serverState'] as Map);
-      return ReactionConflict(ArticleOverrides.fromJson(serverState));
+    switch (response['status']) {
+      case 'conflict':
+        final serverState = Map<String, dynamic>.from(response['serverState'] as Map);
+        return ReactionConflict(ArticleOverrides.fromJson(serverState));
+      case 'error':
+        return ReactionFailed(response['message'] as String? ?? 'Reaction was not saved');
+      default:
+        return ReactionApplied(
+          likes: (response['likes'] as num).toInt(),
+          version: (response['version'] as num).toInt(),
+        );
     }
-    return ReactionApplied(
-      likes: (response['likes'] as num).toInt(),
-      version: (response['version'] as num).toInt(),
-    );
   }
 }

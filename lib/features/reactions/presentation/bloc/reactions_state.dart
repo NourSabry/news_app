@@ -6,23 +6,62 @@ const _unset = Object();
 
 class ReactionsState extends Equatable {
   final Map<String, ArticleOverrides> overrides;
+
+  /// Article ids with a toggle currently in flight (G2) — further taps on
+  /// the same article are ignored while it's in this set.
+  final Set<String> inFlight;
+
   final String? notice;
 
-  const ReactionsState({this.overrides = const {}, this.notice});
+  /// Set alongside [notice] only when the notice is a rollback that offers
+  /// a Retry action, so the listener showing the snackbar knows which
+  /// article (and version) to retry.
+  final Article? retryArticle;
+
+  const ReactionsState({
+    this.overrides = const {},
+    this.inFlight = const {},
+    this.notice,
+    this.retryArticle,
+  });
 
   Article apply(Article article) => article.applying(overrides[article.id]);
 
+  bool isInFlight(String articleId) => inFlight.contains(articleId);
+
+  /// [value] of null removes the override entirely — used to roll back to
+  /// "no override" when a toggle fails and there was nothing to revert to.
   ReactionsState withOverride(
     String articleId,
-    ArticleOverrides value, {
+    ArticleOverrides? value, {
     Object? notice = _unset,
+    Object? retryArticle = _unset,
   }) {
+    final nextOverrides = {...overrides};
+    if (value == null) {
+      nextOverrides.remove(articleId);
+    } else {
+      nextOverrides[articleId] = value;
+    }
     return ReactionsState(
-      overrides: {...overrides, articleId: value},
+      overrides: nextOverrides,
+      inFlight: inFlight,
       notice: identical(notice, _unset) ? this.notice : notice as String?,
+      retryArticle: identical(retryArticle, _unset) ? this.retryArticle : retryArticle as Article?,
+    );
+  }
+
+  ReactionsState withInFlight(String articleId, bool value) {
+    final nextInFlight = {...inFlight};
+    value ? nextInFlight.add(articleId) : nextInFlight.remove(articleId);
+    return ReactionsState(
+      overrides: overrides,
+      inFlight: nextInFlight,
+      notice: notice,
+      retryArticle: retryArticle,
     );
   }
 
   @override
-  List<Object?> get props => [overrides, notice];
+  List<Object?> get props => [overrides, inFlight, notice, retryArticle];
 }

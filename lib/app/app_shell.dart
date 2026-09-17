@@ -57,7 +57,18 @@ class _AppShellState extends State<AppShell> {
         BlocListener<ReactionsBloc, ReactionsState>(
           listenWhen: (previous, current) =>
               current.notice != null && previous.notice != current.notice,
-          listener: (context, state) => showSnackBarMessage(context, state.notice!),
+          listener: (context, state) => showSnackBarMessage(
+            context,
+            state.notice!,
+            action: state.retryArticle == null
+                ? null
+                : SnackBarAction(
+                    label: 'Retry',
+                    onPressed: () => context
+                        .read<ReactionsBloc>()
+                        .add(ToggleLike(state.retryArticle!)),
+                  ),
+          ),
         ),
         BlocListener<OutboxCubit, OutboxState>(
           listenWhen: (previous, current) =>

@@ -15,6 +15,10 @@ extension ArticleSync on BuildContext {
     return article.applying(overrides).copyWith(isBookmarked: isBookmarked);
   }
 
+  bool isLikeInFlight(String articleId) {
+    return select<ReactionsBloc, bool>((bloc) => bloc.state.isInFlight(articleId));
+  }
+
   void toggleLike(Article article) => read<ReactionsBloc>().add(ToggleLike(article));
 
   void toggleBookmark(Article article) => read<BookmarksBloc>().add(ToggleBookmark(article));

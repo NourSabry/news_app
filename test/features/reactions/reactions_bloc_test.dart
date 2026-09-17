@@ -21,10 +21,19 @@ Article article({bool isLiked = false, int likes = 10, int version = 1}) => Arti
       version: version,
     );
 
-ReactionsState overridden({required bool isLiked, required int likes, required int version, String? notice}) {
+ReactionsState overridden({
+  required bool isLiked,
+  required int likes,
+  required int version,
+  String? notice,
+  bool inFlight = false,
+  Article? retryArticle,
+}) {
   return ReactionsState(
     overrides: {'a': ArticleOverrides(isLiked: isLiked, likes: likes, version: version)},
+    inFlight: inFlight ? const {'a'} : const {},
     notice: notice,
+    retryArticle: retryArticle,
   );
 }
 
@@ -60,7 +69,7 @@ void main() {
     },
     act: (bloc) => bloc.add(ToggleLike(article())),
     expect: () => [
-      overridden(isLiked: true, likes: 11, version: 1),
+      overridden(isLiked: true, likes: 11, version: 1, inFlight: true),
       overridden(isLiked: true, likes: 12, version: 2),
     ],
   );
@@ -74,7 +83,7 @@ void main() {
     },
     act: (bloc) => bloc.add(ToggleLike(article(isLiked: true, version: 3))),
     expect: () => [
-      overridden(isLiked: false, likes: 9, version: 3),
+      overridden(isLiked: false, likes: 9, version: 3, inFlight: true),
       overridden(isLiked: false, likes: 9, version: 4),
     ],
   );
@@ -91,7 +100,7 @@ void main() {
     },
     act: (bloc) => bloc.add(ToggleLike(article())),
     expect: () => [
-      overridden(isLiked: true, likes: 11, version: 1),
+      overridden(isLiked: true, likes: 11, version: 1, inFlight: true),
       overridden(isLiked: true, likes: 186, version: 3, notice: ReactionsBloc.conflictMessage),
     ],
   );
@@ -104,7 +113,10 @@ void main() {
       return ReactionsBloc(repository);
     },
     act: (bloc) => bloc.add(ToggleLike(article())),
-    expect: () => [overridden(isLiked: true, likes: 11, version: 1)],
+    expect: () => [
+      overridden(isLiked: true, likes: 11, version: 1, inFlight: true),
+      overridden(isLiked: true, likes: 11, version: 1),
+    ],
   );
 
   blocTest<ReactionsBloc, ReactionsState>(
@@ -116,6 +128,70 @@ void main() {
     },
     seed: () => overridden(isLiked: true, likes: 186, version: 3, notice: ReactionsBloc.conflictMessage),
     act: (bloc) => bloc.add(ToggleLike(article(isLiked: true, likes: 186, version: 3))),
-    expect: () => [overridden(isLiked: false, likes: 185, version: 3)],
+    expect: () => [
+      overridden(isLiked: false, likes: 185, version: 3, inFlight: true),
+      overridden(isLiked: false, likes: 185, version: 3),
+    ],
+  );
+
+  blocTest<ReactionsBloc, ReactionsState>(
+    'rolls back to no override on a server rejection and offers Retry (G2)',
+    build: () {
+      when(() => repository.toggleLike('a', expectedVersion: 1))
+          .thenAnswer((_) async => const ReactionFailed('Reaction was not saved'));
+      return ReactionsBloc(repository);
+    },
+    act: (bloc) => bloc.add(ToggleLike(article())),
+    expect: () => [
+      overridden(isLiked: true, likes: 11, version: 1, inFlight: true),
+      ReactionsState(
+        overrides: const {},
+        notice: 'Reaction was not saved',
+        retryArticle: article(),
+      ),
+    ],
+  );
+
+  blocTest<ReactionsBloc, ReactionsState>(
+    'rolls back to the previous override (not "no override") on rejection (G2)',
+    build: () {
+      when(() => repository.toggleLike('a', expectedVersion: 3))
+          .thenAnswer((_) async => const ReactionFailed('Reaction was not saved'));
+      return ReactionsBloc(repository);
+    },
+    seed: () => overridden(isLiked: true, likes: 186, version: 3),
+    act: (bloc) => bloc.add(ToggleLike(article(isLiked: true, likes: 186, version: 3))),
+    expect: () => [
+      overridden(isLiked: false, likes: 185, version: 3, inFlight: true),
+      overridden(
+        isLiked: true,
+        likes: 186,
+        version: 3,
+        notice: 'Reaction was not saved',
+        retryArticle: article(isLiked: true, likes: 186, version: 3),
+      ),
+    ],
+  );
+
+  blocTest<ReactionsBloc, ReactionsState>(
+    'ignores a second tap on the same article while one is in flight (G2)',
+    build: () {
+      when(() => repository.toggleLike('a', expectedVersion: 1)).thenAnswer(
+        (_) => Future.delayed(
+          const Duration(milliseconds: 20),
+          () => const ReactionApplied(likes: 12, version: 2),
+        ),
+      );
+      return ReactionsBloc(repository);
+    },
+    act: (bloc) => bloc
+      ..add(ToggleLike(article()))
+      ..add(ToggleLike(article())),
+    wait: const Duration(milliseconds: 50),
+    expect: () => [
+      overridden(isLiked: true, likes: 11, version: 1, inFlight: true),
+      overridden(isLiked: true, likes: 12, version: 2),
+    ],
+    verify: (_) => verify(() => repository.toggleLike('a', expectedVersion: 1)).called(1),
   );
 }

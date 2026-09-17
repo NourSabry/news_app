@@ -16,6 +16,9 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
   bool get simulateConflict => _api.simulateConflict;
 
   @override
+  bool get simulateReactionFailure => _api.simulateReactionFailure;
+
+  @override
   int get latencyMs => _api.latencyMs;
 
   @override
@@ -26,6 +29,9 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
 
   @override
   void setSimulateConflict(bool value) => _api.simulateConflict = value;
+
+  @override
+  void setSimulateReactionFailure(bool value) => _api.simulateReactionFailure = value;
 
   @override
   void setLatencyMs(int value) => _api.latencyMs = value;

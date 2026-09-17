@@ -11,6 +11,7 @@ export 'reactions_state.dart';
 
 class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
   static const conflictMessage = 'Updated to latest';
+  static const failureMessage = 'Reaction was not saved';
 
   final ReactionsRepository _repository;
 
@@ -21,13 +22,18 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
 
   Future<void> _onToggleLike(ToggleLike event, Emitter<ReactionsState> emit) async {
     final article = event.article;
+    if (state.isInFlight(article.id)) return;
+
+    final previousOverride = state.overrides[article.id];
     final liked = !article.isLiked;
     final optimistic = ArticleOverrides(
       isLiked: liked,
       likes: article.likes + (liked ? 1 : -1),
       version: article.version,
     );
-    emit(state.withOverride(article.id, optimistic, notice: null));
+    emit(state
+        .withOverride(article.id, optimistic, notice: null, retryArticle: null)
+        .withInFlight(article.id, true));
     await _repository.persistOverride(article.id, optimistic);
 
     final result = await _repository.toggleLike(
@@ -37,13 +43,22 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
     switch (result) {
       case ReactionApplied(:final likes, :final version):
         final applied = ArticleOverrides(isLiked: liked, likes: likes, version: version);
-        emit(state.withOverride(article.id, applied));
+        emit(state.withOverride(article.id, applied).withInFlight(article.id, false));
         await _repository.persistOverride(article.id, applied);
       case ReactionConflict(:final serverState):
-        emit(state.withOverride(article.id, serverState, notice: conflictMessage));
+        emit(state
+            .withOverride(article.id, serverState, notice: conflictMessage)
+            .withInFlight(article.id, false));
         await _repository.persistOverride(article.id, serverState);
+      case ReactionFailed():
+        emit(state
+            .withOverride(article.id, previousOverride, notice: failureMessage, retryArticle: article)
+            .withInFlight(article.id, false));
+        if (previousOverride != null) {
+          await _repository.persistOverride(article.id, previousOverride);
+        }
       case ReactionQueued():
-        break;
+        emit(state.withInFlight(article.id, false));
     }
   }
 }

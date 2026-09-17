@@ -43,6 +43,13 @@ class DeveloperSection extends StatelessWidget {
           value: state.simulateConflict,
           onChanged: (value) => context.read<DevToolsCubit>().setSimulateConflict(value),
         ),
+        SwitchListTile(
+          secondary: const Icon(Icons.undo_rounded),
+          title: const Text('Simulate reaction failure'),
+          subtitle: const Text('Likes are rejected and roll back with Retry'),
+          value: state.simulateReactionFailure,
+          onChanged: (value) => context.read<DevToolsCubit>().setSimulateReactionFailure(value),
+        ),
         ListTile(
           leading: const Icon(Icons.speed_rounded),
           title: const Text('Network latency'),

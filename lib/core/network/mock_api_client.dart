@@ -27,6 +27,7 @@ class MockApiClient implements ApiClient {
   bool simulateOffline = false;
   bool simulateError = false;
   bool simulateConflict = false;
+  bool simulateReactionFailure = false;
   int latencyMs = 400;
   int _refreshCount = 0;
 
@@ -286,6 +287,15 @@ class MockApiClient implements ApiClient {
     required int expectedVersion,
   }) async {
     await _simulateNetwork();
+
+    if (simulateReactionFailure) {
+      return {
+        'status': 'error',
+        'articleId': articleId,
+        'code': 'TEMPORARY_FAILURE',
+        'message': 'Reaction was not saved',
+      };
+    }
 
     if (simulateConflict) {
       return {

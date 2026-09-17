@@ -20,12 +20,13 @@ class LiveArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final live = context.liveArticle(article);
+    final isLikeInFlight = context.isLikeInFlight(article.id);
     return EditionArticleCard(
       article: live,
       topicName: topicName,
       variant: variant,
       onTap: onTap,
-      onLike: () => context.toggleLike(live),
+      onLike: isLikeInFlight ? null : () => context.toggleLike(live),
       onBookmark: () => context.toggleBookmark(live),
     );
   }

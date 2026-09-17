@@ -14,7 +14,12 @@ class EngagementRow extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onBookmark;
 
-  const EngagementRow({super.key, required this.article, this.onLike, this.onBookmark});
+  const EngagementRow({
+    super.key,
+    required this.article,
+    this.onLike,
+    this.onBookmark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,11 @@ class EngagementRow extends StatelessWidget {
 
     return Row(
       children: [
-        _LikeButton(isLiked: article.isLiked, count: article.likes, onTap: onLike),
+        _LikeButton(
+          isLiked: article.isLiked,
+          count: article.likes,
+          onTap: onLike,
+        ),
         const SizedBox(width: AppSpacing.lg),
         Icon(Icons.mode_comment_outlined, size: 18, color: inkFaint),
         const SizedBox(width: AppSpacing.xs),
@@ -43,7 +52,9 @@ class EngagementRow extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.xs),
               child: Icon(
-                article.isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                article.isBookmarked
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_outline_rounded,
                 size: 20,
                 color: article.isBookmarked ? ink : inkFaint,
               ),
@@ -66,7 +77,8 @@ class _LikeButton extends StatefulWidget {
   State<_LikeButton> createState() => _LikeButtonState();
 }
 
-class _LikeButtonState extends State<_LikeButton> with SingleTickerProviderStateMixin {
+class _LikeButtonState extends State<_LikeButton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 220),
@@ -96,52 +108,69 @@ class _LikeButtonState extends State<_LikeButton> with SingleTickerProviderState
     final inkFaint = isLight ? AppColors.lightInkFaint : AppColors.darkInkFaint;
     final red = isLight ? AppColors.lightRed : AppColors.darkRed;
 
+    final inFlight = widget.onTap == null;
+
     return Semantics(
       button: true,
       label: widget.isLiked ? 'Unlike' : 'Like',
       child: InkWell(
-        onTap: _handleTap,
+        onTap: inFlight ? null : _handleTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.sm),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) => Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (_controller.isAnimating)
-                      Opacity(
-                        opacity: (1 - _controller.value).clamp(0.0, 1.0),
-                        child: Container(
-                          width: 28 * _scale.value,
-                          height: 28 * _scale.value,
-                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: red, width: 1.5)),
+        child: Opacity(
+          // A subtle pressed look while the toggle is in flight — never a
+          // spinner (G2).
+          opacity: inFlight ? 0.5 : 1,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) => Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (_controller.isAnimating)
+                        Opacity(
+                          opacity: (1 - _controller.value).clamp(0.0, 1.0),
+                          child: Container(
+                            width: 28 * _scale.value,
+                            height: 28 * _scale.value,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: red, width: 1.5),
+                            ),
+                          ),
                         ),
+                      Transform.scale(
+                        scale: MediaQuery.disableAnimationsOf(context)
+                            ? 1.0
+                            : _scale.value,
+                        child: child,
                       ),
-                    Transform.scale(
-                      scale: MediaQuery.disableAnimationsOf(context) ? 1.0 : _scale.value,
-                      child: child,
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Icon(
+                    widget.isLiked
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    size: 18,
+                    color: widget.isLiked ? red : inkFaint,
+                  ),
                 ),
-                child: Icon(
-                  widget.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                  size: 18,
-                  color: widget.isLiked ? red : inkFaint,
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  NumberFormat.compact().format(widget.count),
+                  style: AppTextStyles.label.copyWith(
+                    color: widget.isLiked ? red : inkFaint,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                NumberFormat.compact().format(widget.count),
-                style: AppTextStyles.label.copyWith(
-                  color: widget.isLiked ? red : inkFaint,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
