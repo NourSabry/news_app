@@ -1,77 +1,8 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:news_app/core/di/service_locator.dart';
-import 'package:news_app/core/network/mock_api_client.dart';
-import 'package:news_app/core/storage/local_storage.dart';
-import 'package:news_app/core/widgets/edition_nav_bar.dart';
 import 'package:news_app/features/details/presentation/article_details_screen.dart';
 import 'package:news_app/features/feed/presentation/widgets/article_cards.dart';
-import 'package:news_app/main.dart';
-
-class MockConnectivity extends Mock implements Connectivity {}
-
-class MockCacheManager extends Mock implements BaseCacheManager {}
-
-const flutterTitle = 'Flutter Team Shares the Next Performance Roadmap';
-const batteryTitle = 'Battery Breakthrough Improves Grid Storage Efficiency';
-
-Future<MockApiClient> bootstrap({bool onboarded = false}) async {
-  final storage = LocalStorage.inMemory();
-  if (onboarded) await storage.setOnboardingCompleted(true);
-
-  final connectivity = MockConnectivity();
-  when(() => connectivity.onConnectivityChanged).thenAnswer((_) => const Stream.empty());
-
-  final images = MockCacheManager();
-  when(() => images.getFileStream(
-        any(),
-        key: any(named: 'key'),
-        headers: any(named: 'headers'),
-        withProgress: any(named: 'withProgress'),
-      )).thenAnswer((_) => Stream.error(Exception('No images in tests')));
-
-  final api = MockApiClient()..latencyMs = 0;
-  rootBundle.clear();
-  ServiceLocator.instance.reset();
-  await ServiceLocator.instance.init(
-    storage: storage,
-    apiClient: api,
-    connectivity: connectivity,
-    imageCache: images,
-  );
-  return api;
-}
-
-Future<void> pumpApp(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1170, 2532);
-  tester.view.devicePixelRatio = 3;
-  addTearDown(tester.view.reset);
-  await tester.pumpWidget(const NewsApp());
-  await tester.pumpAndSettle();
-}
-
-Finder inCard(String title, Finder matching) {
-  final card = find.ancestor(of: find.text(title), matching: find.byType(EditionArticleCard));
-  return find.descendant(of: card, matching: matching);
-}
-
-Finder navItem(String label) {
-  return find.descendant(
-    of: find.byType(EditionNavBar),
-    matching: find.text(label.toUpperCase()),
-  );
-}
-
-Future<void> tapAndSettle(WidgetTester tester, Finder finder) async {
-  await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
-  await tester.tap(finder);
-  await tester.pumpAndSettle();
-}
+import 'support/app_test_harness.dart';
 
 void main() {
   testWidgets('onboarding through feed, reactions, bookmarks and details', (tester) async {
