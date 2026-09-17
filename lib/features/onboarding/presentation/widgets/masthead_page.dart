@@ -4,7 +4,6 @@ import '../../../../core/models/models.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/double_rule.dart';
 import '../../../../core/widgets/hairline.dart';
 
 /// Screen 1 — the wordmark assembles, then real headlines rise into a
@@ -65,7 +64,7 @@ class _MastheadPageState extends State<MastheadPage> with SingleTickerProviderSt
                 child: child,
               ),
             ),
-            child: const DoubleRule(),
+            child: Hairline(color: brightness == Brightness.light ? AppColors.lightRuleStrong : AppColors.darkRuleStrong),
           ),
           const SizedBox(height: AppSpacing.md),
           FadeTransition(
