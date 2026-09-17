@@ -9,7 +9,7 @@ import 'package:news_app/core/network/mock_api_client.dart';
 import 'package:news_app/core/storage/local_storage.dart';
 import 'package:news_app/core/widgets/edition_nav_bar.dart';
 import 'package:news_app/features/details/presentation/article_details_screen.dart';
-import 'package:news_app/features/feed/presentation/widgets/article_card.dart';
+import 'package:news_app/features/feed/presentation/widgets/article_cards.dart';
 import 'package:news_app/main.dart';
 
 class MockConnectivity extends Mock implements Connectivity {}
@@ -55,7 +55,7 @@ Future<void> pumpApp(WidgetTester tester) async {
 }
 
 Finder inCard(String title, Finder matching) {
-  final card = find.ancestor(of: find.text(title), matching: find.byType(ArticleCard));
+  final card = find.ancestor(of: find.text(title), matching: find.byType(EditionArticleCard));
   return find.descendant(of: card, matching: matching);
 }
 
@@ -78,23 +78,33 @@ void main() {
     await bootstrap();
     await pumpApp(tester);
 
-    expect(find.text('News Feed'), findsOneWidget);
-    await tapAndSettle(tester, find.text('Continue'));
+    expect(find.text('Set up my edition'), findsOneWidget);
+    await tapAndSettle(tester, find.text('Set up my edition'));
     await tapAndSettle(tester, find.text('Technology'));
     await tapAndSettle(tester, find.text('Science'));
     await tapAndSettle(tester, find.text('Continue'));
-    await tapAndSettle(tester, find.text('Get started'));
+    await tapAndSettle(tester, find.text('Start reading'));
 
-    expect(find.byType(ArticleCard), findsWidgets);
-    expect(find.textContaining('Showing 2 topics'), findsOneWidget);
-    expect(find.text('Updated just now'), findsOneWidget);
+    expect(find.byType(EditionArticleCard), findsWidgets);
     expect(find.text(flutterTitle), findsOneWidget);
 
-    await tapAndSettle(tester, inCard(flutterTitle, find.byTooltip('Like')));
+    await tapAndSettle(tester, inCard(flutterTitle, find.byIcon(Icons.favorite_border_rounded)));
     expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
 
-    await tapAndSettle(tester, inCard(batteryTitle, find.byTooltip('Save')));
-    expect(inCard(batteryTitle, find.byTooltip('Remove bookmark')), findsOneWidget);
+    await tapAndSettle(tester, inCard(batteryTitle, find.byIcon(Icons.bookmark_outline_rounded)));
+    expect(inCard(batteryTitle, find.byIcon(Icons.bookmark_rounded)), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.textContaining('2 sections'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining('2 sections'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(batteryTitle),
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
 
     await tapAndSettle(tester, navItem('Saved'));
     expect(find.text(batteryTitle), findsOneWidget);
@@ -111,7 +121,7 @@ void main() {
     await tapAndSettle(tester, find.text(batteryTitle));
     expect(find.byType(ArticleDetailsScreen), findsOneWidget);
 
-    await tapAndSettle(tester, find.byTooltip('Back'));
+    await tapAndSettle(tester, find.byIcon(Icons.arrow_back_rounded));
     expect(find.byType(ArticleDetailsScreen), findsNothing);
     expect(find.text(batteryTitle), findsOneWidget);
   });
@@ -122,7 +132,7 @@ void main() {
     expect(find.text(flutterTitle), findsOneWidget);
 
     api.simulateOffline = true;
-    await tapAndSettle(tester, inCard(flutterTitle, find.byTooltip('Like')));
+    await tapAndSettle(tester, inCard(flutterTitle, find.byIcon(Icons.favorite_border_rounded)));
     expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
     expect(find.text('1 pending change'), findsOneWidget);
 
