@@ -11,12 +11,16 @@ class ArticleBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstParagraphIndex = blocks.indexWhere((b) => b.type != 'heading');
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, 0),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.xl, AppSpacing.gutter, 0),
       sliver: SliverList.separated(
         itemCount: blocks.length,
         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.lg),
-        itemBuilder: (_, index) => ContentBlockView(block: blocks[index]),
+        itemBuilder: (_, index) => ContentBlockView(
+          block: blocks[index],
+          dropCap: index == firstParagraphIndex,
+        ),
       ),
     );
   }
@@ -28,7 +32,7 @@ class ArticleBodyShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, 0),
+      padding: EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.xl, AppSpacing.gutter, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,7 +42,7 @@ class ArticleBodyShimmer extends StatelessWidget {
           SizedBox(height: AppSpacing.sm),
           ShimmerLoading(height: 16, width: 220),
           SizedBox(height: AppSpacing.xl),
-          ShimmerLoading(height: 200, borderRadius: AppSpacing.radiusLg),
+          ShimmerLoading(height: 200),
           SizedBox(height: AppSpacing.xl),
           ShimmerLoading(height: 16),
           SizedBox(height: AppSpacing.sm),

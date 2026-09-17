@@ -73,6 +73,16 @@ sealed class AppTextStyles {
     fontWeight: FontWeight.w500,
   );
 
+  /// The drop cap on the first paragraph of every article body — roughly
+  /// three `body` lines tall (Part 6.2). Colour is applied by the caller
+  /// (always `red`).
+  static const TextStyle dropCap = TextStyle(
+    fontFamily: _display,
+    fontSize: 68,
+    height: 0.85,
+    fontWeight: FontWeight.w700,
+  );
+
   /// Timestamps, captions.
   static const TextStyle caption = TextStyle(
     fontFamily: _ui,
