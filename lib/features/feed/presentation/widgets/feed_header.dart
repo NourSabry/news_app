@@ -2,10 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/time_formatter.dart';
 import '../../../outbox/presentation/widgets/network_debug_menu.dart';
 
 class FeedHeader extends StatelessWidget {
-  const FeedHeader({super.key});
+  final DateTime? lastSyncedAt;
+  final VoidCallback? onSettingsTap;
+
+  const FeedHeader({super.key, this.lastSyncedAt, this.onSettingsTap});
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +29,19 @@ class FeedHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(_greetingFor(now.hour), style: theme.textTheme.headlineLarge),
+                if (lastSyncedAt != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(_syncLabel(lastSyncedAt!, now), style: theme.textTheme.labelMedium),
+                ],
               ],
             ),
           ),
           if (kDebugMode) const NetworkDebugMenu(),
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: onSettingsTap,
+          ),
         ],
       ),
     );
@@ -38,5 +51,9 @@ class FeedHeader extends StatelessWidget {
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
+  }
+
+  String _syncLabel(DateTime time, DateTime now) {
+    return 'Updated ${TimeFormatter.relative(time, now: now).toLowerCase()}';
   }
 }

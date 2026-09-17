@@ -8,7 +8,7 @@ abstract class ApiClient {
   Future<FeedResponse> getFeed({
     int page = 1,
     int pageSize = 10,
-    String? topic,
+    List<String> topics = const [],
     String? source,
     String? cursor,
   });

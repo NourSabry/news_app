@@ -11,4 +11,8 @@ abstract class FeedRepository {
   Future<List<Topic>> getTopics();
 
   Future<List<TrendingTopic>> getTrending();
+
+  List<String> getSelectedTopicIds();
+
+  DateTime? getLastSyncTime();
 }

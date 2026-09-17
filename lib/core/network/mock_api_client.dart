@@ -28,7 +28,9 @@ class MockApiClient implements ApiClient {
     if (simulateOffline) {
       throw Exception('No internet connection');
     }
-    await Future.delayed(Duration(milliseconds: _latencyMs + Random().nextInt(200)));
+    if (_latencyMs > 0) {
+      await Future.delayed(Duration(milliseconds: _latencyMs + Random().nextInt(200)));
+    }
     if (simulateError) {
       throw Exception('Server error');
     }
@@ -87,7 +89,7 @@ class MockApiClient implements ApiClient {
   Future<FeedResponse> getFeed({
     int page = 1,
     int pageSize = 10,
-    String? topic,
+    List<String> topics = const [],
     String? source,
     String? cursor,
   }) async {
@@ -95,8 +97,8 @@ class MockApiClient implements ApiClient {
     final articles = await _loadArticles();
 
     var filtered = articles.toList();
-    if (topic != null && topic.isNotEmpty) {
-      filtered = filtered.where((a) => a.topicId == topic).toList();
+    if (topics.isNotEmpty) {
+      filtered = filtered.where((a) => topics.contains(a.topicId)).toList();
     }
     if (source != null && source.isNotEmpty) {
       filtered = filtered.where((a) => a.source == source).toList();

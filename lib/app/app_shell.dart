@@ -12,6 +12,7 @@ import '../features/reactions/presentation/bloc/reactions_bloc.dart';
 import '../features/search/domain/search_repository.dart';
 import '../features/search/presentation/bloc/search_bloc.dart';
 import '../features/search/presentation/search_screen.dart';
+import '../features/settings/presentation/cubit/settings_cubit.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -24,11 +25,14 @@ class _AppShellState extends State<AppShell> {
   static const _exploreIndex = 1;
 
   int _currentIndex = 0;
+  late final FeedBloc _feedBloc =
+      FeedBloc(ServiceLocator.instance.get<FeedRepository>())..add(const LoadFeed());
   late final SearchBloc _searchBloc =
       SearchBloc(ServiceLocator.instance.get<SearchRepository>())..add(const SearchStarted());
 
   @override
   void dispose() {
+    _feedBloc.close();
     _searchBloc.close();
     super.dispose();
   }
@@ -44,6 +48,11 @@ class _AppShellState extends State<AppShell> {
 
     return MultiBlocListener(
       listeners: [
+        BlocListener<SettingsCubit, SettingsState>(
+          listenWhen: (previous, current) =>
+              previous.selectedTopicIds != current.selectedTopicIds,
+          listener: (_, _) => _feedBloc.add(const TopicSelectionChanged()),
+        ),
         BlocListener<ReactionsBloc, ReactionsState>(
           listenWhen: (previous, current) =>
               current.notice != null && previous.notice != current.notice,
@@ -117,9 +126,8 @@ class _AppShellState extends State<AppShell> {
     return IndexedStack(
       index: _currentIndex,
       children: [
-        BlocProvider(
-          create: (_) => FeedBloc(ServiceLocator.instance.get<FeedRepository>())
-            ..add(const LoadFeed()),
+        BlocProvider.value(
+          value: _feedBloc,
           child: FeedScreen(onTrendingTap: _searchTrending),
         ),
         BlocProvider.value(value: _searchBloc, child: const SearchScreen()),

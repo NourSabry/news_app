@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../app/widgets/live_article_card.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../feed/presentation/widgets/article_card.dart';
 
 class RelatedStories extends StatelessWidget {
   final List<Article> articles;
@@ -30,7 +30,7 @@ class RelatedStories extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (_, index) => SizedBox(
                 width: 220,
-                child: ArticleCard(
+                child: LiveArticleCard(
                   article: articles[index],
                   compact: true,
                   onTap: () => onTap(articles[index]),

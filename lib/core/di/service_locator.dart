@@ -1,3 +1,5 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../features/bookmarks/data/bookmarks_repository_impl.dart';
 import '../../features/bookmarks/domain/bookmarks_repository.dart';
 import '../../features/details/data/details_repository_impl.dart';
@@ -10,6 +12,8 @@ import '../../features/reactions/data/reactions_repository_impl.dart';
 import '../../features/reactions/domain/reactions_repository.dart';
 import '../../features/search/data/search_repository_impl.dart';
 import '../../features/search/domain/search_repository.dart';
+import '../../features/settings/data/settings_repository_impl.dart';
+import '../../features/settings/domain/settings_repository.dart';
 import '../network/api_client.dart';
 import '../network/mock_api_client.dart';
 import '../storage/local_storage.dart';
@@ -46,22 +50,29 @@ class ServiceLocator {
     _factories.clear();
   }
 
-  Future<void> init() async {
-    final localStorage = LocalStorage();
-    await localStorage.init();
+  Future<void> init({
+    LocalStorage? storage,
+    MockApiClient? apiClient,
+    Connectivity? connectivity,
+    BaseCacheManager? imageCache,
+  }) async {
+    final localStorage = storage ?? await LocalStorage.openHive();
     register<LocalStorage>(localStorage);
+    register<Connectivity>(connectivity ?? Connectivity());
+    register<BaseCacheManager>(imageCache ?? DefaultCacheManager());
 
-    final apiClient = MockApiClient();
-    register<ApiClient>(apiClient);
-    register<MockApiClient>(apiClient);
+    final api = apiClient ?? MockApiClient();
+    register<ApiClient>(api);
+    register<MockApiClient>(api);
 
-    register<FeedRepository>(FeedRepositoryImpl(apiClient, localStorage));
-    register<DetailsRepository>(DetailsRepositoryImpl(apiClient, localStorage));
-    register<SearchRepository>(SearchRepositoryImpl(apiClient, localStorage));
+    register<FeedRepository>(FeedRepositoryImpl(api, localStorage));
+    register<DetailsRepository>(DetailsRepositoryImpl(api, localStorage));
+    register<SearchRepository>(SearchRepositoryImpl(api, localStorage));
+    register<SettingsRepository>(SettingsRepositoryImpl(api, localStorage));
 
-    final outbox = OutboxRepositoryImpl(apiClient, localStorage);
+    final outbox = OutboxRepositoryImpl(api, localStorage);
     register<OutboxRepository>(outbox);
-    register<ReactionsRepository>(ReactionsRepositoryImpl(apiClient, outbox));
-    register<BookmarksRepository>(BookmarksRepositoryImpl(apiClient, localStorage, outbox));
+    register<ReactionsRepository>(ReactionsRepositoryImpl(api, outbox));
+    register<BookmarksRepository>(BookmarksRepositoryImpl(api, localStorage, outbox));
   }
 }

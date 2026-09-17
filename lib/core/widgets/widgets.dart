@@ -7,3 +7,4 @@ export 'shimmer_loading.dart';
 export 'stat_item.dart';
 export 'topic_badge.dart';
 export 'topic_chip.dart';
+export 'topic_picker.dart';

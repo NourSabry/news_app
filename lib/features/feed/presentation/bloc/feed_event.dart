@@ -22,3 +22,7 @@ class RefreshFeed extends FeedEvent {
 class ShowPendingArticles extends FeedEvent {
   const ShowPendingArticles();
 }
+
+class TopicSelectionChanged extends FeedEvent {
+  const TopicSelectionChanged();
+}

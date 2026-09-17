@@ -14,7 +14,7 @@ class FeedRepositoryImpl implements FeedRepository {
 
   @override
   Future<FeedResponse> fetchPage({String? cursor}) async {
-    final response = await _api.getFeed(cursor: cursor);
+    final response = await _api.getFeed(cursor: cursor, topics: getSelectedTopicIds());
     if (cursor == null) {
       await _storage.clearFeedCache();
       await _storage.setLastSyncTime(DateTime.now());
@@ -30,7 +30,7 @@ class FeedRepositoryImpl implements FeedRepository {
     for (var page = 1;; page++) {
       final cached = _storage.getCachedFeedPage(page);
       if (cached.isEmpty) break;
-      articles.addAll(cached);
+      articles.addAll(_selected(cached));
     }
     if (articles.isEmpty) return null;
 
@@ -52,10 +52,16 @@ class FeedRepositoryImpl implements FeedRepository {
     final updatedArticles = await _fetchArticles(update.updatedItems);
     await _storage.setLastSyncTime(update.serverTime);
     return FeedDelta(
-      newArticles: newArticles,
+      newArticles: _selected(newArticles),
       updatedArticles: updatedArticles,
       deletedIds: update.deletedItems,
     );
+  }
+
+  List<Article> _selected(List<Article> articles) {
+    final ids = getSelectedTopicIds();
+    if (ids.isEmpty) return articles;
+    return articles.where((a) => ids.contains(a.topicId)).toList();
   }
 
   Future<List<Article>> _fetchArticles(List<String> ids) async {
@@ -72,4 +78,10 @@ class FeedRepositoryImpl implements FeedRepository {
     final raw = await _api.getTrending();
     return raw.map(TrendingTopic.fromJson).toList();
   }
+
+  @override
+  List<String> getSelectedTopicIds() => _storage.getSelectedTopicIds();
+
+  @override
+  DateTime? getLastSyncTime() => _storage.getLastSyncTime();
 }

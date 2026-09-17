@@ -13,6 +13,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   static const loadErrorMessage = "Couldn't load your feed";
   static const loadMoreErrorMessage = "Couldn't load more stories";
   static const refreshErrorMessage = "Couldn't check for new stories";
+  static const noNewStoriesMessage = 'No new stories';
 
   final FeedRepository _repository;
 
@@ -21,10 +22,16 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<LoadMoreFeed>(_onLoadMore);
     on<RefreshFeed>(_onRefresh);
     on<ShowPendingArticles>(_onShowPending);
+    on<TopicSelectionChanged>(_onLoad);
   }
 
-  Future<void> _onLoad(LoadFeed event, Emitter<FeedState> emit) async {
-    emit(state.copyWith(status: FeedStatus.loading, errorMessage: null));
+  Future<void> _onLoad(FeedEvent event, Emitter<FeedState> emit) async {
+    emit(state.copyWith(
+      status: FeedStatus.loading,
+      selectedTopicIds: _repository.getSelectedTopicIds(),
+      errorMessage: null,
+      notice: null,
+    ));
     try {
       final (page, topics, trending) = await (
         _repository.fetchPage(),
@@ -37,6 +44,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         pendingArticles: const [],
         topics: topics,
         trending: trending,
+        lastSyncedAt: _repository.getLastSyncTime(),
         nextCursor: page.nextCursor,
         isRefreshing: false,
       ));
@@ -58,6 +66,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     emit(state.copyWith(
       status: FeedStatus.success,
       articles: cached.data,
+      lastSyncedAt: _repository.getLastSyncTime(),
       nextCursor: cached.nextCursor,
       isRefreshing: false,
     ));
@@ -84,7 +93,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     if (state.isRefreshing) return;
     if (state.isEmpty) return _onLoad(const LoadFeed(), emit);
 
-    emit(state.copyWith(isRefreshing: true, errorMessage: null));
+    emit(state.copyWith(isRefreshing: true, errorMessage: null, notice: null));
     try {
       final (delta, trending) = await (
         _repository.fetchUpdates(),
@@ -94,7 +103,9 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         articles: _applyDelta(state.articles, delta),
         pendingArticles: _merge(_unseen(delta.newArticles), state.pendingArticles),
         trending: trending,
+        lastSyncedAt: _repository.getLastSyncTime(),
         isRefreshing: false,
+        notice: delta.isEmpty ? noNewStoriesMessage : null,
       ));
     } catch (_) {
       emit(state.copyWith(isRefreshing: false, errorMessage: refreshErrorMessage));

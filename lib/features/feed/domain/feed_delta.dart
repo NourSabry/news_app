@@ -10,4 +10,6 @@ class FeedDelta {
     this.updatedArticles = const [],
     this.deletedIds = const [],
   });
+
+  bool get isEmpty => newArticles.isEmpty && updatedArticles.isEmpty && deletedIds.isEmpty;
 }

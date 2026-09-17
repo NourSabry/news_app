@@ -1,10 +1,10 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app_shell.dart';
 import 'core/connectivity/connectivity_cubit.dart';
 import 'core/di/service_locator.dart';
-import 'core/storage/local_storage.dart';
 import 'core/theme/app_theme.dart';
 import 'features/bookmarks/domain/bookmarks_repository.dart';
 import 'features/bookmarks/presentation/bloc/bookmarks_bloc.dart';
@@ -13,6 +13,8 @@ import 'features/outbox/domain/outbox_repository.dart';
 import 'features/outbox/presentation/cubit/outbox_cubit.dart';
 import 'features/reactions/domain/reactions_repository.dart';
 import 'features/reactions/presentation/bloc/reactions_bloc.dart';
+import 'features/settings/domain/settings_repository.dart';
+import 'features/settings/presentation/cubit/settings_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +33,10 @@ class NewsApp extends StatelessWidget {
     final locator = ServiceLocator.instance;
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => ConnectivityCubit()),
+        BlocProvider(create: (_) => SettingsCubit(locator.get<SettingsRepository>())),
+        BlocProvider(
+          create: (_) => ConnectivityCubit(connectivity: locator.get<Connectivity>()),
+        ),
         BlocProvider(
           lazy: false,
           create: (context) => OutboxCubit(
@@ -45,42 +50,29 @@ class NewsApp extends StatelessWidget {
             ..add(const LoadBookmarks()),
         ),
       ],
-      child: MaterialApp(
-        title: 'News Feed',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
-        home: const _AppEntry(),
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (previous, current) => previous.themeMode != current.themeMode,
+        builder: (_, settings) => MaterialApp(
+          title: 'News Feed',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: settings.themeMode,
+          home: const _AppEntry(),
+        ),
       ),
     );
   }
 }
 
-class _AppEntry extends StatefulWidget {
+class _AppEntry extends StatelessWidget {
   const _AppEntry();
 
   @override
-  State<_AppEntry> createState() => _AppEntryState();
-}
-
-class _AppEntryState extends State<_AppEntry> {
-  late bool _showOnboarding;
-
-  @override
-  void initState() {
-    super.initState();
-    final storage = ServiceLocator.instance.get<LocalStorage>();
-    _showOnboarding = !storage.getOnboardingCompleted();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_showOnboarding) {
-      return OnboardingScreen(
-        onComplete: () => setState(() => _showOnboarding = false),
-      );
-    }
-    return const AppShell();
+    final completed = context.select<SettingsCubit, bool>(
+      (cubit) => cubit.state.onboardingCompleted,
+    );
+    return completed ? const AppShell() : const OnboardingScreen();
   }
 }

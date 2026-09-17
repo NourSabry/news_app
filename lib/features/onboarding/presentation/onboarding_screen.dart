@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../../core/di/service_locator.dart';
-import '../../../core/models/models.dart';
-import '../../../core/network/api_client.dart';
-import '../../../core/storage/local_storage.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/topic_picker.dart';
+import '../../settings/presentation/cubit/settings_cubit.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  final VoidCallback onComplete;
-
-  const OnboardingScreen({super.key, required this.onComplete});
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen>
-    with TickerProviderStateMixin {
+class _OnboardingScreenState extends State<OnboardingScreen> with TickerProviderStateMixin {
   final _pageController = PageController();
   late final AnimationController _fadeController;
   late final AnimationController _slideController;
 
   int _currentPage = 0;
-  List<Topic> _topics = [];
-  final Set<String> _selectedTopics = {};
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -37,19 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     )..forward();
-    _loadTopics();
-  }
-
-  Future<void> _loadTopics() async {
-    try {
-      final topics = await ServiceLocator.instance.get<ApiClient>().getTopics();
-      setState(() {
-        _topics = topics;
-        _isLoading = false;
-      });
-    } catch (_) {
-      setState(() => _isLoading = false);
-    }
+    context.read<SettingsCubit>().loadTopics();
   }
 
   void _onNext() {
@@ -63,14 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     }
   }
 
-  Future<void> _completeOnboarding() async {
-    final storage = ServiceLocator.instance.get<LocalStorage>();
-    await storage.setOnboardingCompleted();
-    if (_selectedTopics.isNotEmpty) {
-      await storage.setSelectedTopicIds(_selectedTopics.toList());
-    }
-    widget.onComplete();
-  }
+  void _completeOnboarding() => context.read<SettingsCubit>().completeOnboarding();
 
   @override
   void dispose() {
@@ -199,6 +173,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   Widget _buildTopicsPage(ThemeData theme) {
+    final settings = context.watch<SettingsCubit>().state;
     return Padding(
       padding: AppSpacing.screenPadding,
       child: Column(
@@ -217,111 +192,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             ),
           ),
           const SizedBox(height: AppSpacing.xxxl),
-          if (_isLoading)
+          if (settings.isLoadingTopics)
             const Center(child: CircularProgressIndicator())
           else
             Expanded(
-              child: _buildTopicGrid(theme),
+              child: TopicPicker(
+                topics: settings.topics,
+                selectedIds: settings.selectedTopicIds.toSet(),
+                onToggle: context.read<SettingsCubit>().toggleTopic,
+              ),
             ),
         ],
       ),
     );
-  }
-
-  Widget _buildTopicGrid(ThemeData theme) {
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: AppSpacing.md,
-        mainAxisSpacing: AppSpacing.md,
-        childAspectRatio: 2.2,
-      ),
-      itemCount: _topics.length,
-      itemBuilder: (context, index) {
-        final topic = _topics[index];
-        final isSelected = _selectedTopics.contains(topic.id);
-        return _buildTopicTile(theme, topic, isSelected);
-      },
-    );
-  }
-
-  Widget _buildTopicTile(ThemeData theme, Topic topic, bool isSelected) {
-    final isDark = theme.brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (isSelected) {
-            _selectedTopics.remove(topic.id);
-          } else {
-            _selectedTopics.add(topic.id);
-          }
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? AppColors.darkAccent : AppColors.lightAccent)
-              : (isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground),
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          border: isSelected
-              ? null
-              : Border.all(
-                  color: theme.dividerColor,
-                  width: 0.5,
-                ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: (isDark ? AppColors.darkAccent : AppColors.lightAccent)
-                        .withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        alignment: Alignment.centerLeft,
-        child: Row(
-          children: [
-            Icon(
-              _getTopicIcon(topic.icon),
-              size: 24,
-              color: isSelected
-                  ? AppColors.white
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                topic.name,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: isSelected
-                      ? AppColors.white
-                      : theme.colorScheme.onSurface,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(Icons.check_circle_rounded, size: 20, color: AppColors.white),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getTopicIcon(String iconName) {
-    return switch (iconName) {
-      'devices' => Icons.devices_rounded,
-      'business' => Icons.business_rounded,
-      'sports_soccer' => Icons.sports_soccer_rounded,
-      'science' => Icons.science_rounded,
-      'health_and_safety' => Icons.health_and_safety_rounded,
-      'palette' => Icons.palette_rounded,
-      _ => Icons.tag_rounded,
-    };
   }
 
   Widget _buildReadyPage(ThemeData theme, bool isDark) {

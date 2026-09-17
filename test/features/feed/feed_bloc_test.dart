@@ -34,6 +34,8 @@ void main() {
     repository = MockFeedRepository();
     when(() => repository.getTopics()).thenAnswer((_) async => const []);
     when(() => repository.getTrending()).thenAnswer((_) async => const []);
+    when(() => repository.getSelectedTopicIds()).thenReturn(const []);
+    when(() => repository.getLastSyncTime()).thenReturn(null);
   });
 
   FeedState loaded() => FeedState(
@@ -52,6 +54,45 @@ void main() {
     expect: () => [
       const FeedState(status: FeedStatus.loading),
       FeedState(status: FeedStatus.success, articles: [article('a')], nextCursor: 'feed_2'),
+    ],
+  );
+
+  blocTest<FeedBloc, FeedState>(
+    'exposes the selected topics and last sync time after loading',
+    build: () {
+      when(() => repository.getSelectedTopicIds()).thenReturn(const ['t_technology']);
+      when(() => repository.getLastSyncTime()).thenReturn(DateTime(2026, 9, 17, 9));
+      when(() => repository.fetchPage()).thenAnswer((_) async => page([article('a')]));
+      return FeedBloc(repository);
+    },
+    act: (bloc) => bloc.add(const LoadFeed()),
+    expect: () => [
+      const FeedState(status: FeedStatus.loading, selectedTopicIds: ['t_technology']),
+      FeedState(
+        status: FeedStatus.success,
+        articles: [article('a')],
+        selectedTopicIds: const ['t_technology'],
+        lastSyncedAt: DateTime(2026, 9, 17, 9),
+      ),
+    ],
+  );
+
+  blocTest<FeedBloc, FeedState>(
+    'reloads the feed when the topic selection changes',
+    build: () {
+      when(() => repository.getSelectedTopicIds()).thenReturn(const ['t_science']);
+      when(() => repository.fetchPage()).thenAnswer((_) async => page([article('c')]));
+      return FeedBloc(repository);
+    },
+    seed: loaded,
+    act: (bloc) => bloc.add(const TopicSelectionChanged()),
+    expect: () => [
+      loaded().copyWith(status: FeedStatus.loading, selectedTopicIds: const ['t_science']),
+      loaded().copyWith(
+        articles: [article('c')],
+        selectedTopicIds: const ['t_science'],
+        nextCursor: null,
+      ),
     ],
   );
 
@@ -124,6 +165,20 @@ void main() {
     expect: () => [
       loaded().copyWith(isRefreshing: true),
       loaded().copyWith(articles: [article('b', likes: 5)], pendingArticles: [article('new')]),
+    ],
+  );
+
+  blocTest<FeedBloc, FeedState>(
+    'refresh with an empty delta notices that there are no new stories',
+    build: () {
+      when(() => repository.fetchUpdates()).thenAnswer((_) async => const FeedDelta());
+      return FeedBloc(repository);
+    },
+    seed: loaded,
+    act: (bloc) => bloc.add(const RefreshFeed()),
+    expect: () => [
+      loaded().copyWith(isRefreshing: true),
+      loaded().copyWith(notice: FeedBloc.noNewStoriesMessage),
     ],
   );
 

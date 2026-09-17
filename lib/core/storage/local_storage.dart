@@ -1,27 +1,47 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/models.dart';
+import 'hive_store.dart';
+import 'key_value_store.dart';
 
 class LocalStorage {
-  static const String _feedCacheBox = 'feed_cache';
-  static const String _articlesBox = 'articles';
-  static const String _bookmarksBox = 'bookmarks';
-  static const String _outboxBox = 'outbox';
-  static const String _metaBox = 'meta';
+  final KeyValueStore _feedCache;
+  final KeyValueStore _articles;
+  final KeyValueStore _bookmarks;
+  final KeyValueStore _outbox;
+  final KeyValueStore _meta;
 
-  late Box<String> _feedCache;
-  late Box<String> _articles;
-  late Box<String> _bookmarks;
-  late Box<String> _outbox;
-  late Box<String> _meta;
+  LocalStorage({
+    required KeyValueStore feedCache,
+    required KeyValueStore articles,
+    required KeyValueStore bookmarks,
+    required KeyValueStore outbox,
+    required KeyValueStore meta,
+  })  : _feedCache = feedCache,
+        _articles = articles,
+        _bookmarks = bookmarks,
+        _outbox = outbox,
+        _meta = meta;
 
-  Future<void> init() async {
+  factory LocalStorage.inMemory() {
+    return LocalStorage(
+      feedCache: MemoryStore(),
+      articles: MemoryStore(),
+      bookmarks: MemoryStore(),
+      outbox: MemoryStore(),
+      meta: MemoryStore(),
+    );
+  }
+
+  static Future<LocalStorage> openHive() async {
     await Hive.initFlutter();
-    _feedCache = await Hive.openBox<String>(_feedCacheBox);
-    _articles = await Hive.openBox<String>(_articlesBox);
-    _bookmarks = await Hive.openBox<String>(_bookmarksBox);
-    _outbox = await Hive.openBox<String>(_outboxBox);
-    _meta = await Hive.openBox<String>(_metaBox);
+    return LocalStorage(
+      feedCache: await HiveStore.open('feed_cache'),
+      articles: await HiveStore.open('articles'),
+      bookmarks: await HiveStore.open('bookmarks'),
+      outbox: await HiveStore.open('outbox'),
+      meta: await HiveStore.open('meta'),
+    );
   }
 
   Future<void> cacheFeedPage(int page, List<Article> articles) async {
@@ -52,6 +72,10 @@ class LocalStorage {
     return Article.fromJson(json.decode(raw) as Map<String, dynamic>);
   }
 
+  Future<void> clearArticleCache() async {
+    await _articles.clear();
+  }
+
   Future<void> saveBookmarkIds(Set<String> ids) async {
     await _bookmarks.put('ids', json.encode(ids.toList()));
   }
@@ -76,7 +100,7 @@ class LocalStorage {
         .toList();
   }
 
-  Stream<int> watchOutboxCount() => _outbox.watch().map((_) => _outbox.length);
+  Stream<int> watchOutboxCount() => _outbox.watchLength();
 
   Future<void> clearOutbox() async {
     await _outbox.clear();
@@ -104,8 +128,14 @@ class LocalStorage {
     return _meta.get('onboarding_completed') == 'true';
   }
 
-  Future<void> setOnboardingCompleted() async {
-    await _meta.put('onboarding_completed', 'true');
+  Future<void> setOnboardingCompleted(bool completed) async {
+    await _meta.put('onboarding_completed', '$completed');
+  }
+
+  String? getThemeMode() => _meta.get('theme_mode');
+
+  Future<void> setThemeMode(String mode) async {
+    await _meta.put('theme_mode', mode);
   }
 
   List<String> getSelectedTopicIds() => _getMetaList('selected_topics');

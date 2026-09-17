@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import '../di/service_locator.dart';
 import '../theme/app_spacing.dart';
 import 'shimmer_loading.dart';
 
@@ -29,6 +31,7 @@ class CachedImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(borderRadius),
       child: CachedNetworkImage(
         imageUrl: imageUrl!,
+        cacheManager: ServiceLocator.instance.get<BaseCacheManager>(),
         width: width,
         height: height,
         fit: fit,

@@ -9,9 +9,12 @@ import '../../../core/utils/snack_bar.dart';
 import '../../../core/widgets/pagination_footer.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../details/presentation/article_details_screen.dart';
+import '../../outbox/presentation/cubit/outbox_cubit.dart';
+import '../../settings/presentation/settings_screen.dart';
 import 'bloc/feed_bloc.dart';
 import 'widgets/feed_header.dart';
 import 'widgets/new_stories_banner.dart';
+import 'widgets/topic_filter_hint.dart';
 import 'widgets/trending_topics.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -49,9 +52,10 @@ class _FeedScreenState extends State<FeedScreen> {
   Future<void> _onRefresh() {
     final bloc = context.read<FeedBloc>();
     bloc.add(const RefreshFeed());
-    return bloc.stream.firstWhere(
+    final refreshed = bloc.stream.firstWhere(
       (state) => !state.isRefreshing && state.status != FeedStatus.loading,
     );
+    return Future.wait([refreshed, context.read<OutboxCubit>().sync()]);
   }
 
   void _openArticle(Article article) {
@@ -60,16 +64,21 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
+  void _openSettings() => SettingsScreen.open(context);
+
+  static String? _snackMessageFor(FeedState state) {
+    return state.notice ?? (state.isEmpty ? null : state.errorMessage);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
       child: BlocConsumer<FeedBloc, FeedState>(
         listenWhen: (previous, current) =>
-            current.errorMessage != null &&
-            previous.errorMessage != current.errorMessage &&
-            !current.isEmpty,
-        listener: (context, state) => showSnackBarMessage(context, state.errorMessage!),
+            _snackMessageFor(current) != null &&
+            _snackMessageFor(previous) != _snackMessageFor(current),
+        listener: (context, state) => showSnackBarMessage(context, _snackMessageFor(state)!),
         builder: (context, state) => Stack(
           alignment: Alignment.topCenter,
           children: [
@@ -104,7 +113,12 @@ class _FeedScreenState extends State<FeedScreen> {
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          const SliverToBoxAdapter(child: FeedHeader()),
+          SliverToBoxAdapter(
+            child: FeedHeader(lastSyncedAt: state.lastSyncedAt, onSettingsTap: _openSettings),
+          ),
+          SliverToBoxAdapter(
+            child: TopicFilterHint(count: state.selectedTopicIds.length, onEdit: _openSettings),
+          ),
           SliverToBoxAdapter(
             child: TrendingTopics(
               topics: state.trending,
