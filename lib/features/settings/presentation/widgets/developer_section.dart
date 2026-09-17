@@ -8,7 +8,9 @@ import '../../../outbox/presentation/cubit/outbox_cubit.dart';
 /// reaches into `MockApiClient` directly — everything goes through
 /// [DevToolsCubit].
 class DeveloperSection extends StatelessWidget {
-  const DeveloperSection({super.key});
+  final VoidCallback onResetOnboarding;
+
+  const DeveloperSection({super.key, required this.onResetOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +66,12 @@ class DeveloperSection extends StatelessWidget {
             await context.read<DevToolsCubit>().resetMockServer();
             if (context.mounted) showSnackBarMessage(context, 'Mock server reset');
           },
+        ),
+        ListTile(
+          leading: const Icon(Icons.replay_rounded),
+          title: const Text('Reset onboarding'),
+          subtitle: const Text('Show the welcome screens again'),
+          onTap: onResetOnboarding,
         ),
       ],
     );

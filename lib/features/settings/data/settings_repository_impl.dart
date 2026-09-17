@@ -39,4 +39,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await _storage.clearFeedCache();
     await _storage.clearArticleCache();
   }
+
+  @override
+  int getCachedArticleCount() => _storage.cachedArticleCount;
 }

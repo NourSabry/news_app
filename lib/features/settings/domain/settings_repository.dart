@@ -17,4 +17,6 @@ abstract class SettingsRepository {
   Future<List<Topic>> getTopics();
 
   Future<void> clearCache();
+
+  int getCachedArticleCount();
 }

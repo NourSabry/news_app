@@ -47,4 +47,6 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   Future<void> clearCache() => _repository.clearCache();
+
+  int get cachedArticleCount => _repository.getCachedArticleCount();
 }

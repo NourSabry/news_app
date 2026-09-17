@@ -79,6 +79,8 @@ class LocalStorage {
     return Article.fromJson(json.decode(raw) as Map<String, dynamic>);
   }
 
+  int get cachedArticleCount => _articles.length;
+
   Future<void> clearArticleCache() async {
     await _articles.clear();
   }
