@@ -81,6 +81,21 @@ class DeveloperSection extends StatelessWidget {
           ),
         ),
         ListTile(
+          leading: const Icon(Icons.sync_rounded),
+          title: const Text('Background refresh'),
+          subtitle: const Text('How often Home silently checks for new stories'),
+          trailing: DropdownButton<int>(
+            value: state.backgroundTickSeconds,
+            items: const [
+              DropdownMenuItem(value: 45, child: Text('45 s')),
+              DropdownMenuItem(value: 10, child: Text('10 s (demo)')),
+            ],
+            onChanged: (value) {
+              if (value != null) context.read<DevToolsCubit>().setBackgroundTickSeconds(value);
+            },
+          ),
+        ),
+        ListTile(
           leading: const Icon(Icons.restore_rounded),
           title: const Text('Reset mock server'),
           subtitle: const Text('Clears server-side bookmarks and likes'),

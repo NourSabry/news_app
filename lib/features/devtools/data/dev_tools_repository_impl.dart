@@ -6,6 +6,11 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
 
   DevToolsRepositoryImpl(this._api);
 
+  /// Client-side polling cadence (X2) — not mock-server behaviour, so
+  /// unlike the flags above it isn't backed by [_api]; fine to reset to
+  /// the default on a fresh app start.
+  int _backgroundTickSeconds = 45;
+
   @override
   bool get simulateOffline => _api.simulateOffline;
 
@@ -25,6 +30,9 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
   int get cacheTtlMinutes => _api.cacheTtlMinutes;
 
   @override
+  int get backgroundTickSeconds => _backgroundTickSeconds;
+
+  @override
   void setSimulateOffline(bool value) => _api.simulateOffline = value;
 
   @override
@@ -41,6 +49,9 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
 
   @override
   void setCacheTtlMinutes(int value) => _api.cacheTtlMinutes = value;
+
+  @override
+  void setBackgroundTickSeconds(int value) => _backgroundTickSeconds = value;
 
   @override
   Future<void> resetMockServer() => _api.resetServerState();

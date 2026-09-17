@@ -9,12 +9,16 @@ abstract class DevToolsRepository {
   int get latencyMs;
   int get cacheTtlMinutes;
 
+  /// Live-feed background poll interval in seconds (X2), default 45.
+  int get backgroundTickSeconds;
+
   void setSimulateOffline(bool value);
   void setSimulateServerError(bool value);
   void setSimulateConflict(bool value);
   void setSimulateReactionFailure(bool value);
   void setLatencyMs(int value);
   void setCacheTtlMinutes(int value);
+  void setBackgroundTickSeconds(int value);
 
   Future<void> resetMockServer();
 }

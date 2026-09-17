@@ -17,6 +17,7 @@ class DevToolsCubit extends Cubit<DevToolsState> {
           simulateReactionFailure: _repository.simulateReactionFailure,
           latencyMs: _repository.latencyMs,
           cacheTtlMinutes: _repository.cacheTtlMinutes,
+          backgroundTickSeconds: _repository.backgroundTickSeconds,
         ));
 
   void setSimulateOffline(bool value) {
@@ -48,6 +49,11 @@ class DevToolsCubit extends Cubit<DevToolsState> {
   void setCacheTtlMinutes(int value) {
     _repository.setCacheTtlMinutes(value);
     emit(state.copyWith(cacheTtlMinutes: value));
+  }
+
+  void setBackgroundTickSeconds(int value) {
+    _repository.setBackgroundTickSeconds(value);
+    emit(state.copyWith(backgroundTickSeconds: value));
   }
 
   Future<void> resetMockServer() => _repository.resetMockServer();

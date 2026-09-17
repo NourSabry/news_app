@@ -141,4 +141,20 @@ void main() {
     expect(find.text('1 pending change'), findsNothing);
     expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
   });
+
+  testWidgets('silently checks for new stories every tick while Home is visible (X2)', (tester) async {
+    await bootstrap(onboarded: true);
+    await pumpApp(tester);
+
+    expect(find.text('0 new'), findsOneWidget);
+
+    // AppShell's background tick defaults to 45s; MockApiClient.getFeedUpdates
+    // always reports one fresh "breaking" item, so the pending pill should
+    // appear on its own — no pull-to-refresh, no scroll.
+    await tester.pump(const Duration(seconds: 45));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('1 new'), findsOneWidget);
+    expect(find.text('0 new'), findsNothing);
+  });
 }

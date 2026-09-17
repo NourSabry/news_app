@@ -22,12 +22,14 @@ void main() {
     when(() => repository.simulateReactionFailure).thenReturn(false);
     when(() => repository.latencyMs).thenReturn(400);
     when(() => repository.cacheTtlMinutes).thenReturn(30);
+    when(() => repository.backgroundTickSeconds).thenReturn(45);
     when(() => repository.setSimulateOffline(any())).thenReturn(null);
     when(() => repository.setSimulateServerError(any())).thenReturn(null);
     when(() => repository.setSimulateConflict(any())).thenReturn(null);
     when(() => repository.setSimulateReactionFailure(any())).thenReturn(null);
     when(() => repository.setLatencyMs(any())).thenReturn(null);
     when(() => repository.setCacheTtlMinutes(any())).thenReturn(null);
+    when(() => repository.setBackgroundTickSeconds(any())).thenReturn(null);
     when(() => repository.resetMockServer()).thenAnswer((_) async {});
 
     final mockConnectivity = MockConnectivity();
@@ -92,6 +94,14 @@ void main() {
     act: (cubit) => cubit.setCacheTtlMinutes(0),
     expect: () => [const DevToolsState(cacheTtlMinutes: 0)],
     verify: (_) => verify(() => repository.setCacheTtlMinutes(0)).called(1),
+  );
+
+  blocTest<DevToolsCubit, DevToolsState>(
+    'setBackgroundTickSeconds updates state and the repository (X2)',
+    build: () => DevToolsCubit(repository, connectivity),
+    act: (cubit) => cubit.setBackgroundTickSeconds(10),
+    expect: () => [const DevToolsState(backgroundTickSeconds: 10)],
+    verify: (_) => verify(() => repository.setBackgroundTickSeconds(10)).called(1),
   );
 
   test('resetMockServer delegates to the repository', () async {

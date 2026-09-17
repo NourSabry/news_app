@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/connectivity/connectivity_cubit.dart';
@@ -7,6 +9,7 @@ import '../core/utils/time_formatter.dart';
 import '../core/widgets/edition_nav_bar.dart';
 import '../core/widgets/freshness_banner.dart';
 import '../features/bookmarks/presentation/saved_screen.dart';
+import '../features/devtools/presentation/cubit/dev_tools_cubit.dart';
 import '../features/feed/domain/feed_repository.dart';
 import '../features/feed/presentation/bloc/feed_bloc.dart';
 import '../features/feed/presentation/feed_screen.dart';
@@ -25,34 +28,84 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   static const _exploreIndex = 1;
+  static const _defaultBackgroundTickInterval = Duration(seconds: 45);
 
   int _currentIndex = 0;
   late final FeedBloc _feedBloc;
   late final SearchBloc _searchBloc =
       SearchBloc(ServiceLocator.instance.get<SearchRepository>())..add(const SearchStarted());
   final _searchFocusNode = FocusNode();
+  Timer? _backgroundTickTimer;
+  bool _appInForeground = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _feedBloc = FeedBloc(
       ServiceLocator.instance.get<FeedRepository>(),
       context.read<ConnectivityCubit>(),
     )..add(const LoadFeed());
+    _scheduleBackgroundTick();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _backgroundTickTimer?.cancel();
     _feedBloc.close();
     _searchBloc.close();
     _searchFocusNode.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause while backgrounded (X2) — no point silently polling a screen
+    // nobody can see.
+    _appInForeground = state == AppLifecycleState.resumed;
+    if (_appInForeground) {
+      _scheduleBackgroundTick();
+    } else {
+      _backgroundTickTimer?.cancel();
+    }
+  }
+
+  /// The live-feed background tick (X2): every [interval] while Home is
+  /// visible, online and foregrounded, silently checks for updates — the
+  /// same [RefreshFeed] pull-to-refresh already uses, so new stories land
+  /// in the pending pill without touching scroll. Self-reschedules (rather
+  /// than `Timer.periodic`) so a Developer-settings interval change takes
+  /// effect on the next tick.
+  void _scheduleBackgroundTick() {
+    _backgroundTickTimer?.cancel();
+    if (!_appInForeground) return;
+    final interval = kDebugMode
+        ? Duration(seconds: context.read<DevToolsCubit>().state.backgroundTickSeconds)
+        : _defaultBackgroundTickInterval;
+    _backgroundTickTimer = Timer(interval, _onBackgroundTick);
+  }
+
+  void _onBackgroundTick() {
+    if (_currentIndex == 0 && context.read<ConnectivityCubit>().isConnected) {
+      _feedBloc.add(const RefreshFeed());
+    }
+    _scheduleBackgroundTick();
+  }
+
+  void _onNavTap(int index) {
+    setState(() => _currentIndex = index);
+    if (index == 0) {
+      _scheduleBackgroundTick();
+    } else {
+      _backgroundTickTimer?.cancel();
+    }
+  }
+
   void _openSearch() {
-    setState(() => _currentIndex = _exploreIndex);
+    _onNavTap(_exploreIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) => _searchFocusNode.requestFocus());
   }
 
@@ -112,7 +165,7 @@ class _AppShellState extends State<AppShell> {
         ),
         bottomNavigationBar: EditionNavBar(
           currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
+          onTap: _onNavTap,
           items: [
             const EditionNavBarItem(
               outlineIcon: Icons.home_outlined,
