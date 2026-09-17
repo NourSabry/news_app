@@ -24,6 +24,22 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- newsfeed://article/{id} (X3) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="newsfeed" android:host="article"/>
+            </intent-filter>
+            <!-- https://newsfeed.app/article/{id} (X3) — autoVerify requires a
+                 real assetlinks.json hosted at newsfeed.app, which this demo
+                 doesn't own; the filter itself still works for direct testing. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="newsfeed.app" android:pathPrefix="/article"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

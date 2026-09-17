@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app_shell.dart';
+import 'app/deep_link_controller.dart';
 import 'core/connectivity/connectivity_cubit.dart';
 import 'core/di/service_locator.dart';
 import 'core/network/api_client.dart';
@@ -21,6 +22,10 @@ import 'features/reactions/domain/reactions_repository.dart';
 import 'features/reactions/presentation/bloc/reactions_bloc.dart';
 import 'features/settings/domain/settings_repository.dart';
 import 'features/settings/presentation/cubit/settings_cubit.dart';
+
+/// Shared with [DeepLinkController] so a link can be pushed from outside
+/// the widget tree, regardless of which tab is currently showing.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +77,7 @@ class NewsApp extends StatelessWidget {
       child: BlocBuilder<SettingsCubit, SettingsState>(
         buildWhen: (previous, current) => previous.themeMode != current.themeMode,
         builder: (_, settings) => MaterialApp(
+          navigatorKey: rootNavigatorKey,
           title: 'News Feed',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
@@ -84,8 +90,30 @@ class NewsApp extends StatelessWidget {
   }
 }
 
-class _AppEntry extends StatelessWidget {
+class _AppEntry extends StatefulWidget {
   const _AppEntry();
+
+  @override
+  State<_AppEntry> createState() => _AppEntryState();
+}
+
+class _AppEntryState extends State<_AppEntry> {
+  late final DeepLinkController _deepLinks;
+
+  @override
+  void initState() {
+    super.initState();
+    _deepLinks = DeepLinkController(
+      navigatorKey: rootNavigatorKey,
+      settings: context.read<SettingsCubit>(),
+    )..start();
+  }
+
+  @override
+  void dispose() {
+    _deepLinks.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

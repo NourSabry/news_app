@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../../app/app_router.dart';
 import '../../../app/article_sync.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/models/models.dart';
@@ -20,6 +22,25 @@ class ArticleDetailsScreen extends StatelessWidget {
   final Article article;
 
   const ArticleDetailsScreen({super.key, required this.article});
+
+  /// Pushed by id alone (X3, deep links) — a placeholder preview seeds
+  /// [DetailsBloc] the same way a feed-card tap's real [Article] does, and
+  /// `LoadArticle` fetches the rest, including the G3 unavailable path for
+  /// an unknown or removed id.
+  factory ArticleDetailsScreen.byId(String id, {Key? key}) {
+    return ArticleDetailsScreen(
+      key: key,
+      article: Article(
+        id: id,
+        title: '',
+        summary: '',
+        source: '',
+        author: const Author(id: '', name: ''),
+        topicId: '',
+        publishedAt: DateTime.now(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +95,13 @@ class _DetailsViewState extends State<_DetailsView> {
     );
   }
 
-  void _share() {}
+  void _share() {
+    final article = context.read<DetailsBloc>().state.article;
+    SharePlus.instance.share(ShareParams(
+      uri: AppRouter.articleShareLink(article.id),
+      subject: article.title,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
