@@ -27,8 +27,15 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   }
 
   Future<void> _onLoad(FeedEvent event, Emitter<FeedState> emit) async {
+    // Serve the cache immediately when there is one, instead of a
+    // skeleton flash, then silently refresh — the same "cached first,
+    // then live" shape DetailsBloc already uses. This is also what lets
+    // onboarding's "Start reading" open straight into a populated feed.
+    final cached = state.scope == null ? _repository.getCachedFeed() : null;
     emit(state.copyWith(
-      status: FeedStatus.loading,
+      status: cached != null ? FeedStatus.success : FeedStatus.loading,
+      articles: cached?.data ?? state.articles,
+      nextCursor: cached?.nextCursor,
       selectedTopicIds: _repository.getSelectedTopicIds(),
       errorMessage: null,
       notice: null,

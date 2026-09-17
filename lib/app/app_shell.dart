@@ -23,17 +23,26 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  static const _exploreIndex = 1;
+
   int _currentIndex = 0;
   late final FeedBloc _feedBloc =
       FeedBloc(ServiceLocator.instance.get<FeedRepository>())..add(const LoadFeed());
   late final SearchBloc _searchBloc =
       SearchBloc(ServiceLocator.instance.get<SearchRepository>())..add(const SearchStarted());
+  final _searchFocusNode = FocusNode();
 
   @override
   void dispose() {
     _feedBloc.close();
     _searchBloc.close();
+    _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _openSearch() {
+    setState(() => _currentIndex = _exploreIndex);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _searchFocusNode.requestFocus());
   }
 
   @override
@@ -111,9 +120,12 @@ class _AppShellState extends State<AppShell> {
       children: [
         BlocProvider.value(
           value: _feedBloc,
-          child: const FeedScreen(),
+          child: FeedScreen(onSearchTap: _openSearch),
         ),
-        BlocProvider.value(value: _searchBloc, child: const SearchScreen()),
+        BlocProvider.value(
+          value: _searchBloc,
+          child: SearchScreen(focusNode: _searchFocusNode),
+        ),
         const SavedScreen(),
       ],
     );

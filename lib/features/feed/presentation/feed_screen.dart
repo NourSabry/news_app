@@ -3,22 +3,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/widgets/live_article_card.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/empty_view.dart';
-import '../../../core/widgets/error_view.dart';
 import '../../../core/utils/snack_bar.dart';
+import '../../../core/widgets/halftone_painter.dart';
 import '../../../core/widgets/pagination_footer.dart';
+import '../../../core/widgets/pull_rule_indicator.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../core/widgets/state_view.dart';
 import '../../details/presentation/article_details_screen.dart';
 import '../../outbox/presentation/cubit/outbox_cubit.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'bloc/feed_bloc.dart';
-import 'widgets/feed_header.dart';
+import 'widgets/article_cards.dart';
+import 'widgets/edition_masthead.dart';
 import 'widgets/new_stories_banner.dart';
-import 'widgets/topic_filter_hint.dart';
-import 'widgets/trending_topics.dart';
+import 'widgets/section_divider.dart';
+import 'widgets/sections_footer.dart';
 
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({super.key});
+  final VoidCallback onSearchTap;
+
+  const FeedScreen({super.key, required this.onSearchTap});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -93,9 +97,10 @@ class _FeedScreenState extends State<FeedScreen> {
             children: [
               _buildBody(context, state),
               Positioned(
-                top: AppSpacing.md,
+                top: EditionMastheadHeader.collapsedHeight + AppSpacing.sm,
                 child: NewStoriesBanner(
                   count: state.pendingArticles.length,
+                  firstHeadline: state.pendingArticles.isEmpty ? null : state.pendingArticles.first.title,
                   onTap: () => context.read<FeedBloc>().add(const ShowPendingArticles()),
                 ),
               ),
@@ -109,110 +114,75 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget _buildBody(BuildContext context, FeedState state) {
     if (state.isEmpty) {
       return switch (state.status) {
-        FeedStatus.failure => ErrorView(
-            message: state.errorMessage ?? FeedBloc.loadErrorMessage,
-            onRetry: () => context.read<FeedBloc>().add(const LoadFeed()),
+        FeedStatus.failure => StateView(
+            shape: HalftoneShape.diagonal,
+            title: 'The presses are down.',
+            body: "We couldn't reach the newsroom. Check your connection and try again.",
+            primaryActionLabel: 'Try again',
+            onPrimaryAction: () => context.read<FeedBloc>().add(const LoadFeed()),
           ),
-        FeedStatus.success => const EmptyView(message: 'No stories yet'),
-        _ => const _FeedSkeleton(),
+        FeedStatus.success => StateView(
+            shape: HalftoneShape.wave,
+            title: 'Nothing on the wire.',
+            body: 'No stories match your sections yet.',
+            primaryActionLabel: 'Edit sections',
+            onPrimaryAction: _openSettings,
+          ),
+        _ => const HomeFeedSkeleton(),
       };
     }
-    return RefreshIndicator(
+    return PullRuleIndicator(
       onRefresh: _onRefresh,
       child: CustomScrollView(
         controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(
-            child: FeedHeader(lastSyncedAt: state.lastSyncedAt, onSettingsTap: _openSettings),
-          ),
-          SliverToBoxAdapter(
-            child: TopicFilterHint(count: state.selectedTopicIds.length, onEdit: _openSettings),
-          ),
-          SliverToBoxAdapter(
-            child: TrendingTopics(
-              topics: state.trending,
-              onTopicTap: (topic) =>
-                  context.read<FeedBloc>().add(FeedScopeChanged(topic.label)),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: EditionMastheadHeader(
+              trending: state.trending,
+              scope: state.scope,
+              onTopicTap: (label) => context.read<FeedBloc>().add(FeedScopeChanged(label)),
+              onClearScope: () => context.read<FeedBloc>().add(const FeedScopeChanged(null)),
+              onSearchTap: widget.onSearchTap,
+              onSettingsTap: _openSettings,
             ),
           ),
-          if (state.scope != null)
-            SliverToBoxAdapter(child: _ScopeBanner(label: state.scope!)),
           _buildArticles(state),
           SliverToBoxAdapter(
             child: PaginationFooter(isLoadingMore: state.isLoadingMore, hasMore: state.hasMore),
           ),
+          if (!state.hasMore)
+            SliverToBoxAdapter(
+              child: SectionsFooter(count: state.selectedTopicIds.length, onEdit: _openSettings),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildArticles(FeedState state) {
+    final items = <Widget>[];
+    String? lastTopic;
+    for (var index = 0; index < state.articles.length; index++) {
+      final article = state.articles[index];
+      final topicName = state.topicNameFor(article.topicId);
+      if (index > 0 && topicName.isNotEmpty && topicName != lastTopic) {
+        items.add(SectionDivider(topicName: topicName));
+      } else if (index > 0) {
+        items.add(const SizedBox(height: AppSpacing.lg));
+      }
+      lastTopic = topicName;
+      items.add(LiveArticleCard(
+        key: ValueKey(article.id),
+        article: article,
+        topicName: topicName,
+        variant: index == 0 ? ArticleCardVariant.lead : ArticleCardVariant.standard,
+        onTap: () => _openArticle(article),
+      ));
+    }
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
-      sliver: SliverList.separated(
-        itemCount: state.articles.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.lg),
-        itemBuilder: (_, index) {
-          final article = state.articles[index];
-          return LiveArticleCard(
-            key: ValueKey(article.id),
-            article: article,
-            topicName: state.topicNameFor(article.topicId),
-            onTap: () => _openArticle(article),
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// A minimal "Trending: {label} ✕" scope indicator (B2). Restyled to the
-/// full ticker/scope-bar look in Part 6.6.
-class _ScopeBanner extends StatelessWidget {
-  final String label;
-
-  const _ScopeBanner({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text('Trending · $label', style: theme.textTheme.titleMedium),
-          ),
-          Semantics(
-            button: true,
-            label: 'Clear trending filter',
-            child: InkWell(
-              onTap: () => context.read<FeedBloc>().add(const FeedScopeChanged(null)),
-              child: const Padding(
-                padding: EdgeInsets.all(AppSpacing.xs),
-                child: Icon(Icons.close_rounded, size: 18),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeedSkeleton extends StatelessWidget {
-  const _FeedSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return const CustomScrollView(
-      physics: NeverScrollableScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(child: FeedHeader()),
-        SliverToBoxAdapter(child: TrendingTopicsShimmer()),
-        SliverToBoxAdapter(child: FeedShimmer()),
-      ],
+      padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.sm, AppSpacing.gutter, 0),
+      sliver: SliverList.list(children: items),
     );
   }
 }
