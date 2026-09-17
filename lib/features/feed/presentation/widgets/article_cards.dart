@@ -133,7 +133,12 @@ class _LeadLayout extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [overlayBase.withValues(alpha: 0), overlayBase.withValues(alpha: 0.92)],
+                      stops: const [0, 0.45, 1],
+                      colors: [
+                        overlayBase.withValues(alpha: 0.5),
+                        overlayBase.withValues(alpha: 0.72),
+                        overlayBase.withValues(alpha: 0.94),
+                      ],
                     ),
                   ),
                   child: Column(

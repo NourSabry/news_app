@@ -18,19 +18,46 @@ sealed class AppTheme {
     final rule = isLight ? AppColors.lightRule : AppColors.darkRule;
     final red = isLight ? AppColors.lightRed : AppColors.darkRed;
 
+    final redSoft = isLight ? AppColors.lightRedSoft : AppColors.darkRedSoft;
+
+    // Every role is mapped explicitly to a token — anything left unset
+    // falls back to Flutter's own baseline Material 3 colours, which
+    // would leak a stray purple into stock widgets we still use
+    // (SegmentedButton, Switch, dialogs).
     final colorScheme = ColorScheme(
       brightness: brightness,
       primary: red,
       onPrimary: AppColors.white,
+      primaryContainer: redSoft,
+      onPrimaryContainer: ink,
       secondary: ink,
       onSecondary: paper,
+      secondaryContainer: ink,
+      onSecondaryContainer: paper,
+      tertiary: red,
+      onTertiary: AppColors.white,
       error: red,
       onError: AppColors.white,
+      errorContainer: redSoft,
+      onErrorContainer: ink,
       surface: paper,
       onSurface: ink,
+      surfaceDim: paper,
+      surfaceBright: paperRaised,
+      surfaceContainerLowest: paper,
+      surfaceContainerLow: paperRaised,
+      surfaceContainer: paperRaised,
+      surfaceContainerHigh: paperRaised,
+      surfaceContainerHighest: paperRaised,
       onSurfaceVariant: inkMuted,
       outline: rule,
+      outlineVariant: rule,
       shadow: AppColors.black.withValues(alpha: isLight ? 0.06 : 0.3),
+      scrim: AppColors.black.withValues(alpha: 0.5),
+      inverseSurface: ink,
+      onInverseSurface: paper,
+      inversePrimary: red,
+      surfaceTint: Colors.transparent,
     );
 
     return ThemeData(
