@@ -7,6 +7,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:news_app/core/di/service_locator.dart';
 import 'package:news_app/core/network/mock_api_client.dart';
 import 'package:news_app/core/storage/local_storage.dart';
+import 'package:news_app/core/widgets/edition_nav_bar.dart';
 import 'package:news_app/features/details/presentation/article_details_screen.dart';
 import 'package:news_app/features/feed/presentation/widgets/article_card.dart';
 import 'package:news_app/main.dart';
@@ -59,7 +60,10 @@ Finder inCard(String title, Finder matching) {
 }
 
 Finder navItem(String label) {
-  return find.descendant(of: find.byType(BottomNavigationBar), matching: find.text(label));
+  return find.descendant(
+    of: find.byType(EditionNavBar),
+    matching: find.text(label.toUpperCase()),
+  );
 }
 
 Future<void> tapAndSettle(WidgetTester tester, Finder finder) async {

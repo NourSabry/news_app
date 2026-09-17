@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/di/service_locator.dart';
 import '../core/utils/snack_bar.dart';
+import '../core/widgets/edition_nav_bar.dart';
 import '../core/widgets/offline_banner.dart';
 import '../features/bookmarks/presentation/saved_screen.dart';
 import '../features/feed/domain/feed_repository.dart';
@@ -44,8 +45,6 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return MultiBlocListener(
       listeners: [
         BlocListener<SettingsCubit, SettingsState>(
@@ -77,36 +76,27 @@ class _AppShellState extends State<AppShell> {
             ],
           ),
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: theme.dividerColor,
-                width: 0.5,
-              ),
+        bottomNavigationBar: EditionNavBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          items: [
+            const EditionNavBarItem(
+              outlineIcon: Icons.home_outlined,
+              filledIcon: Icons.home_rounded,
+              label: 'Home',
             ),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home_rounded),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.search_rounded),
-                activeIcon: Icon(Icons.search_rounded),
-                label: 'Explore',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.bookmark_outline_rounded),
-                activeIcon: Icon(Icons.bookmark_rounded),
-                label: 'Saved',
-              ),
-            ],
-          ),
+            const EditionNavBarItem(
+              outlineIcon: Icons.search_rounded,
+              filledIcon: Icons.search_rounded,
+              label: 'Explore',
+            ),
+            EditionNavBarItem(
+              outlineIcon: Icons.bookmark_outline_rounded,
+              filledIcon: Icons.bookmark_rounded,
+              label: 'Saved',
+              showDot: context.select<OutboxCubit, bool>((cubit) => cubit.state.pendingCount > 0),
+            ),
+          ],
         ),
       ),
     );

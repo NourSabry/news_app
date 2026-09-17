@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import '../widgets/edition_snack_bar.dart';
 
 void showSnackBarMessage(BuildContext context, String message, {SnackBarAction? action}) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(message), action: action));
+  EditionSnackBar.show(
+    context,
+    message,
+    actionLabel: action?.label,
+    onAction: action?.onPressed,
+  );
 }
