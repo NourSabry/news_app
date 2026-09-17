@@ -7,7 +7,6 @@ export 'freshness_banner.dart';
 export 'hairline.dart';
 export 'halftone_painter.dart';
 export 'ink_button.dart';
-export 'offline_banner.dart';
 export 'pagination_footer.dart';
 export 'pull_rule_indicator.dart';
 export 'shimmer_loading.dart';

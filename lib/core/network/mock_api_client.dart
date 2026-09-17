@@ -29,6 +29,7 @@ class MockApiClient implements ApiClient {
   bool simulateConflict = false;
   bool simulateReactionFailure = false;
   int latencyMs = 400;
+  int cacheTtlMinutes = 30;
   int _refreshCount = 0;
 
   /// Always unavailable (G3) — a fixed id for deep-link/error-path testing
@@ -450,7 +451,7 @@ class MockApiClient implements ApiClient {
       'enableOfflineOutbox': true,
       'searchDebounceMs': 400,
       'feedPageSize': 10,
-      'cacheTtlMinutes': 30,
+      'cacheTtlMinutes': cacheTtlMinutes,
       'showTrendingTopics': true,
       'maintenanceMode': false,
     };

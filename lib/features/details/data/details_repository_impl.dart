@@ -36,4 +36,7 @@ class DetailsRepositoryImpl implements DetailsRepository {
 
   @override
   Future<List<Topic>> getTopics() => _api.getTopics();
+
+  @override
+  DateTime? getLastSyncTime() => _storage.getLastSyncTime();
 }

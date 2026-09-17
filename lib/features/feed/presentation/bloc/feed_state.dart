@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 import '../../../../core/models/models.dart';
+import '../../domain/feed_freshness.dart';
+
+export '../../domain/feed_freshness.dart';
 
 enum FeedStatus { initial, loading, success, failure }
 
@@ -24,6 +27,14 @@ class FeedState extends Equatable {
   final String? errorMessage;
   final String? notice;
 
+  /// From `/flags`, overridable via Developer settings (G4).
+  final int cacheTtlMinutes;
+
+  /// [FeedBloc]'s read of `ConnectivityCubit` as of the last load/refresh
+  /// (G4) — not a live stream, so it only changes on the next network
+  /// attempt, matching "Set TTL to 0 → banner appears on next open".
+  final bool isOffline;
+
   const FeedState({
     this.status = FeedStatus.initial,
     this.articles = const [],
@@ -38,6 +49,8 @@ class FeedState extends Equatable {
     this.isRefreshing = false,
     this.errorMessage,
     this.notice,
+    this.cacheTtlMinutes = 30,
+    this.isOffline = false,
   });
 
   bool get hasMore => nextCursor != null;
@@ -45,6 +58,17 @@ class FeedState extends Equatable {
   bool get hasPending => pendingArticles.isNotEmpty;
 
   String topicNameFor(String topicId) => topics.nameFor(topicId);
+
+  /// Pure so it's directly testable (T1) without mocking a clock service.
+  FeedFreshness freshnessAt(DateTime now) {
+    if (isOffline) return FeedFreshness.offline;
+    final syncedAt = lastSyncedAt;
+    if (syncedAt == null) return FeedFreshness.fresh;
+    final isStale = now.difference(syncedAt) >= Duration(minutes: cacheTtlMinutes);
+    return isStale ? FeedFreshness.stale : FeedFreshness.fresh;
+  }
+
+  FeedFreshness get freshness => freshnessAt(DateTime.now());
 
   FeedState copyWith({
     FeedStatus? status,
@@ -60,6 +84,8 @@ class FeedState extends Equatable {
     bool? isRefreshing,
     Object? errorMessage = _unset,
     Object? notice = _unset,
+    int? cacheTtlMinutes,
+    bool? isOffline,
   }) {
     return FeedState(
       status: status ?? this.status,
@@ -75,6 +101,8 @@ class FeedState extends Equatable {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       errorMessage: identical(errorMessage, _unset) ? this.errorMessage : errorMessage as String?,
       notice: identical(notice, _unset) ? this.notice : notice as String?,
+      cacheTtlMinutes: cacheTtlMinutes ?? this.cacheTtlMinutes,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 
@@ -93,5 +121,7 @@ class FeedState extends Equatable {
         isRefreshing,
         errorMessage,
         notice,
+        cacheTtlMinutes,
+        isOffline,
       ];
 }

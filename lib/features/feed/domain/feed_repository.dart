@@ -18,4 +18,8 @@ abstract class FeedRepository {
   List<String> getSelectedTopicIds();
 
   DateTime? getLastSyncTime();
+
+  /// Server-controlled cache TTL (G4), from `/flags`. Overridable via
+  /// Developer settings for demoing the stale banner.
+  Future<int> getCacheTtlMinutes();
 }

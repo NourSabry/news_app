@@ -21,11 +21,13 @@ void main() {
     when(() => repository.simulateConflict).thenReturn(false);
     when(() => repository.simulateReactionFailure).thenReturn(false);
     when(() => repository.latencyMs).thenReturn(400);
+    when(() => repository.cacheTtlMinutes).thenReturn(30);
     when(() => repository.setSimulateOffline(any())).thenReturn(null);
     when(() => repository.setSimulateServerError(any())).thenReturn(null);
     when(() => repository.setSimulateConflict(any())).thenReturn(null);
     when(() => repository.setSimulateReactionFailure(any())).thenReturn(null);
     when(() => repository.setLatencyMs(any())).thenReturn(null);
+    when(() => repository.setCacheTtlMinutes(any())).thenReturn(null);
     when(() => repository.resetMockServer()).thenAnswer((_) async {});
 
     final mockConnectivity = MockConnectivity();
@@ -82,6 +84,14 @@ void main() {
     act: (cubit) => cubit.setSimulateReactionFailure(true),
     expect: () => [const DevToolsState(simulateReactionFailure: true)],
     verify: (_) => verify(() => repository.setSimulateReactionFailure(true)).called(1),
+  );
+
+  blocTest<DevToolsCubit, DevToolsState>(
+    'setCacheTtlMinutes updates state and the repository (G4)',
+    build: () => DevToolsCubit(repository, connectivity),
+    act: (cubit) => cubit.setCacheTtlMinutes(0),
+    expect: () => [const DevToolsState(cacheTtlMinutes: 0)],
+    verify: (_) => verify(() => repository.setCacheTtlMinutes(0)).called(1),
   );
 
   test('resetMockServer delegates to the repository', () async {

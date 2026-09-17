@@ -23,6 +23,7 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
       article: cached ?? state.article,
       isLoading: true,
       fromCache: cached != null,
+      lastSyncedAt: cached != null ? _repository.getLastSyncTime() : null,
       errorMessage: null,
       unavailableReason: null,
     ));

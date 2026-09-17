@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../core/connectivity/connectivity_cubit.dart';
 import '../core/di/service_locator.dart';
 import '../core/utils/snack_bar.dart';
+import '../core/utils/time_formatter.dart';
 import '../core/widgets/edition_nav_bar.dart';
-import '../core/widgets/offline_banner.dart';
+import '../core/widgets/freshness_banner.dart';
 import '../features/bookmarks/presentation/saved_screen.dart';
 import '../features/feed/domain/feed_repository.dart';
 import '../features/feed/presentation/bloc/feed_bloc.dart';
@@ -26,11 +28,19 @@ class _AppShellState extends State<AppShell> {
   static const _exploreIndex = 1;
 
   int _currentIndex = 0;
-  late final FeedBloc _feedBloc =
-      FeedBloc(ServiceLocator.instance.get<FeedRepository>())..add(const LoadFeed());
+  late final FeedBloc _feedBloc;
   late final SearchBloc _searchBloc =
       SearchBloc(ServiceLocator.instance.get<SearchRepository>())..add(const SearchStarted());
   final _searchFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _feedBloc = FeedBloc(
+      ServiceLocator.instance.get<FeedRepository>(),
+      context.read<ConnectivityCubit>(),
+    )..add(const LoadFeed());
+  }
 
   @override
   void dispose() {
@@ -115,14 +125,56 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  /// The single freshness/sync banner slot (G4) — never two banners at
+  /// once. Offline (with pending count) and stale take priority over the
+  /// outbox's own sync status, since they mean the reader is looking at
+  /// old data, not just waiting on an upload.
   Widget _buildBanner() {
-    return BlocBuilder<OutboxCubit, OutboxState>(
-      builder: (context, state) => OfflineBanner(
-        pendingCount: state.pendingCount,
-        isSyncing: state.isSyncing,
-        onSync: context.read<OutboxCubit>().sync,
+    return BlocBuilder<FeedBloc, FeedState>(
+      bloc: _feedBloc,
+      builder: (context, feedState) => BlocBuilder<OutboxCubit, OutboxState>(
+        builder: (context, outboxState) => _freshnessBanner(feedState, outboxState),
       ),
     );
+  }
+
+  Widget _freshnessBanner(FeedState feedState, OutboxState outboxState) {
+    switch (feedState.freshness) {
+      case FeedFreshness.offline:
+        final pending = outboxState.pendingCount;
+        final suffix = pending > 0 ? ' ($pending pending ${pending == 1 ? 'change' : 'changes'})' : '';
+        return FreshnessBanner(
+          key: const ValueKey('freshness-offline'),
+          variant: FreshnessBannerVariant.offline,
+          message: "You're offline. Showing your last edition.$suffix",
+        );
+      case FeedFreshness.stale:
+        return FreshnessBanner(
+          key: const ValueKey('freshness-stale'),
+          variant: FreshnessBannerVariant.stale,
+          message: 'Showing stories from ${TimeFormatter.relative(feedState.lastSyncedAt!)}',
+          onRefresh: () => _feedBloc.add(const RefreshFeed()),
+        );
+      case FeedFreshness.fresh:
+        if (outboxState.isSyncing) {
+          return const FreshnessBanner(
+            key: ValueKey('freshness-syncing'),
+            variant: FreshnessBannerVariant.syncing,
+            message: 'Syncing…',
+          );
+        }
+        if (outboxState.pendingCount > 0) {
+          final pending = outboxState.pendingCount;
+          return FreshnessBanner(
+            key: const ValueKey('freshness-pending'),
+            variant: FreshnessBannerVariant.syncing,
+            animated: false,
+            message: '$pending ${pending == 1 ? 'pending change' : 'pending changes'}',
+            onTap: () => context.read<OutboxCubit>().sync(),
+          );
+        }
+        return const SizedBox(width: double.infinity);
+    }
   }
 
   Widget _buildBody() {

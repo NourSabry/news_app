@@ -16,12 +16,23 @@ class FreshnessBanner extends StatefulWidget {
     required this.message,
     this.onRefresh,
     this.onDismissed,
+    this.onTap,
+    this.animated = true,
   });
 
   final FreshnessBannerVariant variant;
   final String message;
   final VoidCallback? onRefresh;
   final VoidCallback? onDismissed;
+
+  /// Makes the whole banner tappable (e.g. tap-to-sync on a pending-changes
+  /// banner) without a dedicated trailing action like [onRefresh].
+  final VoidCallback? onTap;
+
+  /// False suppresses the `syncing` variant's indeterminate progress bar —
+  /// for "N changes waiting to sync" (not yet actively syncing), where an
+  /// infinite animation would never let `pumpAndSettle()` return.
+  final bool animated;
 
   @override
   State<FreshnessBanner> createState() => _FreshnessBannerState();
@@ -67,57 +78,60 @@ class _FreshnessBannerState extends State<FreshnessBanner> {
       FreshnessBannerVariant.synced => (success.withValues(alpha: 0.12), success, Icons.check_circle_rounded),
     };
 
-    return Container(
-      height: 40,
-      width: double.infinity,
-      color: background,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-      child: Stack(
-        alignment: Alignment.centerLeft,
-        children: [
-          Row(
-            children: [
-              if (icon != null) Icon(icon, size: 16, color: iconColor),
-              if (icon != null) const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  widget.message,
-                  style: AppTextStyles.caption.copyWith(color: ink),
-                  overflow: TextOverflow.ellipsis,
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Container(
+        height: 40,
+        width: double.infinity,
+        color: background,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+        child: Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            Row(
+              children: [
+                if (icon != null) Icon(icon, size: 16, color: iconColor),
+                if (icon != null) const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    widget.message,
+                    style: AppTextStyles.caption.copyWith(color: ink),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              if (widget.variant == FreshnessBannerVariant.stale && widget.onRefresh != null)
-                Semantics(
-                  button: true,
-                  label: 'Refresh',
-                  child: InkWell(
-                    onTap: widget.onRefresh,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                      child: Text(
-                        'Refresh',
-                        style: AppTextStyles.label.copyWith(color: red, fontWeight: FontWeight.w600),
+                if (widget.variant == FreshnessBannerVariant.stale && widget.onRefresh != null)
+                  Semantics(
+                    button: true,
+                    label: 'Refresh',
+                    child: InkWell(
+                      onTap: widget.onRefresh,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        child: Text(
+                          'Refresh',
+                          style: AppTextStyles.label.copyWith(color: red, fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          if (widget.variant == FreshnessBannerVariant.syncing)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SizedBox(
-                height: 2,
-                child: LinearProgressIndicator(
-                  minHeight: 2,
-                  backgroundColor: rule,
-                  valueColor: AlwaysStoppedAnimation(red),
+              ],
+            ),
+            if (widget.variant == FreshnessBannerVariant.syncing && widget.animated)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SizedBox(
+                  height: 2,
+                  child: LinearProgressIndicator(
+                    minHeight: 2,
+                    backgroundColor: rule,
+                    valueColor: AlwaysStoppedAnimation(red),
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -7,12 +7,14 @@ abstract class DevToolsRepository {
   bool get simulateConflict;
   bool get simulateReactionFailure;
   int get latencyMs;
+  int get cacheTtlMinutes;
 
   void setSimulateOffline(bool value);
   void setSimulateServerError(bool value);
   void setSimulateConflict(bool value);
   void setSimulateReactionFailure(bool value);
   void setLatencyMs(int value);
+  void setCacheTtlMinutes(int value);
 
   Future<void> resetMockServer();
 }

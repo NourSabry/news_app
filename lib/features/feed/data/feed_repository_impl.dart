@@ -91,4 +91,10 @@ class FeedRepositoryImpl implements FeedRepository {
 
   @override
   DateTime? getLastSyncTime() => _storage.getLastSyncTime();
+
+  @override
+  Future<int> getCacheTtlMinutes() async {
+    final flags = await _api.getFlags();
+    return flags['cacheTtlMinutes'] as int? ?? 30;
+  }
 }

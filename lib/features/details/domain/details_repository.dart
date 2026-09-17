@@ -8,4 +8,8 @@ abstract class DetailsRepository {
   Future<List<Article>> fetchRelated(List<String> ids);
 
   Future<List<Topic>> getTopics();
+
+  /// Last successful sync with the server (G4) — the age shown in the
+  /// "Saved copy · Xh ago" caption when [getCachedArticle] served the read.
+  DateTime? getLastSyncTime();
 }

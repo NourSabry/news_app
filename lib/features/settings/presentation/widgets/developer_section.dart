@@ -66,6 +66,21 @@ class DeveloperSection extends StatelessWidget {
           ),
         ),
         ListTile(
+          leading: const Icon(Icons.schedule_rounded),
+          title: const Text('Cache freshness'),
+          subtitle: const Text('How long a feed page stays "fresh" before the stale banner shows'),
+          trailing: DropdownButton<int>(
+            value: state.cacheTtlMinutes,
+            items: const [
+              DropdownMenuItem(value: 30, child: Text('30 min')),
+              DropdownMenuItem(value: 0, child: Text('0 min (always stale)')),
+            ],
+            onChanged: (value) {
+              if (value != null) context.read<DevToolsCubit>().setCacheTtlMinutes(value);
+            },
+          ),
+        ),
+        ListTile(
           leading: const Icon(Icons.restore_rounded),
           title: const Text('Reset mock server'),
           subtitle: const Text('Clears server-side bookmarks and likes'),

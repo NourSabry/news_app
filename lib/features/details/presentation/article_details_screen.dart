@@ -124,7 +124,7 @@ class _DetailsViewState extends State<_DetailsView> {
                   article: article,
                   topicName: state.topicName,
                   fromCache: state.fromCache && !state.isLoading,
-                  lastSyncedAt: null,
+                  lastSyncedAt: state.lastSyncedAt,
                   onLike: () => context.toggleLike(article),
                   onBookmark: () => context.toggleBookmark(article),
                 ),

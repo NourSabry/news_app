@@ -6,6 +6,7 @@ class DevToolsState extends Equatable {
   final bool simulateConflict;
   final bool simulateReactionFailure;
   final int latencyMs;
+  final int cacheTtlMinutes;
 
   const DevToolsState({
     this.simulateOffline = false,
@@ -13,6 +14,7 @@ class DevToolsState extends Equatable {
     this.simulateConflict = false,
     this.simulateReactionFailure = false,
     this.latencyMs = 400,
+    this.cacheTtlMinutes = 30,
   });
 
   DevToolsState copyWith({
@@ -21,6 +23,7 @@ class DevToolsState extends Equatable {
     bool? simulateConflict,
     bool? simulateReactionFailure,
     int? latencyMs,
+    int? cacheTtlMinutes,
   }) {
     return DevToolsState(
       simulateOffline: simulateOffline ?? this.simulateOffline,
@@ -28,6 +31,7 @@ class DevToolsState extends Equatable {
       simulateConflict: simulateConflict ?? this.simulateConflict,
       simulateReactionFailure: simulateReactionFailure ?? this.simulateReactionFailure,
       latencyMs: latencyMs ?? this.latencyMs,
+      cacheTtlMinutes: cacheTtlMinutes ?? this.cacheTtlMinutes,
     );
   }
 
@@ -38,5 +42,6 @@ class DevToolsState extends Equatable {
         simulateConflict,
         simulateReactionFailure,
         latencyMs,
+        cacheTtlMinutes,
       ];
 }

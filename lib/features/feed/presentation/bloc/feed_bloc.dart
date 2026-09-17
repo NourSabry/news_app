@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/connectivity/connectivity_cubit.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/utils/future_extensions.dart';
 import '../../domain/feed_delta.dart';
@@ -16,8 +17,9 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   static const noNewStoriesMessage = 'No new stories';
 
   final FeedRepository _repository;
+  final ConnectivityCubit _connectivity;
 
-  FeedBloc(this._repository) : super(const FeedState()) {
+  FeedBloc(this._repository, this._connectivity) : super(const FeedState()) {
     on<LoadFeed>(_onLoad);
     on<LoadMoreFeed>(_onLoadMore);
     on<RefreshFeed>(_onRefresh);
@@ -39,12 +41,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       selectedTopicIds: _repository.getSelectedTopicIds(),
       errorMessage: null,
       notice: null,
+      isOffline: !_connectivity.isConnected,
     ));
     try {
-      final (page, topics, trending) = await (
+      final (page, topics, trending, cacheTtlMinutes) = await (
         _repository.fetchPage(scope: state.scope),
         _repository.getTopics().orFallback(state.topics),
         _repository.getTrending().orFallback(state.trending),
+        _repository.getCacheTtlMinutes().orFallback(state.cacheTtlMinutes),
       ).wait;
       emit(state.copyWith(
         status: FeedStatus.success,
@@ -55,6 +59,8 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         lastSyncedAt: _repository.getLastSyncTime(),
         nextCursor: page.nextCursor,
         isRefreshing: false,
+        cacheTtlMinutes: cacheTtlMinutes,
+        isOffline: !_connectivity.isConnected,
       ));
     } catch (_) {
       _recoverFromCache(emit);
@@ -93,6 +99,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         status: FeedStatus.failure,
         errorMessage: loadErrorMessage,
         isRefreshing: false,
+        isOffline: !_connectivity.isConnected,
       ));
       return;
     }
@@ -102,6 +109,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       lastSyncedAt: _repository.getLastSyncTime(),
       nextCursor: cached.nextCursor,
       isRefreshing: false,
+      isOffline: !_connectivity.isConnected,
     ));
   }
 
@@ -139,9 +147,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         lastSyncedAt: _repository.getLastSyncTime(),
         isRefreshing: false,
         notice: _refreshNotice(delta),
+        isOffline: !_connectivity.isConnected,
       ));
     } catch (_) {
-      emit(state.copyWith(isRefreshing: false, errorMessage: refreshErrorMessage));
+      emit(state.copyWith(
+        isRefreshing: false,
+        errorMessage: refreshErrorMessage,
+        isOffline: !_connectivity.isConnected,
+      ));
     }
   }
 

@@ -22,6 +22,9 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
   int get latencyMs => _api.latencyMs;
 
   @override
+  int get cacheTtlMinutes => _api.cacheTtlMinutes;
+
+  @override
   void setSimulateOffline(bool value) => _api.simulateOffline = value;
 
   @override
@@ -35,6 +38,9 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
 
   @override
   void setLatencyMs(int value) => _api.latencyMs = value;
+
+  @override
+  void setCacheTtlMinutes(int value) => _api.cacheTtlMinutes = value;
 
   @override
   Future<void> resetMockServer() => _api.resetServerState();
