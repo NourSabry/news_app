@@ -15,6 +15,7 @@ class MockApiClient implements ApiClient {
   static const _defaultBookmarkIds = {'a_flutter_roadmap', 'a_startup_funding'};
   static const _bookmarkIdsKey = 'bookmark_ids';
   static const _articleStateKey = 'article_state';
+  static const _outboxVersionKey = 'outbox_version';
 
   final KeyValueStore _store;
 
@@ -421,15 +422,41 @@ class MockApiClient implements ApiClient {
     required List<OutboxEntry> mutations,
   }) async {
     await _simulateNetwork();
+    final applied = <String>[];
+    final conflicts = <Map<String, dynamic>>[];
     for (final mutation in mutations) {
-      await _applyMutation(mutation);
+      // Only likes conflict (X1) — a fixed server state that's always
+      // newer than whatever the client queued, mirroring the online
+      // conflict path in toggleReaction above.
+      if (simulateConflict && mutation.operation == OutboxOperation.toggleReaction) {
+        final expectedVersion = mutation.payload['expectedVersion'] as int;
+        conflicts.add({
+          'idempotencyKey': mutation.idempotencyKey,
+          'articleId': mutation.payload['articleId'] as String,
+          'serverState': {'isLiked': true, 'likes': 186, 'version': expectedVersion + 2},
+        });
+      } else {
+        await _applyMutation(mutation);
+        applied.add(mutation.idempotencyKey);
+      }
     }
+    final newVersion = await _bumpOutboxVersion();
     return {
-      'status': 'success',
-      'newVersion': baseVersion + 1,
-      'applied': mutations.map((m) => m.idempotencyKey).toList(),
-      'conflicts': <Map<String, dynamic>>[],
+      'status': conflicts.isEmpty ? 'success' : 'review_required',
+      'newVersion': newVersion,
+      'applied': applied,
+      'conflicts': conflicts,
     };
+  }
+
+  /// Server-side outbox version (X1) — persisted in the mock_server box so
+  /// it survives a fresh `MockApiClient` over the same store, same as
+  /// bookmarks/likes (B1).
+  Future<int> _bumpOutboxVersion() async {
+    final current = int.tryParse(_store.get(_outboxVersionKey) ?? '') ?? 0;
+    final next = current + 1;
+    await _store.put(_outboxVersionKey, '$next');
+    return next;
   }
 
   Future<void> _applyMutation(OutboxEntry entry) async {

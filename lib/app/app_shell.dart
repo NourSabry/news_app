@@ -11,6 +11,7 @@ import '../features/feed/domain/feed_repository.dart';
 import '../features/feed/presentation/bloc/feed_bloc.dart';
 import '../features/feed/presentation/feed_screen.dart';
 import '../features/outbox/presentation/cubit/outbox_cubit.dart';
+import '../features/outbox/presentation/widgets/conflict_review_sheet.dart';
 import '../features/reactions/presentation/bloc/reactions_bloc.dart';
 import '../features/search/domain/search_repository.dart';
 import '../features/search/presentation/bloc/search_bloc.dart';
@@ -83,10 +84,20 @@ class _AppShellState extends State<AppShell> {
         BlocListener<OutboxCubit, OutboxState>(
           listenWhen: (previous, current) =>
               current.hasConflicts && previous.conflicts != current.conflicts,
-          listener: (context, state) => showSnackBarMessage(
-            context,
-            '${state.conflicts.length} of your changes were overwritten by newer updates',
-          ),
+          listener: (context, state) {
+            final reactions = context.read<ReactionsBloc>();
+            for (final conflict in state.conflicts) {
+              reactions.add(ApplyOverride(
+                conflict.articleId,
+                ArticleOverrides(
+                  isLiked: conflict.serverIsLiked,
+                  likes: conflict.serverLikes,
+                  version: conflict.serverVersion,
+                ),
+              ));
+            }
+            ConflictReviewSheet.show(context, state.conflicts);
+          },
         ),
       ],
       child: Scaffold(

@@ -99,6 +99,47 @@ void main() {
     expect(afterDeletion, isA<ArticleUnavailable>());
   });
 
+  test('syncOutbox produces a conflict for a like when simulateConflict is on (X1)', () async {
+    final client = MockApiClient(store: MemoryStore())
+      ..latencyMs = 0
+      ..simulateConflict = true;
+    final mutation = OutboxEntry(
+      idempotencyKey: 'k1',
+      operation: OutboxOperation.toggleReaction,
+      payload: const {'articleId': 'a_flutter_roadmap', 'reaction': 'like', 'expectedVersion': 3},
+      createdAt: DateTime(2026, 9, 14),
+    );
+
+    final response = await client.syncOutbox(baseVersion: 0, mutations: [mutation]);
+
+    expect(response['status'], 'review_required');
+    expect(response['applied'], isEmpty);
+    final conflicts = response['conflicts'] as List;
+    expect(conflicts, hasLength(1));
+    expect((conflicts.single as Map)['idempotencyKey'], 'k1');
+
+    final article = _found(await client.getArticle('a_flutter_roadmap'));
+    expect(article.isLiked, isFalse, reason: 'a rejected mutation must not be applied server-side');
+  });
+
+  test('outbox_version persists across construction over the same store (X1)', () async {
+    final store = MemoryStore();
+    final first = MockApiClient(store: store)..latencyMs = 0;
+    final mutation = OutboxEntry(
+      idempotencyKey: 'k1',
+      operation: OutboxOperation.setBookmark,
+      payload: const {'articleId': 'a_startup_funding', 'bookmarked': true},
+      createdAt: DateTime(2026, 9, 14),
+    );
+    final firstResponse = await first.syncOutbox(baseVersion: 0, mutations: [mutation]);
+    expect(firstResponse['newVersion'], 1);
+
+    final second = MockApiClient(store: store)..latencyMs = 0;
+    final secondResponse = await second.syncOutbox(baseVersion: 1, mutations: []);
+
+    expect(secondResponse['newVersion'], 2);
+  });
+
   test('resetServerState clears persisted bookmarks and article overrides', () async {
     final store = MemoryStore();
     final first = MockApiClient(store: store)..latencyMs = 0;

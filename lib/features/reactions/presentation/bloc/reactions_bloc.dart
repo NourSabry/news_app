@@ -18,6 +18,12 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
   ReactionsBloc(this._repository)
       : super(ReactionsState(overrides: _repository.loadPersistedOverrides())) {
     on<ToggleLike>(_onToggleLike);
+    on<ApplyOverride>(_onApplyOverride);
+  }
+
+  Future<void> _onApplyOverride(ApplyOverride event, Emitter<ReactionsState> emit) async {
+    emit(state.withOverride(event.articleId, event.value));
+    await _repository.persistOverride(event.articleId, event.value);
   }
 
   Future<void> _onToggleLike(ToggleLike event, Emitter<ReactionsState> emit) async {

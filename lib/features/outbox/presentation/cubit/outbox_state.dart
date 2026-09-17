@@ -1,10 +1,12 @@
 import 'package:equatable/equatable.dart';
-import '../../../../core/models/models.dart';
+import '../../domain/outbox_conflict.dart';
+
+export '../../domain/outbox_conflict.dart';
 
 class OutboxState extends Equatable {
   final int pendingCount;
   final bool isSyncing;
-  final List<OutboxEntry> conflicts;
+  final List<OutboxConflict> conflicts;
 
   const OutboxState({
     this.pendingCount = 0,
@@ -18,7 +20,7 @@ class OutboxState extends Equatable {
   OutboxState copyWith({
     int? pendingCount,
     bool? isSyncing,
-    List<OutboxEntry>? conflicts,
+    List<OutboxConflict>? conflicts,
   }) {
     return OutboxState(
       pendingCount: pendingCount ?? this.pendingCount,

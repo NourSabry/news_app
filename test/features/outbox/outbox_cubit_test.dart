@@ -8,6 +8,14 @@ import 'package:news_app/features/outbox/domain/outbox_repository.dart';
 import 'package:news_app/features/outbox/domain/outbox_sync_result.dart';
 import 'package:news_app/features/outbox/presentation/cubit/outbox_cubit.dart';
 
+const _conflict = OutboxConflict(
+  articleId: 'a',
+  articleTitle: 'Flutter Roadmap',
+  serverIsLiked: true,
+  serverLikes: 186,
+  serverVersion: 5,
+);
+
 class MockOutboxRepository extends Mock implements OutboxRepository {}
 
 class MockConnectivityCubit extends MockCubit<ConnectivityStatus> implements ConnectivityCubit {}
@@ -99,16 +107,16 @@ void main() {
   );
 
   blocTest<OutboxCubit, OutboxState>(
-    'surfaces entries the server rejected',
+    'surfaces conflicts the server rejected (X1)',
     setUp: () => when(() => repository.sync()).thenAnswer((_) async {
       pending.clear();
-      return OutboxSyncResult(appliedCount: 1, conflicts: [entry('k2')]);
+      return const OutboxSyncResult(appliedCount: 1, conflicts: [_conflict]);
     }),
     build: build,
     act: (cubit) => cubit.sync(),
-    expect: () => [
-      const OutboxState(pendingCount: 2, isSyncing: true),
-      OutboxState(pendingCount: 0, conflicts: [entry('k2')]),
+    expect: () => const [
+      OutboxState(pendingCount: 2, isSyncing: true),
+      OutboxState(pendingCount: 0, conflicts: [_conflict]),
     ],
   );
 

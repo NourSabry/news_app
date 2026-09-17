@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/models/models.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/local_storage.dart';
+import '../domain/outbox_conflict.dart';
 import '../domain/outbox_repository.dart';
 import '../domain/outbox_sync_result.dart';
 
@@ -43,7 +44,9 @@ class OutboxRepositoryImpl implements OutboxRepository {
 
     final response = await _api.syncOutbox(baseVersion: _baseVersion, mutations: pending);
     final applied = _keys(response['applied']);
-    final conflictKeys = _keys(response['conflicts'], field: 'idempotencyKey');
+    final conflictMaps = (response['conflicts'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final conflictKeys = conflictMaps.map((c) => c['idempotencyKey'] as String).toList();
 
     await _storage.setMeta(_versionKey, '${response['newVersion'] ?? _baseVersion}');
     for (final key in applied.followedBy(conflictKeys)) {
@@ -51,7 +54,19 @@ class OutboxRepositoryImpl implements OutboxRepository {
     }
     return OutboxSyncResult(
       appliedCount: applied.length,
-      conflicts: pending.where((e) => conflictKeys.contains(e.idempotencyKey)).toList(),
+      conflicts: conflictMaps.map(_toConflict).toList(),
+    );
+  }
+
+  OutboxConflict _toConflict(Map<String, dynamic> raw) {
+    final articleId = raw['articleId'] as String;
+    final serverState = raw['serverState'] as Map<String, dynamic>;
+    return OutboxConflict(
+      articleId: articleId,
+      articleTitle: _storage.getCachedArticle(articleId)?.title ?? 'this story',
+      serverIsLiked: serverState['isLiked'] as bool,
+      serverLikes: serverState['likes'] as int,
+      serverVersion: serverState['version'] as int,
     );
   }
 
