@@ -11,12 +11,17 @@ class LocalStorage {
   final KeyValueStore _outbox;
   final KeyValueStore _meta;
 
+  /// The mock backend's own state (Part 1, B1) — a separate box so
+  /// "Clear cache" in Settings never touches it, only "Reset mock server".
+  final KeyValueStore mockServerStore;
+
   LocalStorage({
     required KeyValueStore feedCache,
     required KeyValueStore articles,
     required KeyValueStore bookmarks,
     required KeyValueStore outbox,
     required KeyValueStore meta,
+    required this.mockServerStore,
   })  : _feedCache = feedCache,
         _articles = articles,
         _bookmarks = bookmarks,
@@ -30,6 +35,7 @@ class LocalStorage {
       bookmarks: MemoryStore(),
       outbox: MemoryStore(),
       meta: MemoryStore(),
+      mockServerStore: MemoryStore(),
     );
   }
 
@@ -41,6 +47,7 @@ class LocalStorage {
       bookmarks: await HiveStore.open('bookmarks'),
       outbox: await HiveStore.open('outbox'),
       meta: await HiveStore.open('meta'),
+      mockServerStore: await HiveStore.open('mock_server'),
     );
   }
 
@@ -148,6 +155,20 @@ class LocalStorage {
 
   Future<void> setRecentSearches(List<String> queries) async {
     await _meta.put('recent_searches', json.encode(queries));
+  }
+
+  /// Client-side like overrides (B1) — restored on launch so the feed
+  /// shows the correct liked state before the network answers.
+  Map<String, dynamic> getReactionOverrides() {
+    final raw = _meta.get('reaction_overrides');
+    if (raw == null) return {};
+    return Map<String, dynamic>.from(json.decode(raw) as Map);
+  }
+
+  Future<void> saveReactionOverride(String articleId, Map<String, dynamic> override) async {
+    final all = getReactionOverrides();
+    all[articleId] = override;
+    await _meta.put('reaction_overrides', json.encode(all));
   }
 
   List<String> _getMetaList(String key) {

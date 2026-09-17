@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../../../core/models/models.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/storage/local_storage.dart';
 import '../../outbox/domain/outbox_repository.dart';
 import '../domain/article_overrides.dart';
 import '../domain/reaction_result.dart';
@@ -11,9 +12,23 @@ class ReactionsRepositoryImpl implements ReactionsRepository {
 
   final ApiClient _api;
   final OutboxRepository _outbox;
+  final LocalStorage _storage;
   final Uuid _uuid;
 
-  ReactionsRepositoryImpl(this._api, this._outbox, {Uuid uuid = const Uuid()}) : _uuid = uuid;
+  ReactionsRepositoryImpl(this._api, this._outbox, this._storage, {Uuid uuid = const Uuid()})
+      : _uuid = uuid;
+
+  @override
+  Map<String, ArticleOverrides> loadPersistedOverrides() {
+    return _storage.getReactionOverrides().map(
+          (key, value) => MapEntry(key, ArticleOverrides.fromJson(Map<String, dynamic>.from(value as Map))),
+        );
+  }
+
+  @override
+  Future<void> persistOverride(String articleId, ArticleOverrides value) {
+    return _storage.saveReactionOverride(articleId, value.toJson());
+  }
 
   @override
   Future<ReactionResult> toggleLike(String articleId, {required int expectedVersion}) async {

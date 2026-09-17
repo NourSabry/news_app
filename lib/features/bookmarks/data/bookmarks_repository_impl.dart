@@ -16,13 +16,37 @@ class BookmarksRepositoryImpl implements BookmarksRepository {
 
   @override
   Future<Set<String>> reconcileIds() async {
-    final ids = (await _api.getBookmarkIds()).toSet();
+    final localIds = getIds();
+    final serverIds = (await _api.getBookmarkIds()).toSet();
     final pending = _outbox.getPending().where((e) => e.operation == OutboxOperation.setBookmark);
+
+    final pendingAdds = <String>{};
+    final pendingRemoves = <String>{};
     for (final entry in pending) {
-      _apply(ids, entry.payload['articleId'] as String, entry.payload['bookmarked'] as bool);
+      final articleId = entry.payload['articleId'] as String;
+      final bookmarked = entry.payload['bookmarked'] as bool;
+      (bookmarked ? pendingAdds : pendingRemoves).add(articleId);
     }
-    await _storage.saveBookmarkIds(ids);
-    return ids;
+
+    final merged = {...serverIds, ...pendingAdds}..removeAll(pendingRemoves);
+
+    // Ids the server has never heard of and that aren't already queued —
+    // e.g. a mutation that "succeeded" against a server that has since
+    // forgotten it. Push them to the outbox instead of silently dropping.
+    final unknownLocal = localIds
+        .difference(serverIds)
+        .difference(pendingAdds)
+        .difference(pendingRemoves);
+    for (final articleId in unknownLocal) {
+      merged.add(articleId);
+      await _outbox.enqueue(
+        OutboxOperation.setBookmark,
+        {'articleId': articleId, 'bookmarked': true},
+      );
+    }
+
+    await _storage.saveBookmarkIds(merged);
+    return merged;
   }
 
   @override

@@ -2,19 +2,71 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
+import '../storage/key_value_store.dart';
 import 'api_client.dart';
 
+/// Emulates a real backend (Part 1, B1): its mutable state — bookmark ids
+/// and per-article likes/isLiked/version — is written through to [_store]
+/// (the `mock_server` Hive box in the real app) so it survives restarts
+/// the same way a real server would.
 class MockApiClient implements ApiClient {
+  MockApiClient({KeyValueStore? store}) : _store = store ?? MemoryStore();
+
+  static const _defaultBookmarkIds = {'a_flutter_roadmap', 'a_startup_funding'};
+  static const _bookmarkIdsKey = 'bookmark_ids';
+  static const _articleStateKey = 'article_state';
+
+  final KeyValueStore _store;
+
   List<Article>? _cachedArticles;
   List<Topic>? _cachedTopics;
   Map<String, List<String>>? _cachedSources;
-  final Set<String> _bookmarkIds = {'a_flutter_roadmap', 'a_startup_funding'};
+  Set<String>? _bookmarkIdsCache;
+  Map<String, dynamic>? _articleStateCache;
 
   bool simulateOffline = false;
   bool simulateError = false;
   bool simulateConflict = false;
   int _latencyMs = 400;
   int _refreshCount = 0;
+
+  Set<String> get _bookmarkIds {
+    if (_bookmarkIdsCache != null) return _bookmarkIdsCache!;
+    final raw = _store.get(_bookmarkIdsKey);
+    _bookmarkIdsCache = raw == null
+        ? {..._defaultBookmarkIds}
+        : (json.decode(raw) as List<dynamic>).map((e) => e as String).toSet();
+    return _bookmarkIdsCache!;
+  }
+
+  Future<void> _persistBookmarkIds() {
+    return _store.put(_bookmarkIdsKey, json.encode(_bookmarkIds.toList()));
+  }
+
+  Map<String, dynamic> get _articleState {
+    if (_articleStateCache != null) return _articleStateCache!;
+    final raw = _store.get(_articleStateKey);
+    _articleStateCache = raw == null ? {} : Map<String, dynamic>.from(json.decode(raw) as Map);
+    return _articleStateCache!;
+  }
+
+  Future<void> _persistArticleState(Article article) {
+    _articleState[article.id] = {
+      'isLiked': article.isLiked,
+      'likes': article.likes,
+      'version': article.version,
+    };
+    return _store.put(_articleStateKey, json.encode(_articleState));
+  }
+
+  /// Clears all server-side state. Only "Reset mock server" in Developer
+  /// settings calls this — "Clear cache" in Settings must not.
+  Future<void> resetServerState() async {
+    await _store.clear();
+    _bookmarkIdsCache = null;
+    _articleStateCache = null;
+    _cachedArticles = null;
+  }
 
   static const _breakingHeadlines = [
     'Breaking: Major Tech Conference Announces Surprise Keynote',
@@ -40,10 +92,20 @@ class MockApiClient implements ApiClient {
     if (_cachedArticles != null) return _cachedArticles!;
     final jsonString = await rootBundle.loadString('assets/mock/articles.json');
     final jsonList = json.decode(jsonString) as List<dynamic>;
-    _cachedArticles = jsonList
-        .map((e) => Article.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final base = jsonList.map((e) => Article.fromJson(e as Map<String, dynamic>)).toList();
+    _cachedArticles = base.map(_withPersistedState).toList();
     return _cachedArticles!;
+  }
+
+  Article _withPersistedState(Article article) {
+    final saved = _articleState[article.id];
+    if (saved == null) return article;
+    final state = Map<String, dynamic>.from(saved as Map);
+    return article.copyWith(
+      isLiked: state['isLiked'] as bool,
+      likes: (state['likes'] as num).toInt(),
+      version: (state['version'] as num).toInt(),
+    );
   }
 
   Future<List<Topic>> _loadTopics() async {
@@ -231,11 +293,14 @@ class MockApiClient implements ApiClient {
     final index = articles.indexWhere((a) => a.id == articleId);
     final article = articles[index];
     final liked = !article.isLiked;
-    return articles[index] = article.copyWith(
+    final updated = article.copyWith(
       isLiked: liked,
       likes: article.likes + (liked ? 1 : -1),
       version: expectedVersion + 1,
     );
+    articles[index] = updated;
+    await _persistArticleState(updated);
+    return updated;
   }
 
   @override
@@ -244,11 +309,12 @@ class MockApiClient implements ApiClient {
     required bool bookmarked,
   }) async {
     await _simulateNetwork();
-    _setBookmark(articleId, bookmarked);
+    await _setBookmark(articleId, bookmarked);
   }
 
-  void _setBookmark(String articleId, bool bookmarked) {
+  Future<void> _setBookmark(String articleId, bool bookmarked) {
     bookmarked ? _bookmarkIds.add(articleId) : _bookmarkIds.remove(articleId);
+    return _persistBookmarkIds();
   }
 
   @override
@@ -324,7 +390,7 @@ class MockApiClient implements ApiClient {
       case OutboxOperation.toggleReaction:
         await _toggleLike(articleId, entry.payload['expectedVersion'] as int);
       case OutboxOperation.setBookmark:
-        _setBookmark(articleId, entry.payload['bookmarked'] as bool);
+        await _setBookmark(articleId, entry.payload['bookmarked'] as bool);
     }
   }
 

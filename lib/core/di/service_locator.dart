@@ -61,7 +61,7 @@ class ServiceLocator {
     register<Connectivity>(connectivity ?? Connectivity());
     register<BaseCacheManager>(imageCache ?? DefaultCacheManager());
 
-    final api = apiClient ?? MockApiClient();
+    final api = apiClient ?? MockApiClient(store: localStorage.mockServerStore);
     register<ApiClient>(api);
     register<MockApiClient>(api);
 
@@ -72,7 +72,7 @@ class ServiceLocator {
 
     final outbox = OutboxRepositoryImpl(api, localStorage);
     register<OutboxRepository>(outbox);
-    register<ReactionsRepository>(ReactionsRepositoryImpl(api, outbox));
+    register<ReactionsRepository>(ReactionsRepositoryImpl(api, outbox, localStorage));
     register<BookmarksRepository>(BookmarksRepositoryImpl(api, localStorage, outbox));
   }
 }

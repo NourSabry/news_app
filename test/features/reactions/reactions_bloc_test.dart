@@ -31,7 +31,25 @@ ReactionsState overridden({required bool isLiked, required int likes, required i
 void main() {
   late MockReactionsRepository repository;
 
-  setUp(() => repository = MockReactionsRepository());
+  setUpAll(() {
+    registerFallbackValue(const ArticleOverrides(isLiked: false, likes: 0, version: 1));
+  });
+
+  setUp(() {
+    repository = MockReactionsRepository();
+    when(() => repository.loadPersistedOverrides()).thenReturn({});
+    when(() => repository.persistOverride(any(), any())).thenAnswer((_) async {});
+  });
+
+  test('starts from overrides persisted by a previous session (B1)', () {
+    when(() => repository.loadPersistedOverrides()).thenReturn({
+      'a': const ArticleOverrides(isLiked: true, likes: 11, version: 1),
+    });
+
+    final bloc = ReactionsBloc(repository);
+
+    expect(bloc.state.overrides, {'a': const ArticleOverrides(isLiked: true, likes: 11, version: 1)});
+  });
 
   blocTest<ReactionsBloc, ReactionsState>(
     'likes optimistically and then applies the server count and version',

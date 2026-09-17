@@ -20,6 +20,10 @@ class ArticleOverrides extends Equatable {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {'isLiked': isLiked, 'likes': likes, 'version': version};
+  }
+
   @override
   List<Object?> get props => [isLiked, likes, version];
 }

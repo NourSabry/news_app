@@ -14,7 +14,8 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
 
   final ReactionsRepository _repository;
 
-  ReactionsBloc(this._repository) : super(const ReactionsState()) {
+  ReactionsBloc(this._repository)
+      : super(ReactionsState(overrides: _repository.loadPersistedOverrides())) {
     on<ToggleLike>(_onToggleLike);
   }
 
@@ -27,6 +28,7 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
       version: article.version,
     );
     emit(state.withOverride(article.id, optimistic, notice: null));
+    await _repository.persistOverride(article.id, optimistic);
 
     final result = await _repository.toggleLike(
       article.id,
@@ -36,8 +38,10 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
       case ReactionApplied(:final likes, :final version):
         final applied = ArticleOverrides(isLiked: liked, likes: likes, version: version);
         emit(state.withOverride(article.id, applied));
+        await _repository.persistOverride(article.id, applied);
       case ReactionConflict(:final serverState):
         emit(state.withOverride(article.id, serverState, notice: conflictMessage));
+        await _repository.persistOverride(article.id, serverState);
       case ReactionQueued():
         break;
     }
