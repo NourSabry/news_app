@@ -16,7 +16,7 @@ class FeedState extends Equatable {
   final List<TrendingTopic> trending;
   final List<String> selectedTopicIds;
 
-  /// The trending label the feed is scoped to (B2), or null for the
+  /// The trending label the feed is scoped to, or null for the
   /// personal feed. Set only by [FeedScopeChanged], never inherited from
   /// search or any other entry point.
   final String? scope;
@@ -27,11 +27,11 @@ class FeedState extends Equatable {
   final String? errorMessage;
   final String? notice;
 
-  /// From `/flags`, overridable via Developer settings (G4).
+  /// From `/flags`, overridable via Developer settings.
   final int cacheTtlMinutes;
 
   /// [FeedBloc]'s read of `ConnectivityCubit` as of the last load/refresh
-  /// (G4) — not a live stream, so it only changes on the next network
+  /// — not a live stream, so it only changes on the next network
   /// attempt, matching "Set TTL to 0 → banner appears on next open".
   final bool isOffline;
 
@@ -59,12 +59,13 @@ class FeedState extends Equatable {
 
   String topicNameFor(String topicId) => topics.nameFor(topicId);
 
-  /// Pure so it's directly testable (T1) without mocking a clock service.
+  /// Pure so it's directly testable without mocking a clock service.
   FeedFreshness freshnessAt(DateTime now) {
     if (isOffline) return FeedFreshness.offline;
     final syncedAt = lastSyncedAt;
     if (syncedAt == null) return FeedFreshness.fresh;
-    final isStale = now.difference(syncedAt) >= Duration(minutes: cacheTtlMinutes);
+    final isStale =
+        now.difference(syncedAt) >= Duration(minutes: cacheTtlMinutes);
     return isStale ? FeedFreshness.stale : FeedFreshness.fresh;
   }
 
@@ -95,11 +96,17 @@ class FeedState extends Equatable {
       trending: trending ?? this.trending,
       selectedTopicIds: selectedTopicIds ?? this.selectedTopicIds,
       scope: identical(scope, _unset) ? this.scope : scope as String?,
-      lastSyncedAt: identical(lastSyncedAt, _unset) ? this.lastSyncedAt : lastSyncedAt as DateTime?,
-      nextCursor: identical(nextCursor, _unset) ? this.nextCursor : nextCursor as String?,
+      lastSyncedAt: identical(lastSyncedAt, _unset)
+          ? this.lastSyncedAt
+          : lastSyncedAt as DateTime?,
+      nextCursor: identical(nextCursor, _unset)
+          ? this.nextCursor
+          : nextCursor as String?,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
-      errorMessage: identical(errorMessage, _unset) ? this.errorMessage : errorMessage as String?,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
       notice: identical(notice, _unset) ? this.notice : notice as String?,
       cacheTtlMinutes: cacheTtlMinutes ?? this.cacheTtlMinutes,
       isOffline: isOffline ?? this.isOffline,
@@ -108,20 +115,20 @@ class FeedState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        articles,
-        pendingArticles,
-        topics,
-        trending,
-        selectedTopicIds,
-        scope,
-        lastSyncedAt,
-        nextCursor,
-        isLoadingMore,
-        isRefreshing,
-        errorMessage,
-        notice,
-        cacheTtlMinutes,
-        isOffline,
-      ];
+    status,
+    articles,
+    pendingArticles,
+    topics,
+    trending,
+    selectedTopicIds,
+    scope,
+    lastSyncedAt,
+    nextCursor,
+    isLoadingMore,
+    isRefreshing,
+    errorMessage,
+    notice,
+    cacheTtlMinutes,
+    isOffline,
+  ];
 }

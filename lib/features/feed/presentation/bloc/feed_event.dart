@@ -28,7 +28,7 @@ class TopicSelectionChanged extends FeedEvent {
 }
 
 /// Scopes the feed to a trending label, or clears the scope back to the
-/// personal feed when [label] is null (B2). Never touches Explore/search.
+/// personal feed when [label] is null. Never touches Explore/search.
 class FeedScopeChanged extends FeedEvent {
   final String? label;
 

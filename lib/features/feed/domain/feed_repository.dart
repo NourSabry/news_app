@@ -2,7 +2,7 @@ import '../../../core/models/models.dart';
 import 'feed_delta.dart';
 
 abstract class FeedRepository {
-  /// Fetches a feed page. When [scope] (a trending label, B2) is set, the
+  /// Fetches a feed page. When [scope] (a trending label) is set, the
   /// user's topic selection is ignored and the result is not written to
   /// the offline cache — a scoped view is ephemeral, not the personal feed.
   Future<FeedResponse> fetchPage({String? cursor, String? scope});
@@ -19,7 +19,7 @@ abstract class FeedRepository {
 
   DateTime? getLastSyncTime();
 
-  /// Server-controlled cache TTL (G4), from `/flags`. Overridable via
+  /// Server-controlled cache TTL, from `/flags`. Overridable via
   /// Developer settings for demoing the stale banner.
   Future<int> getCacheTtlMinutes();
 }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/ink_button.dart';
 
-/// "3 sections · Edit" at the end of the feed (Part 6.6) — not a header,
-/// the user already chose their sections in onboarding/Settings.
+/// Closes the feed: which sections it's built from, and a way to change them.
 class SectionsFooter extends StatelessWidget {
   final int count;
   final VoidCallback onEdit;
@@ -13,31 +13,31 @@ class SectionsFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
-    final ink = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
-
+    final p = context.palette;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter, vertical: AppSpacing.xxl),
-      child: Center(
-        child: InkWell(
-          onTap: onEdit,
-          child: Text.rich(
-            TextSpan(
-              style: AppTextStyles.caption.copyWith(color: inkMuted),
-              children: [
-                TextSpan(text: '$_label · '),
-                TextSpan(text: 'Edit', style: TextStyle(color: ink, fontWeight: FontWeight.w600)),
-              ],
-            ),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        AppSpacing.sm,
+        AppSpacing.gutter,
+        AppSpacing.xxl,
+      ),
+      child: Column(
+        children: [
+          Text(
+            count == 0 ? 'Built from all sections' : 'Built from $_label',
+            style: AppTextStyles.caption.copyWith(color: p.inkFaint),
           ),
-        ),
+          const SizedBox(height: AppSpacing.xs),
+          InkButton(
+            label: 'Edit sections',
+            onPressed: onEdit,
+            variant: InkButtonVariant.text,
+            expand: false,
+          ),
+        ],
       ),
     );
   }
 
-  String get _label {
-    if (count == 0) return 'All sections';
-    return '$count ${count == 1 ? 'section' : 'sections'}';
-  }
+  String get _label => '$count ${count == 1 ? 'section' : 'sections'}';
 }

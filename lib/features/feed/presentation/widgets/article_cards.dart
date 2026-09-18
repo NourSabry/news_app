@@ -5,13 +5,14 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/time_formatter.dart';
 import '../../../../core/widgets/cached_image.dart';
-import '../../../../core/widgets/hairline.dart';
 import '../../../reactions/presentation/widgets/engagement_row.dart';
 
-enum ArticleCardVariant { lead, standard, brief }
+enum ArticleCardVariant { lead, standard, compact }
 
-/// The three feed card variants (Part 6.6). Brief is also used in place
-/// of Standard when there's no image, or at text scale ≥ 1.5.
+/// The three feed card layouts. Lead is a tall photo with the headline set
+/// on it; standard is a wide image above text; compact is text beside a
+/// thumbnail. Standard falls back to compact without an image, and to a
+/// stacked compact at large text sizes.
 class EditionArticleCard extends StatelessWidget {
   final Article article;
   final String topicName;
@@ -30,26 +31,21 @@ class EditionArticleCard extends StatelessWidget {
     this.onBookmark,
   });
 
-  ArticleCardVariant get _effectiveVariant =>
-      variant == ArticleCardVariant.standard && (article.image == null || article.image!.isEmpty)
-          ? ArticleCardVariant.brief
-          : variant;
+  bool get _hasImage => article.image != null && article.image!.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final textScale = mediaQuery.textScaler.scale(14) / 14;
-    final effective =
-        textScale >= 1.5 && _effectiveVariant != ArticleCardVariant.lead
-            ? ArticleCardVariant.brief
-            : _effectiveVariant;
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    // Without a photo, lead falls back to standard and everything else to
+    // compact.
+    final effective = !_hasImage
+        ? (variant == ArticleCardVariant.lead ? ArticleCardVariant.standard : ArticleCardVariant.compact)
+        : variant;
 
-    // "{title}. {source}, {relative time}. {likes} likes, {comments}
-    // comments{, saved}" (G6) — one Semantics node read in a single swipe.
     final label = article.isUnavailable
         ? '${article.title}. No longer available.'
         : '${article.title}. ${article.source}, ${TimeFormatter.relative(article.publishedAt)}. '
-            '${article.likes} likes, ${article.comments} comments${article.isBookmarked ? ', saved' : ''}';
+              '${article.likes} likes, ${article.comments} comments${article.isBookmarked ? ', saved' : ''}';
 
     return Semantics(
       button: true,
@@ -58,17 +54,31 @@ class EditionArticleCard extends StatelessWidget {
       onTap: onTap,
       child: InkWell(
         onTap: onTap,
-        // The outer Semantics node above is the single source of truth for
-        // this card (G6/T4) — without this, InkWell's own auto-generated
-        // button semantics shows up as a second, unlabelled tappable node.
+        // The Semantics node above is the single description of this card.
         excludeFromSemantics: true,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         child: Opacity(
-          // Greyed, per Part 6.8 — never silently dropped (G3).
           opacity: article.isUnavailable ? 0.5 : 1,
           child: switch (effective) {
-            ArticleCardVariant.lead => _LeadLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
-            ArticleCardVariant.standard => _StandardLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
-            ArticleCardVariant.brief => _BriefLayout(article: article, topicName: topicName, onLike: onLike, onBookmark: onBookmark),
+            ArticleCardVariant.lead => _LeadLayout(
+              article: article,
+              topicName: topicName,
+              onLike: onLike,
+              onBookmark: onBookmark,
+            ),
+            ArticleCardVariant.standard => _StandardLayout(
+              article: article,
+              topicName: topicName,
+              onLike: onLike,
+              onBookmark: onBookmark,
+            ),
+            ArticleCardVariant.compact => _CompactLayout(
+              article: article,
+              topicName: topicName,
+              stacked: textScale >= 1.5,
+              onLike: onLike,
+              onBookmark: onBookmark,
+            ),
           },
         ),
       ),
@@ -76,23 +86,34 @@ class EditionArticleCard extends StatelessWidget {
   }
 }
 
-class _SectionTag extends StatelessWidget {
+class SectionTag extends StatelessWidget {
   final String topicName;
   final bool isUnavailable;
+  final Color? color;
 
-  const _SectionTag({required this.topicName, this.isUnavailable = false});
+  const SectionTag({
+    super.key,
+    required this.topicName,
+    this.isUnavailable = false,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
+    final p = context.palette;
     if (isUnavailable) {
-      // inkMuted, not inkFaint (G6/T4) — see engagement_row.
-      final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
-      return Text('NO LONGER AVAILABLE', style: AppTextStyles.overline.copyWith(color: inkMuted));
+      return Text(
+        'NO LONGER AVAILABLE',
+        style: AppTextStyles.overline.copyWith(color: color ?? p.inkMuted),
+      );
     }
     if (topicName.isEmpty) return const SizedBox.shrink();
-    final tint = AppColors.sectionTint(topicName, brightness);
-    return Text(topicName.toUpperCase(), style: AppTextStyles.overline.copyWith(color: tint));
+    return Text(
+      topicName.toUpperCase(),
+      style: AppTextStyles.overline.copyWith(
+        color: color ?? p.sectionTint(topicName),
+      ),
+    );
   }
 }
 
@@ -105,7 +126,7 @@ class _Byline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${article.source} · ${article.author.name} · ${TimeFormatter.relative(article.publishedAt)}',
+      '${article.source} · ${TimeFormatter.relative(article.publishedAt)}',
       style: AppTextStyles.caption.copyWith(color: color),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -119,67 +140,105 @@ class _LeadLayout extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onBookmark;
 
-  const _LeadLayout({required this.article, required this.topicName, this.onLike, this.onBookmark});
+  const _LeadLayout({
+    required this.article,
+    required this.topicName,
+    this.onLike,
+    this.onBookmark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final paper = isLight ? AppColors.lightPaper : AppColors.darkPaper;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final overlayBase = isLight ? paper : ink;
-    final onOverlay = isLight ? ink : paper;
+    final p = context.palette;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Decorative (G6): the card's own Semantics label already carries
-        // this same title/section/byline info as one node.
         ExcludeSemantics(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-            child: Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: CachedImage(imageUrl: article.image, borderRadius: 0),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            child: AspectRatio(
+              aspectRatio: 4 / 5,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CachedImage(imageUrl: article.image, borderRadius: 0),
+                  // Scrim so the headline reads on any photo.
+                  DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        stops: const [0, 0.45, 1],
+                        stops: const [0, 0.4, 1],
                         colors: [
-                          overlayBase.withValues(alpha: 0.5),
-                          overlayBase.withValues(alpha: 0.72),
-                          overlayBase.withValues(alpha: 0.94),
+                          AppColors.black.withValues(alpha: 0.05),
+                          AppColors.black.withValues(alpha: 0.25),
+                          AppColors.black.withValues(alpha: 0.82),
                         ],
                       ),
                     ),
+                  ),
+                  if (topicName.isNotEmpty || article.isUnavailable)
+                    Positioned(
+                      left: AppSpacing.lg,
+                      top: AppSpacing.lg,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusPill,
+                          ),
+                        ),
+                        child: SectionTag(
+                          topicName: topicName,
+                          isUnavailable: article.isUnavailable,
+                          color: AppColors.lightInk,
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    left: AppSpacing.xl,
+                    right: AppSpacing.xl,
+                    bottom: AppSpacing.xl,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(article.title, style: AppTextStyles.displayL.copyWith(color: onOverlay), maxLines: 3, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: AppSpacing.xs),
-                        _Byline(article: article, color: onOverlay.withValues(alpha: 0.8)),
+                        Text(
+                          article.title,
+                          style: AppTextStyles.displayL.copyWith(
+                            color: p.onImage,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          article.summary,
+                          style: AppTextStyles.bodyS.copyWith(
+                            color: p.onImage.withValues(alpha: 0.82),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _Byline(
+                          article: article,
+                          color: p.onImage.withValues(alpha: 0.7),
+                        ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         EngagementRow(article: article, onLike: onLike, onBookmark: onBookmark),
       ],
     );
@@ -192,91 +251,142 @@ class _StandardLayout extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onBookmark;
 
-  const _StandardLayout({required this.article, required this.topicName, this.onLike, this.onBookmark});
+  const _StandardLayout({
+    required this.article,
+    required this.topicName,
+    this.onLike,
+    this.onBookmark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
+    final p = context.palette;
+    final hasImage = article.image != null && article.image!.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Decorative (G6): the card's own Semantics label already carries
-        // this same title/section/byline info as one node.
         ExcludeSemantics(
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(article.title, style: AppTextStyles.headlineM.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(article.summary, style: AppTextStyles.bodyS.copyWith(color: inkMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: AppSpacing.sm),
-                    _Byline(article: article, color: inkMuted),
-                  ],
+              if (hasImage) ...[
+                AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: CachedImage(
+                    imageUrl: article.image,
+                    borderRadius: AppSpacing.radiusMd,
+                  ),
                 ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+              SectionTag(
+                topicName: topicName,
+                isUnavailable: article.isUnavailable,
               ),
-              const SizedBox(width: AppSpacing.md),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-                child: CachedImage(imageUrl: article.image, width: 96, height: 96, borderRadius: 0),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                article.title,
+                style: AppTextStyles.headlineM.copyWith(color: p.ink),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                article.summary,
+                style: AppTextStyles.bodyS.copyWith(color: p.inkMuted),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _Byline(article: article, color: p.inkMuted),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.xs),
         EngagementRow(article: article, onLike: onLike, onBookmark: onBookmark),
-        const SizedBox(height: AppSpacing.md),
-        const Hairline(),
       ],
     );
   }
 }
 
-class _BriefLayout extends StatelessWidget {
+class _CompactLayout extends StatelessWidget {
   final Article article;
   final String topicName;
+  final bool stacked;
   final VoidCallback? onLike;
   final VoidCallback? onBookmark;
 
-  const _BriefLayout({required this.article, required this.topicName, this.onLike, this.onBookmark});
+  const _CompactLayout({
+    required this.article,
+    required this.topicName,
+    required this.stacked,
+    this.onLike,
+    this.onBookmark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
+    final p = context.palette;
+    final hasImage = article.image != null && article.image!.isNotEmpty;
+
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          article.title,
+          style: AppTextStyles.headlineS.copyWith(color: p.ink),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _Byline(article: article, color: p.inkMuted),
+      ],
+    );
+
+    final thumb = hasImage
+        ? CachedImage(
+            imageUrl: article.image,
+            width: 96,
+            height: 96,
+            borderRadius: AppSpacing.radiusSm,
+          )
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Decorative (G6): the card's own Semantics label already carries
-        // this same title/section/byline info as one node.
         ExcludeSemantics(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _SectionTag(topicName: topicName, isUnavailable: article.isUnavailable),
-              const SizedBox(height: AppSpacing.xs),
-              Text(article.title, style: AppTextStyles.headlineS.copyWith(color: ink), maxLines: 3, overflow: TextOverflow.ellipsis),
-              const SizedBox(height: AppSpacing.xs),
-              _Byline(article: article, color: inkMuted),
-            ],
-          ),
+          child: stacked || thumb == null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (thumb != null) ...[
+                      AspectRatio(
+                        aspectRatio: 16 / 10,
+                        child: CachedImage(
+                          imageUrl: article.image,
+                          borderRadius: AppSpacing.radiusMd,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    text,
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: text),
+                    const SizedBox(width: AppSpacing.lg),
+                    thumb,
+                  ],
+                ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xs),
         EngagementRow(article: article, onLike: onLike, onBookmark: onBookmark),
-        const SizedBox(height: AppSpacing.sm),
-        const Hairline(),
       ],
     );
   }

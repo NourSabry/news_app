@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/widgets/live_article_card.dart';
 import '../../../core/models/models.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/snack_bar.dart';
-import '../../../core/widgets/halftone_painter.dart';
 import '../../../core/widgets/pagination_footer.dart';
-import '../../../core/widgets/pull_rule_indicator.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/state_view.dart';
 import '../../details/presentation/article_details_screen.dart';
@@ -14,15 +13,17 @@ import '../../outbox/presentation/cubit/outbox_cubit.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'bloc/feed_bloc.dart';
 import 'widgets/article_cards.dart';
-import 'widgets/edition_masthead.dart';
+import 'widgets/feed_header.dart';
 import 'widgets/new_stories_banner.dart';
-import 'widgets/section_divider.dart';
 import 'widgets/sections_footer.dart';
 
 class FeedScreen extends StatefulWidget {
   final VoidCallback onSearchTap;
 
-  const FeedScreen({super.key, required this.onSearchTap});
+  /// Slot above the list for the freshness/sync banner.
+  final Widget? banner;
+
+  const FeedScreen({super.key, required this.onSearchTap, this.banner});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -68,121 +69,201 @@ class _FeedScreenState extends State<FeedScreen> {
 
   void _openSettings() => SettingsScreen.open(context);
 
+  void _showPending() {
+    context.read<FeedBloc>().add(const ShowPendingArticles());
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
   static String? _snackMessageFor(FeedState state) {
     return state.notice ?? (state.isEmpty ? null : state.errorMessage);
   }
 
+  /// Where the new-stories pill sits: just under the header, following it
+  /// as it collapses.
+  double _pillTop(FeedHeader header) {
+    final offset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
+    final visible = (header.maxExtent - offset).clamp(
+      header.minExtent,
+      header.maxExtent,
+    );
+    return visible + AppSpacing.sm;
+  }
+
+  FeedHeader _header(BuildContext context, FeedState state, double topPadding) {
+    return FeedHeader(
+      trending: state.trending,
+      scope: state.scope,
+      onTopicTap: (label) =>
+          context.read<FeedBloc>().add(FeedScopeChanged(label)),
+      onClearScope: () =>
+          context.read<FeedBloc>().add(const FeedScopeChanged(null)),
+      onSearchTap: widget.onSearchTap,
+      onSettingsTap: _openSettings,
+      topPadding: topPadding,
+      textScale: MediaQuery.textScalerOf(context).scale(14) / 14,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<FeedBloc, FeedState>(
-            listenWhen: (previous, current) =>
-                _snackMessageFor(current) != null &&
-                _snackMessageFor(previous) != _snackMessageFor(current),
-            listener: (context, state) => showSnackBarMessage(context, _snackMessageFor(state)!),
-          ),
-          BlocListener<FeedBloc, FeedState>(
-            listenWhen: (previous, current) => previous.scope != current.scope,
-            listener: (_, _) {
-              if (_scrollController.hasClients) _scrollController.jumpTo(0);
-            },
-          ),
-        ],
-        child: BlocBuilder<FeedBloc, FeedState>(
-          builder: (context, state) => Stack(
+    final topPadding = MediaQuery.paddingOf(context).top;
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<FeedBloc, FeedState>(
+          listenWhen: (previous, current) =>
+              _snackMessageFor(current) != null &&
+              _snackMessageFor(previous) != _snackMessageFor(current),
+          listener: (context, state) =>
+              showSnackBarMessage(context, _snackMessageFor(state)!),
+        ),
+        BlocListener<FeedBloc, FeedState>(
+          listenWhen: (previous, current) => previous.scope != current.scope,
+          listener: (_, _) {
+            if (_scrollController.hasClients) _scrollController.jumpTo(0);
+          },
+        ),
+      ],
+      child: BlocBuilder<FeedBloc, FeedState>(
+        builder: (context, state) {
+          final header = _header(context, state, topPadding);
+          return Stack(
             alignment: Alignment.topCenter,
             children: [
-              _buildBody(context, state),
-              Positioned(
-                top: EditionMastheadHeader.collapsedHeight + AppSpacing.sm,
+              _buildBody(context, state, header),
+              AnimatedBuilder(
+                animation: _scrollController,
+                builder: (context, child) =>
+                    Positioned(top: _pillTop(header), child: child!),
                 child: NewStoriesBanner(
                   count: state.pendingArticles.length,
-                  firstHeadline: state.pendingArticles.isEmpty ? null : state.pendingArticles.first.title,
-                  onTap: () => context.read<FeedBloc>().add(const ShowPendingArticles()),
+                  firstHeadline: state.pendingArticles.isEmpty
+                      ? null
+                      : state.pendingArticles.first.title,
+                  onTap: _showPending,
                 ),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, FeedState state) {
+  Widget _buildBody(
+    BuildContext context,
+    FeedState state,
+    FeedHeader delegate,
+  ) {
+    final p = context.palette;
+    final header = SliverPersistentHeader(pinned: true, delegate: delegate);
+
     if (state.isEmpty) {
-      return switch (state.status) {
+      final content = switch (state.status) {
         FeedStatus.failure => StateView(
-            shape: HalftoneShape.diagonal,
-            title: 'The presses are down.',
-            body: "We couldn't reach the newsroom. Check your connection and try again.",
-            primaryActionLabel: 'Try again',
-            onPrimaryAction: () => context.read<FeedBloc>().add(const LoadFeed()),
-          ),
+          icon: Icons.wifi_off_rounded,
+          title: "We couldn't reach the newsroom.",
+          body: 'Check your connection and try again.',
+          primaryActionLabel: 'Try again',
+          onPrimaryAction: () => context.read<FeedBloc>().add(const LoadFeed()),
+        ),
         FeedStatus.success => StateView(
-            shape: HalftoneShape.wave,
-            title: 'Nothing on the wire.',
-            body: 'No stories match your sections yet.',
-            primaryActionLabel: 'Edit sections',
-            onPrimaryAction: _openSettings,
-          ),
+          icon: Icons.auto_stories_outlined,
+          title: 'Nothing here yet.',
+          body: 'No stories match your sections. Try adding a few more.',
+          primaryActionLabel: 'Edit sections',
+          onPrimaryAction: _openSettings,
+        ),
         _ => const HomeFeedSkeleton(),
       };
+      return CustomScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        slivers: [
+          header,
+          if (widget.banner != null) PinnedHeaderSliver(child: widget.banner),
+          SliverFillRemaining(hasScrollBody: false, child: content),
+        ],
+      );
     }
-    return PullRuleIndicator(
+
+    return RefreshIndicator.adaptive(
       onRefresh: _onRefresh,
+      color: p.ink,
+      backgroundColor: p.surface,
+      edgeOffset: delegate.minExtent,
       child: CustomScrollView(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         slivers: [
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: EditionMastheadHeader(
-              trending: state.trending,
-              scope: state.scope,
-              onTopicTap: (label) => context.read<FeedBloc>().add(FeedScopeChanged(label)),
-              onClearScope: () => context.read<FeedBloc>().add(const FeedScopeChanged(null)),
-              onSearchTap: widget.onSearchTap,
-              onSettingsTap: _openSettings,
-            ),
-          ),
+          header,
+          if (widget.banner != null) PinnedHeaderSliver(child: widget.banner),
           _buildArticles(state),
           SliverToBoxAdapter(
-            child: PaginationFooter(isLoadingMore: state.isLoadingMore, hasMore: state.hasMore),
+            child: PaginationFooter(
+              isLoadingMore: state.isLoadingMore,
+              hasMore: state.hasMore,
+            ),
           ),
           if (!state.hasMore)
             SliverToBoxAdapter(
-              child: SectionsFooter(count: state.selectedTopicIds.length, onEdit: _openSettings),
+              child: SectionsFooter(
+                count: state.selectedTopicIds.length,
+                onEdit: _openSettings,
+              ),
             ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppSpacing.dockClearance),
+          ),
         ],
       ),
     );
   }
 
+  /// Lead, then one standard, then compact cards — with a standard card
+  /// every fourth item so the list keeps a visual rhythm.
+  static ArticleCardVariant _variantFor(int index) {
+    if (index == 0) return ArticleCardVariant.lead;
+    if (index == 1 || index % 4 == 1) return ArticleCardVariant.standard;
+    return ArticleCardVariant.compact;
+  }
+
   Widget _buildArticles(FeedState state) {
-    final items = <Widget>[];
-    String? lastTopic;
-    for (var index = 0; index < state.articles.length; index++) {
-      final article = state.articles[index];
-      final topicName = state.topicNameFor(article.topicId);
-      if (index > 0 && topicName.isNotEmpty && topicName != lastTopic) {
-        items.add(SectionDivider(topicName: topicName));
-      } else if (index > 0) {
-        items.add(const SizedBox(height: AppSpacing.lg));
-      }
-      lastTopic = topicName;
-      items.add(LiveArticleCard(
-        key: ValueKey(article.id),
-        article: article,
-        topicName: topicName,
-        variant: index == 0 ? ArticleCardVariant.lead : ArticleCardVariant.standard,
-        onTap: () => _openArticle(article),
-      ));
-    }
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.sm, AppSpacing.gutter, 0),
-      sliver: SliverList.list(children: items),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        AppSpacing.sm,
+        AppSpacing.gutter,
+        0,
+      ),
+      sliver: SliverList.separated(
+        itemCount: state.articles.length,
+        separatorBuilder: (_, index) => SizedBox(
+          height:
+              _variantFor(index + 1) == ArticleCardVariant.compact &&
+                  _variantFor(index) == ArticleCardVariant.compact
+              ? AppSpacing.xl
+              : AppSpacing.xxxl,
+        ),
+        itemBuilder: (context, index) {
+          final article = state.articles[index];
+          return LiveArticleCard(
+            key: ValueKey(article.id),
+            article: article,
+            topicName: state.topicNameFor(article.topicId),
+            variant: _variantFor(index),
+            onTap: () => _openArticle(article),
+          );
+        },
+      ),
     );
   }
 }

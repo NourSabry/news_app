@@ -5,14 +5,19 @@ import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-/// The floating "N new · headline…" pill (Part 6.6): ink fill, paper text,
-/// red dot.
+/// The floating "N new · headline…" pill shown when a refresh found stories
+/// the reader hasn't seen. Tapping it inserts them at the top.
 class NewStoriesBanner extends StatefulWidget {
   final int count;
   final String? firstHeadline;
   final VoidCallback onTap;
 
-  const NewStoriesBanner({super.key, required this.count, this.firstHeadline, required this.onTap});
+  const NewStoriesBanner({
+    super.key,
+    required this.count,
+    this.firstHeadline,
+    required this.onTap,
+  });
 
   @override
   State<NewStoriesBanner> createState() => _NewStoriesBannerState();
@@ -22,32 +27,28 @@ class _NewStoriesBannerState extends State<NewStoriesBanner> {
   @override
   void didUpdateWidget(NewStoriesBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Announce the moment it appears (G6) — a screen-reader user browsing
-    // elsewhere on the page would otherwise never discover a silent pill.
     if (oldWidget.count == 0 && widget.count > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        SemanticsService.sendAnnouncement(View.of(context), _label, TextDirection.ltr);
+        SemanticsService.sendAnnouncement(
+          View.of(context),
+          _label,
+          TextDirection.ltr,
+        );
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final count = widget.count;
-    final onTap = widget.onTap;
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final paper = isLight ? AppColors.lightPaper : AppColors.darkPaper;
-    final red = isLight ? AppColors.lightRed : AppColors.darkRed;
-    final isVisible = count > 0;
+    final p = context.palette;
+    final isVisible = widget.count > 0;
 
     return IgnorePointer(
       ignoring: !isVisible,
       child: AnimatedSlide(
         duration: AppMotion.scaled(context, AppMotion.transition),
-        curve: AppMotion.curveIn,
+        curve: AppMotion.curveSettle,
         offset: isVisible ? Offset.zero : const Offset(0, -2),
         child: AnimatedOpacity(
           duration: AppMotion.scaled(context, AppMotion.transition),
@@ -58,23 +59,35 @@ class _NewStoriesBannerState extends State<NewStoriesBanner> {
             excludeSemantics: true,
             label: _label,
             child: Material(
-              color: ink,
+              color: p.ink,
+              elevation: 0,
               borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
               child: InkWell(
-                onTap: onTap,
+                onTap: widget.onTap,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm + 2,
+                    AppSpacing.lg,
+                    AppSpacing.sm + 2,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(width: 6, height: 6, decoration: BoxDecoration(color: red, shape: BoxShape.circle)),
+                      Icon(
+                        Icons.arrow_upward_rounded,
+                        size: 16,
+                        color: p.background,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 240),
                         child: Text(
                           _label,
-                          style: AppTextStyles.label.copyWith(color: paper, fontWeight: FontWeight.w600),
+                          style: AppTextStyles.label.copyWith(
+                            color: p.background,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -93,7 +106,7 @@ class _NewStoriesBannerState extends State<NewStoriesBanner> {
   String get _label {
     final count = widget.count;
     final firstHeadline = widget.firstHeadline;
-    final countLabel = count == 1 ? '1 new' : '$count new';
+    final countLabel = count == 1 ? '1 new story' : '$count new stories';
     if (firstHeadline == null || firstHeadline.isEmpty) return countLabel;
     return '$countLabel · $firstHeadline';
   }
