@@ -12,10 +12,8 @@ class CachedImage extends StatelessWidget {
   final BoxFit fit;
   final double borderRadius;
 
-  /// A caption/title to read for this image (G6). Leave null for a
-  /// decorative image inside content that's already labelled elsewhere
-  /// (a card, a hero next to its own headline) — it's then excluded from
-  /// the accessibility tree instead of appearing as an unlabelled image.
+  /// A caption to read for this image. Leave null when the image is
+  /// decorative inside content that already carries its own label.
   final String? semanticLabel;
 
   const CachedImage({
@@ -24,7 +22,7 @@ class CachedImage extends StatelessWidget {
     this.width,
     this.height,
     this.fit = BoxFit.cover,
-    this.borderRadius = AppSpacing.radiusLg,
+    this.borderRadius = AppSpacing.radiusMd,
     this.semanticLabel,
   });
 
@@ -50,7 +48,11 @@ class CachedImage extends StatelessWidget {
           );
 
     if (semanticLabel != null) {
-      return Semantics(image: true, label: semanticLabel, child: ExcludeSemantics(child: content));
+      return Semantics(
+        image: true,
+        label: semanticLabel,
+        child: ExcludeSemantics(child: content),
+      );
     }
     return ExcludeSemantics(child: content);
   }

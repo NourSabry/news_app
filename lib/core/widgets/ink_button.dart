@@ -5,8 +5,8 @@ import '../theme/app_text_styles.dart';
 
 enum InkButtonVariant { primary, secondary, text }
 
-/// The only button shapes in the app (Part 6.0, 6.5). No stock
-/// `ElevatedButton`/`TextButton` styling.
+/// The only button shapes in the app. Primary is an ink fill, secondary a
+/// soft surface fill, text is bare.
 class InkButton extends StatelessWidget {
   const InkButton({
     super.key,
@@ -27,27 +27,28 @@ class InkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final paper = isLight ? AppColors.lightPaper : AppColors.darkPaper;
-    final rule = isLight ? AppColors.lightRule : AppColors.darkRule;
-    final inkFaint = isLight ? AppColors.lightInkFaint : AppColors.darkInkFaint;
+    final p = context.palette;
 
     final labelColor = _disabled
-        ? inkFaint
+        ? p.inkFaint
         : variant == InkButtonVariant.primary
-            ? paper
-            : ink;
+        ? p.background
+        : p.ink;
 
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.sm)],
+        if (leading != null) ...[
+          leading!,
+          const SizedBox(width: AppSpacing.sm),
+        ],
         Flexible(
           child: Text(
             label,
-            style: AppTextStyles.label.copyWith(color: labelColor),
+            style: AppTextStyles.label.copyWith(
+              color: labelColor,
+              fontSize: 15,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -56,29 +57,26 @@ class InkButton extends StatelessWidget {
 
     final Widget button = switch (variant) {
       InkButtonVariant.primary => _Shell(
-          height: 52,
-          expand: expand,
-          color: _disabled ? rule : ink,
-          border: null,
-          onTap: onPressed,
-          child: content,
-        ),
+        height: 54,
+        expand: expand,
+        color: _disabled ? p.surfaceHigh : p.ink,
+        onTap: onPressed,
+        child: content,
+      ),
       InkButtonVariant.secondary => _Shell(
-          height: 52,
-          expand: expand,
-          color: Colors.transparent,
-          border: Border.all(color: _disabled ? rule : ink),
-          onTap: onPressed,
-          child: content,
-        ),
+        height: 54,
+        expand: expand,
+        color: p.surface,
+        onTap: onPressed,
+        child: content,
+      ),
       InkButtonVariant.text => _Shell(
-          height: 44,
-          expand: false,
-          color: Colors.transparent,
-          border: null,
-          onTap: onPressed,
-          child: content,
-        ),
+        height: 44,
+        expand: false,
+        color: Colors.transparent,
+        onTap: onPressed,
+        child: content,
+      ),
     };
 
     return Semantics(
@@ -97,7 +95,6 @@ class _Shell extends StatelessWidget {
     required this.height,
     required this.expand,
     required this.color,
-    required this.border,
     required this.onTap,
     required this.child,
   });
@@ -105,7 +102,6 @@ class _Shell extends StatelessWidget {
   final double height;
   final bool expand;
   final Color color;
-  final BoxBorder? border;
   final VoidCallback? onTap;
   final Widget child;
 
@@ -116,18 +112,13 @@ class _Shell extends StatelessWidget {
       width: expand ? double.infinity : null,
       child: Material(
         color: color,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-          child: Container(
-            decoration: BoxDecoration(
-              border: border,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            alignment: Alignment.center,
-            child: child,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Center(child: child),
           ),
         ),
       ),

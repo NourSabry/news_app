@@ -1,14 +1,10 @@
 export 'cached_image.dart';
-export 'double_rule.dart';
-export 'edition_nav_bar.dart';
 export 'edition_pill.dart';
 export 'edition_snack_bar.dart';
+export 'floating_dock.dart';
 export 'freshness_banner.dart';
-export 'hairline.dart';
-export 'halftone_painter.dart';
+export 'icon_circle_button.dart';
 export 'ink_button.dart';
 export 'pagination_footer.dart';
-export 'pull_rule_indicator.dart';
 export 'shimmer_loading.dart';
 export 'state_view.dart';
-export 'stat_item.dart';

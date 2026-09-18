@@ -1,71 +1,83 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
-enum EditionPillVariant { outlined, filled }
+enum EditionPillVariant { tonal, filled }
 
-/// Replaces Material `Chip` everywhere (Part 6.0, 6.7, 6.9): ink-outlined
-/// or ink-filled radius-999 pill, with an optional leading red dot and a
-/// removable trailing ✕.
+/// The one chip shape in the app: a soft surface pill, or an ink-filled
+/// pill when selected/applied. Optional leading icon and removable ✕.
 class EditionPill extends StatelessWidget {
   const EditionPill({
     super.key,
     required this.label,
-    this.variant = EditionPillVariant.outlined,
+    this.variant = EditionPillVariant.tonal,
     this.onTap,
     this.onRemove,
+    this.leadingIcon,
     this.leadingDot = false,
+    this.height = 38,
   });
 
   final String label;
   final EditionPillVariant variant;
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
+  final IconData? leadingIcon;
   final bool leadingDot;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final paper = isLight ? AppColors.lightPaper : AppColors.darkPaper;
-    final red = isLight ? AppColors.lightRed : AppColors.darkRed;
+    final p = context.palette;
     final filled = variant == EditionPillVariant.filled;
-    final textColor = filled ? paper : ink;
+    final textColor = filled ? p.background : p.ink;
+    final background = filled ? p.ink : p.surface;
 
-    final pill = Container(
+    final pill = AnimatedContainer(
+      duration: AppMotion.scaled(context, AppMotion.micro),
+      height: height,
       padding: EdgeInsets.only(
-        left: leadingDot ? AppSpacing.sm : AppSpacing.md,
-        right: onRemove != null ? AppSpacing.xs : AppSpacing.md,
-        top: AppSpacing.xs,
-        bottom: AppSpacing.xs,
+        left: leadingIcon != null || leadingDot ? AppSpacing.md : AppSpacing.lg,
+        right: onRemove != null ? AppSpacing.sm : AppSpacing.lg,
       ),
       decoration: BoxDecoration(
-        color: filled ? ink : Colors.transparent,
+        color: background,
         borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-        border: filled ? null : Border.all(color: ink),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (leadingDot) ...[
-            Container(width: 6, height: 6, decoration: BoxDecoration(color: red, shape: BoxShape.circle)),
-            const SizedBox(width: AppSpacing.xs),
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: p.accent,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          if (leadingIcon != null) ...[
+            Icon(leadingIcon, size: 16, color: textColor),
+            const SizedBox(width: AppSpacing.sm),
           ],
           Text(label, style: AppTextStyles.label.copyWith(color: textColor)),
           if (onRemove != null) ...[
             const SizedBox(width: AppSpacing.xs),
-            GestureDetector(
-              onTap: onRemove,
-              child: Semantics(
-                button: true,
-                container: true,
-                excludeSemantics: true,
-                label: 'Remove $label filter',
+            Semantics(
+              button: true,
+              container: true,
+              excludeSemantics: true,
+              label: 'Remove $label filter',
+              child: GestureDetector(
+                onTap: onRemove,
+                behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.xs),
-                  child: Icon(Icons.close, size: 14, color: textColor),
+                  child: Icon(Icons.close_rounded, size: 16, color: textColor),
                 ),
               ),
             ),
@@ -80,8 +92,13 @@ class EditionPill extends StatelessWidget {
       button: true,
       container: true,
       excludeSemantics: true,
+      selected: filled,
       label: label,
-      child: GestureDetector(onTap: onTap, child: pill),
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: pill,
+      ),
     );
   }
 }
