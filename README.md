@@ -9,7 +9,7 @@ persisted state, so likes and bookmarks survive a restart the way they would aga
 
 |  |  |  |
 |---|---|---|
-| ![Feed, light](test/goldens/feed_loaded_light_1.0x.png) | ![Feed, dark](test/goldens/feed_loaded_dark_1.0x.png) | ![Stale banner](test/goldens/feed_offline_stale_light_1.0x.png) |
+
 
 These are the golden images the test suite checks pixel-for-pixel, not hand-picked screenshots.
 
