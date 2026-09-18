@@ -6,7 +6,7 @@ import '../core/connectivity/connectivity_cubit.dart';
 import '../core/di/service_locator.dart';
 import '../core/utils/snack_bar.dart';
 import '../core/utils/time_formatter.dart';
-import '../core/widgets/edition_nav_bar.dart';
+import '../core/widgets/floating_dock.dart';
 import '../core/widgets/freshness_banner.dart';
 import '../features/bookmarks/presentation/saved_screen.dart';
 import '../features/devtools/presentation/cubit/dev_tools_cubit.dart';
@@ -34,8 +34,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   int _currentIndex = 0;
   late final FeedBloc _feedBloc;
-  late final SearchBloc _searchBloc =
-      SearchBloc(ServiceLocator.instance.get<SearchRepository>())..add(const SearchStarted());
+  late final SearchBloc _searchBloc = SearchBloc(
+    ServiceLocator.instance.get<SearchRepository>(),
+  )..add(const SearchStarted());
   final _searchFocusNode = FocusNode();
   Timer? _backgroundTickTimer;
   bool _appInForeground = true;
@@ -63,8 +64,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Pause while backgrounded (X2) — no point silently polling a screen
-    // nobody can see.
+    // Pause while backgrounded — no point polling a screen nobody can see.
     _appInForeground = state == AppLifecycleState.resumed;
     if (_appInForeground) {
       _scheduleBackgroundTick();
@@ -73,17 +73,18 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     }
   }
 
-  /// The live-feed background tick (X2): every [interval] while Home is
-  /// visible, online and foregrounded, silently checks for updates — the
-  /// same [RefreshFeed] pull-to-refresh already uses, so new stories land
-  /// in the pending pill without touching scroll. Self-reschedules (rather
-  /// than `Timer.periodic`) so a Developer-settings interval change takes
-  /// effect on the next tick.
+  /// Background tick: while Home is visible, online and foregrounded,
+  /// silently checks for updates using the same [RefreshFeed] path as
+  /// pull-to-refresh, so new stories land in the pending pill without
+  /// moving the scroll position. Self-reschedules so a Developer-settings
+  /// interval change takes effect on the next tick.
   void _scheduleBackgroundTick() {
     _backgroundTickTimer?.cancel();
     if (!_appInForeground) return;
     final interval = kDebugMode
-        ? Duration(seconds: context.read<DevToolsCubit>().state.backgroundTickSeconds)
+        ? Duration(
+            seconds: context.read<DevToolsCubit>().state.backgroundTickSeconds,
+          )
         : _defaultBackgroundTickInterval;
     _backgroundTickTimer = Timer(interval, _onBackgroundTick);
   }
@@ -106,7 +107,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   void _openSearch() {
     _onNavTap(_exploreIndex);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _searchFocusNode.requestFocus());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _searchFocusNode.requestFocus(),
+    );
   }
 
   @override
@@ -128,9 +131,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
                 ? null
                 : SnackBarAction(
                     label: 'Retry',
-                    onPressed: () => context
-                        .read<ReactionsBloc>()
-                        .add(ToggleLike(state.retryArticle!)),
+                    onPressed: () => context.read<ReactionsBloc>().add(
+                      ToggleLike(state.retryArticle!),
+                    ),
                   ),
           ),
         ),
@@ -140,48 +143,69 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           listener: (context, state) {
             final reactions = context.read<ReactionsBloc>();
             for (final conflict in state.conflicts) {
-              reactions.add(ApplyOverride(
-                conflict.articleId,
-                ArticleOverrides(
-                  isLiked: conflict.serverIsLiked,
-                  likes: conflict.serverLikes,
-                  version: conflict.serverVersion,
+              reactions.add(
+                ApplyOverride(
+                  conflict.articleId,
+                  ArticleOverrides(
+                    isLiked: conflict.serverIsLiked,
+                    likes: conflict.serverLikes,
+                    version: conflict.serverVersion,
+                  ),
                 ),
-              ));
+              );
             }
             ConflictReviewSheet.show(context, state.conflicts);
           },
         ),
       ],
       child: Scaffold(
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              _buildBanner(),
-              Expanded(child: _buildBody()),
-            ],
-          ),
-        ),
-        bottomNavigationBar: EditionNavBar(
-          currentIndex: _currentIndex,
-          onTap: _onNavTap,
-          items: [
-            const EditionNavBarItem(
-              outlineIcon: Icons.home_outlined,
-              filledIcon: Icons.home_rounded,
-              label: 'Home',
+        body: Stack(
+          children: [
+            IndexedStack(
+              index: _currentIndex,
+              children: [
+                BlocProvider.value(
+                  value: _feedBloc,
+                  child: FeedScreen(
+                    onSearchTap: _openSearch,
+                    banner: _buildBanner(),
+                  ),
+                ),
+                BlocProvider.value(
+                  value: _searchBloc,
+                  child: _withBanner(SearchScreen(focusNode: _searchFocusNode)),
+                ),
+                _withBanner(const SavedScreen()),
+              ],
             ),
-            const EditionNavBarItem(
-              outlineIcon: Icons.search_rounded,
-              filledIcon: Icons.search_rounded,
-              label: 'Explore',
-            ),
-            EditionNavBarItem(
-              outlineIcon: Icons.bookmark_outline_rounded,
-              filledIcon: Icons.bookmark_rounded,
-              label: 'Saved',
-              showDot: context.select<OutboxCubit, bool>((cubit) => cubit.state.pendingCount > 0),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: FloatingDock(
+                currentIndex: _currentIndex,
+                onTap: _onNavTap,
+                items: [
+                  const FloatingDockItem(
+                    outlineIcon: Icons.home_outlined,
+                    filledIcon: Icons.home_rounded,
+                    label: 'Home',
+                  ),
+                  const FloatingDockItem(
+                    outlineIcon: Icons.search_rounded,
+                    filledIcon: Icons.search_rounded,
+                    label: 'Explore',
+                  ),
+                  FloatingDockItem(
+                    outlineIcon: Icons.bookmark_outline_rounded,
+                    filledIcon: Icons.bookmark_rounded,
+                    label: 'Saved',
+                    showDot: context.select<OutboxCubit, bool>(
+                      (cubit) => cubit.state.pendingCount > 0,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -189,15 +213,27 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     );
   }
 
-  /// The single freshness/sync banner slot (G4) — never two banners at
-  /// once. Offline (with pending count) and stale take priority over the
-  /// outbox's own sync status, since they mean the reader is looking at
-  /// old data, not just waiting on an upload.
+  Widget _withBanner(Widget child) {
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          _buildBanner(),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  /// The single freshness/sync banner slot — never two banners at once.
+  /// Offline and stale take priority over the outbox's own sync status,
+  /// since they mean the reader is looking at old data.
   Widget _buildBanner() {
     return BlocBuilder<FeedBloc, FeedState>(
       bloc: _feedBloc,
       builder: (context, feedState) => BlocBuilder<OutboxCubit, OutboxState>(
-        builder: (context, outboxState) => _freshnessBanner(feedState, outboxState),
+        builder: (context, outboxState) =>
+            _freshnessBanner(feedState, outboxState),
       ),
     );
   }
@@ -206,17 +242,20 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     switch (feedState.freshness) {
       case FeedFreshness.offline:
         final pending = outboxState.pendingCount;
-        final suffix = pending > 0 ? ' ($pending pending ${pending == 1 ? 'change' : 'changes'})' : '';
+        final suffix = pending > 0
+            ? ' ($pending pending ${pending == 1 ? 'change' : 'changes'})'
+            : '';
         return FreshnessBanner(
           key: const ValueKey('freshness-offline'),
           variant: FreshnessBannerVariant.offline,
-          message: "You're offline. Showing your last edition.$suffix",
+          message: "You're offline — showing your last edition.$suffix",
         );
       case FeedFreshness.stale:
         return FreshnessBanner(
           key: const ValueKey('freshness-stale'),
           variant: FreshnessBannerVariant.stale,
-          message: 'Showing stories from ${TimeFormatter.relative(feedState.lastSyncedAt!)}',
+          message:
+              'Showing stories from ${TimeFormatter.relative(feedState.lastSyncedAt!)}',
           onRefresh: () => _feedBloc.add(const RefreshFeed()),
         );
       case FeedFreshness.fresh:
@@ -233,28 +272,12 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             key: const ValueKey('freshness-pending'),
             variant: FreshnessBannerVariant.syncing,
             animated: false,
-            message: '$pending ${pending == 1 ? 'pending change' : 'pending changes'}',
+            message:
+                '$pending ${pending == 1 ? 'pending change' : 'pending changes'}',
             onTap: () => context.read<OutboxCubit>().sync(),
           );
         }
-        return const SizedBox(width: double.infinity);
+        return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildBody() {
-    return IndexedStack(
-      index: _currentIndex,
-      children: [
-        BlocProvider.value(
-          value: _feedBloc,
-          child: FeedScreen(onSearchTap: _openSearch),
-        ),
-        BlocProvider.value(
-          value: _searchBloc,
-          child: SearchScreen(focusNode: _searchFocusNode),
-        ),
-        const SavedScreen(),
-      ],
-    );
   }
 }
