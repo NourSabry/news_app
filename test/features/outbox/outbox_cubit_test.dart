@@ -18,14 +18,15 @@ const _conflict = OutboxConflict(
 
 class MockOutboxRepository extends Mock implements OutboxRepository {}
 
-class MockConnectivityCubit extends MockCubit<ConnectivityStatus> implements ConnectivityCubit {}
+class MockConnectivityCubit extends MockCubit<ConnectivityStatus>
+    implements ConnectivityCubit {}
 
 OutboxEntry entry(String key) => OutboxEntry(
-      idempotencyKey: key,
-      operation: OutboxOperation.setBookmark,
-      payload: const {'articleId': 'a', 'bookmarked': true},
-      createdAt: DateTime(2026, 9, 14),
-    );
+  idempotencyKey: key,
+  operation: OutboxOperation.setBookmark,
+  payload: const {'articleId': 'a', 'bookmarked': true},
+  createdAt: DateTime(2026, 9, 14),
+);
 
 void main() {
   late MockOutboxRepository repository;
@@ -42,7 +43,9 @@ void main() {
     pending = [entry('k1'), entry('k2')];
 
     when(() => repository.getPending()).thenAnswer((_) => List.of(pending));
-    when(() => repository.watchPendingCount()).thenAnswer((_) => pendingChanges.stream);
+    when(
+      () => repository.watchPendingCount(),
+    ).thenAnswer((_) => pendingChanges.stream);
     when(() => repository.sync()).thenAnswer((_) async {
       final applied = pending.length;
       pending.clear();

@@ -48,30 +48,30 @@ class DetailsHero extends StatelessWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.sm,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconCircleButton(
+                      icon: Icons.arrow_back_rounded,
+                      label: 'Back',
+                      onTap: onBack,
+                      glass: true,
+                      size: 48,
+                    ),
+                    IconCircleButton(
+                      icon: Icons.ios_share_rounded,
+                      label: 'Share',
+                      onTap: onShare,
+                      glass: true,
+                      size: 48,
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconCircleButton(
-                    icon: Icons.arrow_back_rounded,
-                    label: 'Back',
-                    onTap: onBack,
-                    glass: true,
-                    size: 48,
-                  ),
-                  IconCircleButton(
-                    icon: Icons.ios_share_rounded,
-                    label: 'Share',
-                    onTap: onShare,
-                    glass: true,
-                    size: 48,
-                  ),
-                ],
-              ),
-            ),
             ),
           ),
         ],

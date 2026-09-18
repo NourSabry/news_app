@@ -101,7 +101,9 @@ class _DetailsViewState extends State<_DetailsView> {
     final box = context.findRenderObject() as RenderBox?;
     final origin = box == null
         ? null
-        : (box.localToGlobal(Offset.zero) & box.size).deflate(box.size.shortestSide / 4);
+        : (box.localToGlobal(Offset.zero) & box.size).deflate(
+            box.size.shortestSide / 4,
+          );
     SharePlus.instance.share(
       ShareParams(
         uri: AppRouter.articleShareLink(article.id),

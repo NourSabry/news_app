@@ -13,20 +13,23 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
 
   final DetailsRepository _repository;
 
-  DetailsBloc(this._repository, Article article) : super(DetailsState(article: article)) {
+  DetailsBloc(this._repository, Article article)
+    : super(DetailsState(article: article)) {
     on<LoadArticle>(_onLoad);
   }
 
   Future<void> _onLoad(LoadArticle event, Emitter<DetailsState> emit) async {
     final cached = _repository.getCachedArticle(state.article.id);
-    emit(state.copyWith(
-      article: cached ?? state.article,
-      isLoading: true,
-      fromCache: cached != null,
-      lastSyncedAt: cached != null ? _repository.getLastSyncTime() : null,
-      errorMessage: null,
-      unavailableReason: null,
-    ));
+    emit(
+      state.copyWith(
+        article: cached ?? state.article,
+        isLoading: true,
+        fromCache: cached != null,
+        lastSyncedAt: cached != null ? _repository.getLastSyncTime() : null,
+        errorMessage: null,
+        unavailableReason: null,
+      ),
+    );
     try {
       final (result, topics) = await (
         _repository.fetchArticle(state.article.id),
@@ -34,20 +37,31 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
       ).wait;
       switch (result) {
         case ArticleFound(:final article):
-          emit(state.copyWith(article: article, topics: topics, isLoading: false, fromCache: false));
+          emit(
+            state.copyWith(
+              article: article,
+              topics: topics,
+              isLoading: false,
+              fromCache: false,
+            ),
+          );
         case ArticleUnavailable(:final reason):
-          emit(state.copyWith(
-            topics: topics,
-            isLoading: false,
-            fromCache: false,
-            unavailableReason: reason,
-          ));
+          emit(
+            state.copyWith(
+              topics: topics,
+              isLoading: false,
+              fromCache: false,
+              unavailableReason: reason,
+            ),
+          );
       }
     } catch (_) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: state.hasBody ? null : loadErrorMessage,
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: state.hasBody ? null : loadErrorMessage,
+        ),
+      );
     }
     if (!state.isUnavailable) await _loadRelated(emit);
   }

@@ -6,7 +6,8 @@ class HiveStore implements KeyValueStore {
 
   HiveStore(this._box);
 
-  static Future<HiveStore> open(String name) async => HiveStore(await Hive.openBox<String>(name));
+  static Future<HiveStore> open(String name) async =>
+      HiveStore(await Hive.openBox<String>(name));
 
   @override
   String? get(String key) => _box.get(key);

@@ -43,7 +43,9 @@ class EditionArticleCard extends StatelessWidget {
     // Without a photo, lead falls back to standard and everything else to
     // compact.
     final effective = !_hasImage
-        ? (variant == ArticleCardVariant.lead ? ArticleCardVariant.standard : ArticleCardVariant.compact)
+        ? (variant == ArticleCardVariant.lead
+              ? ArticleCardVariant.standard
+              : ArticleCardVariant.compact)
         : variant;
 
     final label = article.isUnavailable

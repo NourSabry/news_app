@@ -6,12 +6,7 @@ class Author extends Equatable {
   final String? avatar;
   final String? bio;
 
-  const Author({
-    required this.id,
-    required this.name,
-    this.avatar,
-    this.bio,
-  });
+  const Author({required this.id, required this.name, this.avatar, this.bio});
 
   factory Author.fromJson(Map<String, dynamic> json) {
     return Author(

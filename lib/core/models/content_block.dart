@@ -5,11 +5,7 @@ class ContentBlock extends Equatable {
   final String? text;
   final String? url;
 
-  const ContentBlock({
-    required this.type,
-    this.text,
-    this.url,
-  });
+  const ContentBlock({required this.type, this.text, this.url});
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) {
     return ContentBlock(

@@ -21,12 +21,16 @@ void main() {
   setUp(() {
     repository = MockSettingsRepository();
     when(() => repository.getThemeMode()).thenReturn(ThemeMode.system);
-    when(() => repository.getSelectedTopicIds()).thenReturn(const ['t_technology']);
+    when(
+      () => repository.getSelectedTopicIds(),
+    ).thenReturn(const ['t_technology']);
     when(() => repository.getOnboardingCompleted()).thenReturn(true);
     when(() => repository.getTopics()).thenAnswer((_) async => topics);
     when(() => repository.setThemeMode(any())).thenAnswer((_) async {});
     when(() => repository.setSelectedTopicIds(any())).thenAnswer((_) async {});
-    when(() => repository.setOnboardingCompleted(any())).thenAnswer((_) async {});
+    when(
+      () => repository.setOnboardingCompleted(any()),
+    ).thenAnswer((_) async {});
     when(() => repository.clearCache()).thenAnswer((_) async {});
   });
 
@@ -57,7 +61,9 @@ void main() {
 
   blocTest<SettingsCubit, SettingsState>(
     'leaves topics empty when they fail to load',
-    setUp: () => when(() => repository.getTopics()).thenAnswer((_) => Future<List<Topic>>.error(Exception('offline'))),
+    setUp: () => when(
+      () => repository.getTopics(),
+    ).thenAnswer((_) => Future<List<Topic>>.error(Exception('offline'))),
     build: build,
     act: (cubit) => cubit.loadTopics(),
     expect: () => [initial.copyWith(isLoadingTopics: true), initial],
@@ -68,7 +74,8 @@ void main() {
     build: build,
     act: (cubit) => cubit.setThemeMode(ThemeMode.dark),
     expect: () => [initial.copyWith(themeMode: ThemeMode.dark)],
-    verify: (_) => verify(() => repository.setThemeMode(ThemeMode.dark)).called(1),
+    verify: (_) =>
+        verify(() => repository.setThemeMode(ThemeMode.dark)).called(1),
   );
 
   blocTest<SettingsCubit, SettingsState>(
@@ -83,8 +90,13 @@ void main() {
       initial.copyWith(selectedTopicIds: const ['t_science']),
     ],
     verify: (_) {
-      verify(() => repository.setSelectedTopicIds(const ['t_technology', 't_science'])).called(1);
-      verify(() => repository.setSelectedTopicIds(const ['t_science'])).called(1);
+      verify(
+        () =>
+            repository.setSelectedTopicIds(const ['t_technology', 't_science']),
+      ).called(1);
+      verify(
+        () => repository.setSelectedTopicIds(const ['t_science']),
+      ).called(1);
     },
   );
 

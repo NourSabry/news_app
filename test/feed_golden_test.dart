@@ -25,7 +25,8 @@ import 'package:news_app/features/reactions/presentation/bloc/reactions_bloc.dar
 /// change; a red diff on an unintentional one is the point.
 class MockFeedRepository extends Mock implements FeedRepository {}
 
-class MockConnectivityCubit extends MockCubit<ConnectivityStatus> implements ConnectivityCubit {}
+class MockConnectivityCubit extends MockCubit<ConnectivityStatus>
+    implements ConnectivityCubit {}
 
 class MockReactionsRepository extends Mock implements ReactionsRepository {}
 
@@ -36,28 +37,52 @@ const _topics = [
   Topic(id: 't_science', name: 'Science', icon: 'science'),
 ];
 
-Article _article(String id, {required String title, required String topicId}) => Article(
-      id: id,
-      title: title,
-      summary: 'A short standfirst summarising the story for the reader in one line.',
-      source: 'TechWire',
-      author: const Author(id: 'u', name: 'Priya Nair'),
-      topicId: topicId,
-      publishedAt: DateTime.now().subtract(const Duration(hours: 3)),
-      likes: 42,
-      comments: 5,
-    );
+Article _article(
+  String id, {
+  required String title,
+  required String topicId,
+}) => Article(
+  id: id,
+  title: title,
+  summary:
+      'A short standfirst summarising the story for the reader in one line.',
+  source: 'TechWire',
+  author: const Author(id: 'u', name: 'Priya Nair'),
+  topicId: topicId,
+  publishedAt: DateTime.now().subtract(const Duration(hours: 3)),
+  likes: 42,
+  comments: 5,
+);
 
 final _articles = [
-  _article('a', title: 'Flutter Team Shares the Next Performance Roadmap', topicId: 't_technology'),
-  _article('b', title: 'Battery Breakthrough Improves Grid Storage Efficiency', topicId: 't_science'),
-  _article('c', title: 'Architecture Patterns for Large Scale Apps', topicId: 't_technology'),
+  _article(
+    'a',
+    title: 'Flutter Team Shares the Next Performance Roadmap',
+    topicId: 't_technology',
+  ),
+  _article(
+    'b',
+    title: 'Battery Breakthrough Improves Grid Storage Efficiency',
+    topicId: 't_science',
+  ),
+  _article(
+    'c',
+    title: 'Architecture Patterns for Large Scale Apps',
+    topicId: 't_technology',
+  ),
 ];
 
-FeedResponse _page(List<Article> data) =>
-    FeedResponse(data: data, page: 1, pageSize: data.length, total: data.length);
+FeedResponse _page(List<Article> data) => FeedResponse(
+  data: data,
+  page: 1,
+  pageSize: data.length,
+  total: data.length,
+);
 
-void _stubCommon(MockFeedRepository repository, MockConnectivityCubit connectivity) {
+void _stubCommon(
+  MockFeedRepository repository,
+  MockConnectivityCubit connectivity,
+) {
   when(() => connectivity.isConnected).thenReturn(true);
   when(() => repository.getSelectedTopicIds()).thenReturn(const []);
   when(() => repository.getTopics()).thenAnswer((_) async => _topics);
@@ -74,8 +99,12 @@ List<BlocProvider> _cardProviders() {
   when(() => reactionsRepository.loadPersistedOverrides()).thenReturn(const {});
   final bookmarksRepository = MockBookmarksRepository();
   return [
-    BlocProvider<ReactionsBloc>(create: (_) => ReactionsBloc(reactionsRepository)),
-    BlocProvider<BookmarksBloc>(create: (_) => BookmarksBloc(bookmarksRepository)),
+    BlocProvider<ReactionsBloc>(
+      create: (_) => ReactionsBloc(reactionsRepository),
+    ),
+    BlocProvider<BookmarksBloc>(
+      create: (_) => BookmarksBloc(bookmarksRepository),
+    ),
   ];
 }
 
@@ -91,13 +120,21 @@ Widget _buildFeedState(String state) {
 
   switch (state) {
     case 'loading':
-      when(() => repository.fetchPage(scope: null)).thenAnswer((_) => Completer<FeedResponse>().future);
+      when(
+        () => repository.fetchPage(scope: null),
+      ).thenAnswer((_) => Completer<FeedResponse>().future);
     case 'loaded':
-      when(() => repository.fetchPage(scope: null)).thenAnswer((_) async => _page(_articles));
+      when(
+        () => repository.fetchPage(scope: null),
+      ).thenAnswer((_) async => _page(_articles));
     case 'empty':
-      when(() => repository.fetchPage(scope: null)).thenAnswer((_) async => _page(const []));
+      when(
+        () => repository.fetchPage(scope: null),
+      ).thenAnswer((_) async => _page(const []));
     case 'error':
-      when(() => repository.fetchPage(scope: null)).thenThrow(Exception('offline'));
+      when(
+        () => repository.fetchPage(scope: null),
+      ).thenThrow(Exception('offline'));
   }
 
   final bloc = FeedBloc(repository, connectivity)..add(const LoadFeed());
@@ -119,7 +156,9 @@ Widget _buildOfflineStaleState() {
   final repository = MockFeedRepository();
   final connectivity = MockConnectivityCubit();
   _stubCommon(repository, connectivity);
-  when(() => repository.fetchPage(scope: null)).thenAnswer((_) async => _page(_articles));
+  when(
+    () => repository.fetchPage(scope: null),
+  ).thenAnswer((_) async => _page(_articles));
 
   final bloc = FeedBloc(repository, connectivity)..add(const LoadFeed());
   final lastSyncedAt = DateTime.now().subtract(const Duration(hours: 2));
@@ -130,7 +169,8 @@ Widget _buildOfflineStaleState() {
         children: [
           FreshnessBanner(
             variant: FreshnessBannerVariant.stale,
-            message: 'Showing stories from ${TimeFormatter.relative(lastSyncedAt)}',
+            message:
+                'Showing stories from ${TimeFormatter.relative(lastSyncedAt)}',
             onRefresh: () {},
           ),
           Expanded(
@@ -160,30 +200,34 @@ void main() {
   for (final state in states) {
     for (final brightnessEntry in brightnesses.entries) {
       for (final textScale in textScales) {
-        testGoldens(
-          'Feed $state (${brightnessEntry.key} @${textScale}x)',
-          (tester) async {
-            final widget = state == 'offline_stale' ? _buildOfflineStaleState() : _buildFeedState(state);
-            final theme = brightnessEntry.value == Brightness.light ? AppTheme.light : AppTheme.dark;
+        testGoldens('Feed $state (${brightnessEntry.key} @${textScale}x)', (
+          tester,
+        ) async {
+          final widget = state == 'offline_stale'
+              ? _buildOfflineStaleState()
+              : _buildFeedState(state);
+          final theme = brightnessEntry.value == Brightness.light
+              ? AppTheme.light
+              : AppTheme.dark;
 
-            await tester.pumpWidgetBuilder(
-              widget,
-              wrapper: materialAppWrapper(theme: theme),
-              surfaceSize: const Size(390, 844),
-              textScaleSize: textScale,
-            );
+          await tester.pumpWidgetBuilder(
+            widget,
+            wrapper: materialAppWrapper(theme: theme),
+            surfaceSize: const Size(390, 844),
+            textScaleSize: textScale,
+          );
 
-            await screenMatchesGolden(
-              tester,
-              'feed_${state}_${brightnessEntry.key}_${textScale}x',
-              // A few bounded pumps, not pumpAndSettle — some card
-              // animations (e.g. the like button's press scale) only ever
-              // run on a real tap, but nothing here guarantees the tree is
-              // ever fully idle, and this suite only needs a settled frame.
-              customPump: (tester) => tester.pump(const Duration(milliseconds: 100)),
-            );
-          },
-        );
+          await screenMatchesGolden(
+            tester,
+            'feed_${state}_${brightnessEntry.key}_${textScale}x',
+            // A few bounded pumps, not pumpAndSettle — some card
+            // animations (e.g. the like button's press scale) only ever
+            // run on a real tap, but nothing here guarantees the tree is
+            // ever fully idle, and this suite only needs a settled frame.
+            customPump: (tester) =>
+                tester.pump(const Duration(milliseconds: 100)),
+          );
+        });
       }
     }
   }

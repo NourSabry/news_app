@@ -33,8 +33,9 @@ void main() {
     when(() => repository.resetMockServer()).thenAnswer((_) async {});
 
     final mockConnectivity = MockConnectivity();
-    when(() => mockConnectivity.onConnectivityChanged)
-        .thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockConnectivity.onConnectivityChanged,
+    ).thenAnswer((_) => const Stream.empty());
     connectivity = ConnectivityCubit(connectivity: mockConnectivity);
   });
 
@@ -85,7 +86,8 @@ void main() {
     build: () => DevToolsCubit(repository, connectivity),
     act: (cubit) => cubit.setSimulateReactionFailure(true),
     expect: () => [const DevToolsState(simulateReactionFailure: true)],
-    verify: (_) => verify(() => repository.setSimulateReactionFailure(true)).called(1),
+    verify: (_) =>
+        verify(() => repository.setSimulateReactionFailure(true)).called(1),
   );
 
   blocTest<DevToolsCubit, DevToolsState>(
@@ -101,7 +103,8 @@ void main() {
     build: () => DevToolsCubit(repository, connectivity),
     act: (cubit) => cubit.setBackgroundTickSeconds(10),
     expect: () => [const DevToolsState(backgroundTickSeconds: 10)],
-    verify: (_) => verify(() => repository.setBackgroundTickSeconds(10)).called(1),
+    verify: (_) =>
+        verify(() => repository.setBackgroundTickSeconds(10)).called(1),
   );
 
   test('resetMockServer delegates to the repository', () async {

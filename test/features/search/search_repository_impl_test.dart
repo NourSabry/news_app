@@ -15,29 +15,35 @@ void main() {
     repository = SearchRepositoryImpl(api, LocalStorage.inMemory());
   });
 
-  test('getSources(topicIds:) returns only the chosen topics\' sources', () async {
-    when(() => api.getSources()).thenAnswer(
-      (_) async => {
-        't_technology': ['Mobile Daily', 'TechWire'],
-        't_business': ['Market Brief'],
-      },
-    );
+  test(
+    'getSources(topicIds:) returns only the chosen topics\' sources',
+    () async {
+      when(() => api.getSources()).thenAnswer(
+        (_) async => {
+          't_technology': ['Mobile Daily', 'TechWire'],
+          't_business': ['Market Brief'],
+        },
+      );
 
-    final sources = await repository.getSources(topicIds: {'t_technology'});
+      final sources = await repository.getSources(topicIds: {'t_technology'});
 
-    expect(sources, ['Mobile Daily', 'TechWire']);
-  });
+      expect(sources, ['Mobile Daily', 'TechWire']);
+    },
+  );
 
-  test('getSources() with no topic flattens and dedupes every topic\'s sources', () async {
-    when(() => api.getSources()).thenAnswer(
-      (_) async => {
-        't_technology': ['TechWire', 'Mobile Daily'],
-        't_business': ['Market Brief', 'TechWire'],
-      },
-    );
+  test(
+    'getSources() with no topic flattens and dedupes every topic\'s sources',
+    () async {
+      when(() => api.getSources()).thenAnswer(
+        (_) async => {
+          't_technology': ['TechWire', 'Mobile Daily'],
+          't_business': ['Market Brief', 'TechWire'],
+        },
+      );
 
-    final sources = await repository.getSources();
+      final sources = await repository.getSources();
 
-    expect(sources.toSet(), {'TechWire', 'Mobile Daily', 'Market Brief'});
-  });
+      expect(sources.toSet(), {'TechWire', 'Mobile Daily', 'Market Brief'});
+    },
+  );
 }

@@ -13,11 +13,13 @@ class OutboxRepositoryImpl implements OutboxRepository {
   final LocalStorage _storage;
   final Uuid _uuid;
 
-  OutboxRepositoryImpl(this._api, this._storage, {Uuid uuid = const Uuid()}) : _uuid = uuid;
+  OutboxRepositoryImpl(this._api, this._storage, {Uuid uuid = const Uuid()})
+    : _uuid = uuid;
 
   @override
   List<OutboxEntry> getPending() {
-    return _storage.getOutboxEntries()..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return _storage.getOutboxEntries()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
   @override
@@ -29,12 +31,14 @@ class OutboxRepositoryImpl implements OutboxRepository {
     Map<String, dynamic> payload, {
     String? idempotencyKey,
   }) {
-    return _storage.addOutboxEntry(OutboxEntry(
-      idempotencyKey: idempotencyKey ?? _uuid.v4(),
-      operation: operation,
-      payload: payload,
-      createdAt: DateTime.now(),
-    ));
+    return _storage.addOutboxEntry(
+      OutboxEntry(
+        idempotencyKey: idempotencyKey ?? _uuid.v4(),
+        operation: operation,
+        payload: payload,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   @override
@@ -42,13 +46,21 @@ class OutboxRepositoryImpl implements OutboxRepository {
     final pending = getPending();
     if (pending.isEmpty) return const OutboxSyncResult();
 
-    final response = await _api.syncOutbox(baseVersion: _baseVersion, mutations: pending);
+    final response = await _api.syncOutbox(
+      baseVersion: _baseVersion,
+      mutations: pending,
+    );
     final applied = _keys(response['applied']);
     final conflictMaps = (response['conflicts'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>();
-    final conflictKeys = conflictMaps.map((c) => c['idempotencyKey'] as String).toList();
+    final conflictKeys = conflictMaps
+        .map((c) => c['idempotencyKey'] as String)
+        .toList();
 
-    await _storage.setMeta(_versionKey, '${response['newVersion'] ?? _baseVersion}');
+    await _storage.setMeta(
+      _versionKey,
+      '${response['newVersion'] ?? _baseVersion}',
+    );
     for (final key in applied.followedBy(conflictKeys)) {
       await _storage.removeOutboxEntry(key);
     }
@@ -70,12 +82,16 @@ class OutboxRepositoryImpl implements OutboxRepository {
     );
   }
 
-  int get _baseVersion => int.tryParse(_storage.getMeta(_versionKey) ?? '') ?? 0;
+  int get _baseVersion =>
+      int.tryParse(_storage.getMeta(_versionKey) ?? '') ?? 0;
 
   List<String> _keys(Object? raw, {String? field}) {
     final items = (raw as List<dynamic>?) ?? const [];
     return items
-        .map((item) => field == null ? item as String : (item as Map)[field] as String)
+        .map(
+          (item) =>
+              field == null ? item as String : (item as Map)[field] as String,
+        )
         .toList();
   }
 }

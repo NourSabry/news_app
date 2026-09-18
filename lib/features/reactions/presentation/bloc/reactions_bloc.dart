@@ -16,17 +16,23 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
   final ReactionsRepository _repository;
 
   ReactionsBloc(this._repository)
-      : super(ReactionsState(overrides: _repository.loadPersistedOverrides())) {
+    : super(ReactionsState(overrides: _repository.loadPersistedOverrides())) {
     on<ToggleLike>(_onToggleLike);
     on<ApplyOverride>(_onApplyOverride);
   }
 
-  Future<void> _onApplyOverride(ApplyOverride event, Emitter<ReactionsState> emit) async {
+  Future<void> _onApplyOverride(
+    ApplyOverride event,
+    Emitter<ReactionsState> emit,
+  ) async {
     emit(state.withOverride(event.articleId, event.value));
     await _repository.persistOverride(event.articleId, event.value);
   }
 
-  Future<void> _onToggleLike(ToggleLike event, Emitter<ReactionsState> emit) async {
+  Future<void> _onToggleLike(
+    ToggleLike event,
+    Emitter<ReactionsState> emit,
+  ) async {
     final article = event.article;
     if (state.isInFlight(article.id)) return;
 
@@ -37,9 +43,16 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
       likes: article.likes + (liked ? 1 : -1),
       version: article.version,
     );
-    emit(state
-        .withOverride(article.id, optimistic, notice: null, retryArticle: null)
-        .withInFlight(article.id, true));
+    emit(
+      state
+          .withOverride(
+            article.id,
+            optimistic,
+            notice: null,
+            retryArticle: null,
+          )
+          .withInFlight(article.id, true),
+    );
     await _repository.persistOverride(article.id, optimistic);
 
     final result = await _repository.toggleLike(
@@ -48,18 +61,35 @@ class ReactionsBloc extends Bloc<ReactionsEvent, ReactionsState> {
     );
     switch (result) {
       case ReactionApplied(:final likes, :final version):
-        final applied = ArticleOverrides(isLiked: liked, likes: likes, version: version);
-        emit(state.withOverride(article.id, applied).withInFlight(article.id, false));
+        final applied = ArticleOverrides(
+          isLiked: liked,
+          likes: likes,
+          version: version,
+        );
+        emit(
+          state
+              .withOverride(article.id, applied)
+              .withInFlight(article.id, false),
+        );
         await _repository.persistOverride(article.id, applied);
       case ReactionConflict(:final serverState):
-        emit(state
-            .withOverride(article.id, serverState, notice: conflictMessage)
-            .withInFlight(article.id, false));
+        emit(
+          state
+              .withOverride(article.id, serverState, notice: conflictMessage)
+              .withInFlight(article.id, false),
+        );
         await _repository.persistOverride(article.id, serverState);
       case ReactionFailed():
-        emit(state
-            .withOverride(article.id, previousOverride, notice: failureMessage, retryArticle: article)
-            .withInFlight(article.id, false));
+        emit(
+          state
+              .withOverride(
+                article.id,
+                previousOverride,
+                notice: failureMessage,
+                retryArticle: article,
+              )
+              .withInFlight(article.id, false),
+        );
         if (previousOverride != null) {
           await _repository.persistOverride(article.id, previousOverride);
         }

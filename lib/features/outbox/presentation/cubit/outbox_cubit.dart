@@ -12,14 +12,19 @@ class OutboxCubit extends Cubit<OutboxState> {
   late final StreamSubscription<ConnectivityStatus> _connectivitySubscription;
 
   OutboxCubit(OutboxRepository repository, ConnectivityCubit connectivity)
-      : _repository = repository,
-        super(OutboxState(pendingCount: repository.getPending().length)) {
-    _pendingSubscription = _repository.watchPendingCount().listen(_onPendingChanged);
-    _connectivitySubscription = connectivity.stream.listen(_onConnectivityChanged);
+    : _repository = repository,
+      super(OutboxState(pendingCount: repository.getPending().length)) {
+    _pendingSubscription = _repository.watchPendingCount().listen(
+      _onPendingChanged,
+    );
+    _connectivitySubscription = connectivity.stream.listen(
+      _onConnectivityChanged,
+    );
     if (connectivity.isConnected) sync();
   }
 
-  void _onPendingChanged(int count) => emit(state.copyWith(pendingCount: count));
+  void _onPendingChanged(int count) =>
+      emit(state.copyWith(pendingCount: count));
 
   void _onConnectivityChanged(ConnectivityStatus status) {
     if (status == ConnectivityStatus.connected) sync();
@@ -30,11 +35,13 @@ class OutboxCubit extends Cubit<OutboxState> {
     emit(state.copyWith(isSyncing: true, conflicts: const []));
     try {
       final result = await _repository.sync();
-      emit(state.copyWith(
-        isSyncing: false,
-        pendingCount: _repository.getPending().length,
-        conflicts: result.conflicts,
-      ));
+      emit(
+        state.copyWith(
+          isSyncing: false,
+          pendingCount: _repository.getPending().length,
+          conflicts: result.conflicts,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(isSyncing: false));
     }

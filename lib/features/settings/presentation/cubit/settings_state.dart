@@ -37,10 +37,10 @@ class SettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        themeMode,
-        selectedTopicIds,
-        topics,
-        isLoadingTopics,
-        onboardingCompleted,
-      ];
+    themeMode,
+    selectedTopicIds,
+    topics,
+    isLoadingTopics,
+    onboardingCompleted,
+  ];
 }

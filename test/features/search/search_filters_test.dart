@@ -8,13 +8,19 @@ void main() {
   });
 
   test('activeCount counts only the set fields', () {
-    final filters = SearchFilters(topicIds: {'t_technology'}, date: DateRange.today());
+    final filters = SearchFilters(
+      topicIds: {'t_technology'},
+      date: DateRange.today(),
+    );
     expect(filters.isEmpty, isFalse);
     expect(filters.activeCount, 2);
   });
 
   test('copyWith can explicitly clear a field back to null', () {
-    const filters = SearchFilters(topicIds: {'t_technology'}, source: 'Mobile Daily');
+    const filters = SearchFilters(
+      topicIds: {'t_technology'},
+      source: 'Mobile Daily',
+    );
     final cleared = filters.copyWith(topicIds: const {});
     expect(cleared.topicIds, isEmpty);
     expect(cleared.source, 'Mobile Daily');

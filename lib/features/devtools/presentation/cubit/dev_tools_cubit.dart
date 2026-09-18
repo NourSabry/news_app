@@ -10,7 +10,8 @@ class DevToolsCubit extends Cubit<DevToolsState> {
   final ConnectivityCubit _connectivity;
 
   DevToolsCubit(this._repository, this._connectivity)
-      : super(DevToolsState(
+    : super(
+        DevToolsState(
           simulateOffline: _repository.simulateOffline,
           simulateServerError: _repository.simulateServerError,
           simulateConflict: _repository.simulateConflict,
@@ -18,7 +19,8 @@ class DevToolsCubit extends Cubit<DevToolsState> {
           latencyMs: _repository.latencyMs,
           cacheTtlMinutes: _repository.cacheTtlMinutes,
           backgroundTickSeconds: _repository.backgroundTickSeconds,
-        ));
+        ),
+      );
 
   void setSimulateOffline(bool value) {
     _repository.setSimulateOffline(value);

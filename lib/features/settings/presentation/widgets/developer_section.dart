@@ -34,21 +34,24 @@ class DeveloperSection extends StatelessWidget {
           title: const Text('Simulate server error'),
           subtitle: const Text('Network calls fail with a server error'),
           value: state.simulateServerError,
-          onChanged: (value) => context.read<DevToolsCubit>().setSimulateServerError(value),
+          onChanged: (value) =>
+              context.read<DevToolsCubit>().setSimulateServerError(value),
         ),
         SwitchListTile(
           secondary: const Icon(Icons.sync_problem_rounded),
           title: const Text('Simulate reaction conflict'),
           subtitle: const Text('Likes come back with a newer server state'),
           value: state.simulateConflict,
-          onChanged: (value) => context.read<DevToolsCubit>().setSimulateConflict(value),
+          onChanged: (value) =>
+              context.read<DevToolsCubit>().setSimulateConflict(value),
         ),
         SwitchListTile(
           secondary: const Icon(Icons.undo_rounded),
           title: const Text('Simulate reaction failure'),
           subtitle: const Text('Likes are rejected and roll back with Retry'),
           value: state.simulateReactionFailure,
-          onChanged: (value) => context.read<DevToolsCubit>().setSimulateReactionFailure(value),
+          onChanged: (value) =>
+              context.read<DevToolsCubit>().setSimulateReactionFailure(value),
         ),
         ListTile(
           leading: const Icon(Icons.speed_rounded),
@@ -61,14 +64,18 @@ class DeveloperSection extends StatelessWidget {
               DropdownMenuItem(value: 2000, child: Text('2000 ms')),
             ],
             onChanged: (value) {
-              if (value != null) context.read<DevToolsCubit>().setLatencyMs(value);
+              if (value != null) {
+                context.read<DevToolsCubit>().setLatencyMs(value);
+              }
             },
           ),
         ),
         ListTile(
           leading: const Icon(Icons.schedule_rounded),
           title: const Text('Cache freshness'),
-          subtitle: const Text('How long a feed page stays "fresh" before the stale banner shows'),
+          subtitle: const Text(
+            'How long a feed page stays "fresh" before the stale banner shows',
+          ),
           trailing: DropdownButton<int>(
             value: state.cacheTtlMinutes,
             items: const [
@@ -76,14 +83,18 @@ class DeveloperSection extends StatelessWidget {
               DropdownMenuItem(value: 0, child: Text('0 min (always stale)')),
             ],
             onChanged: (value) {
-              if (value != null) context.read<DevToolsCubit>().setCacheTtlMinutes(value);
+              if (value != null) {
+                context.read<DevToolsCubit>().setCacheTtlMinutes(value);
+              }
             },
           ),
         ),
         ListTile(
           leading: const Icon(Icons.sync_rounded),
           title: const Text('Background refresh'),
-          subtitle: const Text('How often Home silently checks for new stories'),
+          subtitle: const Text(
+            'How often Home silently checks for new stories',
+          ),
           trailing: DropdownButton<int>(
             value: state.backgroundTickSeconds,
             items: const [
@@ -91,7 +102,9 @@ class DeveloperSection extends StatelessWidget {
               DropdownMenuItem(value: 10, child: Text('10 s (demo)')),
             ],
             onChanged: (value) {
-              if (value != null) context.read<DevToolsCubit>().setBackgroundTickSeconds(value);
+              if (value != null) {
+                context.read<DevToolsCubit>().setBackgroundTickSeconds(value);
+              }
             },
           ),
         ),
@@ -101,7 +114,9 @@ class DeveloperSection extends StatelessWidget {
           subtitle: const Text('Clears server-side bookmarks and likes'),
           onTap: () async {
             await context.read<DevToolsCubit>().resetMockServer();
-            if (context.mounted) showSnackBarMessage(context, 'Mock server reset');
+            if (context.mounted) {
+              showSnackBarMessage(context, 'Mock server reset');
+            }
           },
         ),
         ListTile(

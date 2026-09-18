@@ -32,21 +32,23 @@ class DevToolsState extends Equatable {
       simulateOffline: simulateOffline ?? this.simulateOffline,
       simulateServerError: simulateServerError ?? this.simulateServerError,
       simulateConflict: simulateConflict ?? this.simulateConflict,
-      simulateReactionFailure: simulateReactionFailure ?? this.simulateReactionFailure,
+      simulateReactionFailure:
+          simulateReactionFailure ?? this.simulateReactionFailure,
       latencyMs: latencyMs ?? this.latencyMs,
       cacheTtlMinutes: cacheTtlMinutes ?? this.cacheTtlMinutes,
-      backgroundTickSeconds: backgroundTickSeconds ?? this.backgroundTickSeconds,
+      backgroundTickSeconds:
+          backgroundTickSeconds ?? this.backgroundTickSeconds,
     );
   }
 
   @override
   List<Object?> get props => [
-        simulateOffline,
-        simulateServerError,
-        simulateConflict,
-        simulateReactionFailure,
-        latencyMs,
-        cacheTtlMinutes,
-        backgroundTickSeconds,
-      ];
+    simulateOffline,
+    simulateServerError,
+    simulateConflict,
+    simulateReactionFailure,
+    latencyMs,
+    cacheTtlMinutes,
+    backgroundTickSeconds,
+  ];
 }

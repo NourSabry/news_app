@@ -44,9 +44,12 @@ class NewsApp extends StatelessWidget {
     final locator = ServiceLocator.instance;
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => SettingsCubit(locator.get<SettingsRepository>())),
         BlocProvider(
-          create: (_) => ConnectivityCubit(connectivity: locator.get<Connectivity>()),
+          create: (_) => SettingsCubit(locator.get<SettingsRepository>()),
+        ),
+        BlocProvider(
+          create: (_) =>
+              ConnectivityCubit(connectivity: locator.get<Connectivity>()),
         ),
         BlocProvider(
           lazy: false,
@@ -55,10 +58,13 @@ class NewsApp extends StatelessWidget {
             context.read<ConnectivityCubit>(),
           ),
         ),
-        BlocProvider(create: (_) => ReactionsBloc(locator.get<ReactionsRepository>())),
         BlocProvider(
-          create: (_) => BookmarksBloc(locator.get<BookmarksRepository>())
-            ..add(const LoadBookmarks()),
+          create: (_) => ReactionsBloc(locator.get<ReactionsRepository>()),
+        ),
+        BlocProvider(
+          create: (_) =>
+              BookmarksBloc(locator.get<BookmarksRepository>())
+                ..add(const LoadBookmarks()),
         ),
         if (kDebugMode)
           BlocProvider(
@@ -75,7 +81,8 @@ class NewsApp extends StatelessWidget {
         ),
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
-        buildWhen: (previous, current) => previous.themeMode != current.themeMode,
+        buildWhen: (previous, current) =>
+            previous.themeMode != current.themeMode,
         builder: (_, settings) => MaterialApp(
           navigatorKey: rootNavigatorKey,
           title: 'News Feed',

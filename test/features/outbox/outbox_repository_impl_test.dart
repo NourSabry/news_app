@@ -23,11 +23,15 @@ void main() {
   );
 
   OutboxEntry likeEntry() => OutboxEntry(
-        idempotencyKey: 'k1',
-        operation: OutboxOperation.toggleReaction,
-        payload: const {'articleId': 'a_flutter_roadmap', 'reaction': 'like', 'expectedVersion': 3},
-        createdAt: DateTime(2026, 9, 14),
-      );
+    idempotencyKey: 'k1',
+    operation: OutboxOperation.toggleReaction,
+    payload: const {
+      'articleId': 'a_flutter_roadmap',
+      'reaction': 'like',
+      'expectedVersion': 3,
+    },
+    createdAt: DateTime(2026, 9, 14),
+  );
 
   setUp(() {
     api = MockApiClient();
@@ -35,53 +39,71 @@ void main() {
     repository = OutboxRepositoryImpl(api, storage);
   });
 
-  test('maps a server conflict into an OutboxConflict with the cached article title', () async {
-    await storage.cacheArticle(article);
-    await storage.addOutboxEntry(likeEntry());
-    when(() => api.syncOutbox(baseVersion: any(named: 'baseVersion'), mutations: any(named: 'mutations')))
-        .thenAnswer((_) async => {
-              'status': 'review_required',
-              'newVersion': 1,
-              'applied': <String>[],
-              'conflicts': [
-                {
-                  'idempotencyKey': 'k1',
-                  'articleId': 'a_flutter_roadmap',
-                  'serverState': {'isLiked': true, 'likes': 186, 'version': 5},
-                },
-              ],
-            });
+  test(
+    'maps a server conflict into an OutboxConflict with the cached article title',
+    () async {
+      await storage.cacheArticle(article);
+      await storage.addOutboxEntry(likeEntry());
+      when(
+        () => api.syncOutbox(
+          baseVersion: any(named: 'baseVersion'),
+          mutations: any(named: 'mutations'),
+        ),
+      ).thenAnswer(
+        (_) async => {
+          'status': 'review_required',
+          'newVersion': 1,
+          'applied': <String>[],
+          'conflicts': [
+            {
+              'idempotencyKey': 'k1',
+              'articleId': 'a_flutter_roadmap',
+              'serverState': {'isLiked': true, 'likes': 186, 'version': 5},
+            },
+          ],
+        },
+      );
 
-    final result = await repository.sync();
+      final result = await repository.sync();
 
-    expect(result.appliedCount, 0);
-    expect(result.conflicts, hasLength(1));
-    final conflict = result.conflicts.single;
-    expect(conflict.articleId, 'a_flutter_roadmap');
-    expect(conflict.articleTitle, 'Flutter Roadmap');
-    expect(conflict.serverIsLiked, isTrue);
-    expect(conflict.serverLikes, 186);
-    expect(repository.getPending(), isEmpty);
-  });
+      expect(result.appliedCount, 0);
+      expect(result.conflicts, hasLength(1));
+      final conflict = result.conflicts.single;
+      expect(conflict.articleId, 'a_flutter_roadmap');
+      expect(conflict.articleTitle, 'Flutter Roadmap');
+      expect(conflict.serverIsLiked, isTrue);
+      expect(conflict.serverLikes, 186);
+      expect(repository.getPending(), isEmpty);
+    },
+  );
 
-  test('falls back to a generic title when the article was never cached', () async {
-    await storage.addOutboxEntry(likeEntry());
-    when(() => api.syncOutbox(baseVersion: any(named: 'baseVersion'), mutations: any(named: 'mutations')))
-        .thenAnswer((_) async => {
-              'status': 'review_required',
-              'newVersion': 1,
-              'applied': <String>[],
-              'conflicts': [
-                {
-                  'idempotencyKey': 'k1',
-                  'articleId': 'a_flutter_roadmap',
-                  'serverState': {'isLiked': false, 'likes': 40, 'version': 2},
-                },
-              ],
-            });
+  test(
+    'falls back to a generic title when the article was never cached',
+    () async {
+      await storage.addOutboxEntry(likeEntry());
+      when(
+        () => api.syncOutbox(
+          baseVersion: any(named: 'baseVersion'),
+          mutations: any(named: 'mutations'),
+        ),
+      ).thenAnswer(
+        (_) async => {
+          'status': 'review_required',
+          'newVersion': 1,
+          'applied': <String>[],
+          'conflicts': [
+            {
+              'idempotencyKey': 'k1',
+              'articleId': 'a_flutter_roadmap',
+              'serverState': {'isLiked': false, 'likes': 40, 'version': 2},
+            },
+          ],
+        },
+      );
 
-    final result = await repository.sync();
+      final result = await repository.sync();
 
-    expect(result.conflicts.single.articleTitle, 'this story');
-  });
+      expect(result.conflicts.single.articleTitle, 'this story');
+    },
+  );
 }

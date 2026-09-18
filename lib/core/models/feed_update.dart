@@ -16,9 +16,15 @@ class FeedUpdate {
 
   factory FeedUpdate.fromJson(Map<String, dynamic> json) {
     return FeedUpdate(
-      newItems: (json['newItems'] as List<dynamic>).map((e) => e as String).toList(),
-      updatedItems: (json['updatedItems'] as List<dynamic>).map((e) => e as String).toList(),
-      deletedItems: (json['deletedItems'] as List<dynamic>).map((e) => e as String).toList(),
+      newItems: (json['newItems'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      updatedItems: (json['updatedItems'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      deletedItems: (json['deletedItems'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       serverTime: DateTime.parse(json['serverTime'] as String),
     );
   }

@@ -15,14 +15,21 @@ class ReactionsRepositoryImpl implements ReactionsRepository {
   final LocalStorage _storage;
   final Uuid _uuid;
 
-  ReactionsRepositoryImpl(this._api, this._outbox, this._storage, {Uuid uuid = const Uuid()})
-      : _uuid = uuid;
+  ReactionsRepositoryImpl(
+    this._api,
+    this._outbox,
+    this._storage, {
+    Uuid uuid = const Uuid(),
+  }) : _uuid = uuid;
 
   @override
   Map<String, ArticleOverrides> loadPersistedOverrides() {
     return _storage.getReactionOverrides().map(
-          (key, value) => MapEntry(key, ArticleOverrides.fromJson(Map<String, dynamic>.from(value as Map))),
-        );
+      (key, value) => MapEntry(
+        key,
+        ArticleOverrides.fromJson(Map<String, dynamic>.from(value as Map)),
+      ),
+    );
   }
 
   @override
@@ -31,7 +38,10 @@ class ReactionsRepositoryImpl implements ReactionsRepository {
   }
 
   @override
-  Future<ReactionResult> toggleLike(String articleId, {required int expectedVersion}) async {
+  Future<ReactionResult> toggleLike(
+    String articleId, {
+    required int expectedVersion,
+  }) async {
     final mutationId = _uuid.v4();
     try {
       final response = await _api.toggleReaction(
@@ -42,11 +52,11 @@ class ReactionsRepositoryImpl implements ReactionsRepository {
       );
       return _parse(response);
     } catch (_) {
-      await _outbox.enqueue(
-        OutboxOperation.toggleReaction,
-        {'articleId': articleId, 'reaction': _reaction, 'expectedVersion': expectedVersion},
-        idempotencyKey: mutationId,
-      );
+      await _outbox.enqueue(OutboxOperation.toggleReaction, {
+        'articleId': articleId,
+        'reaction': _reaction,
+        'expectedVersion': expectedVersion,
+      }, idempotencyKey: mutationId);
       return const ReactionQueued();
     }
   }
@@ -54,10 +64,14 @@ class ReactionsRepositoryImpl implements ReactionsRepository {
   ReactionResult _parse(Map<String, dynamic> response) {
     switch (response['status']) {
       case 'conflict':
-        final serverState = Map<String, dynamic>.from(response['serverState'] as Map);
+        final serverState = Map<String, dynamic>.from(
+          response['serverState'] as Map,
+        );
         return ReactionConflict(ArticleOverrides.fromJson(serverState));
       case 'error':
-        return ReactionFailed(response['message'] as String? ?? 'Reaction was not saved');
+        return ReactionFailed(
+          response['message'] as String? ?? 'Reaction was not saved',
+        );
       default:
         return ReactionApplied(
           likes: (response['likes'] as num).toInt(),

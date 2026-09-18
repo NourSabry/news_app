@@ -17,11 +17,11 @@ void main() {
   late BookmarksRepositoryImpl repository;
 
   OutboxEntry bookmarkEntry(String articleId, bool bookmarked) => OutboxEntry(
-        idempotencyKey: 'k_$articleId',
-        operation: OutboxOperation.setBookmark,
-        payload: {'articleId': articleId, 'bookmarked': bookmarked},
-        createdAt: DateTime(2026, 9, 14),
-      );
+    idempotencyKey: 'k_$articleId',
+    operation: OutboxOperation.setBookmark,
+    payload: {'articleId': articleId, 'bookmarked': bookmarked},
+    createdAt: DateTime(2026, 9, 14),
+  );
 
   setUp(() {
     api = MockApiClient();
@@ -41,27 +41,35 @@ void main() {
     expect(result, {'a', 'b'});
   });
 
-  test('drops an id the server still has but a pending remove clears', () async {
-    await storage.saveBookmarkIds({'a', 'c'});
-    when(() => api.getBookmarkIds()).thenAnswer((_) async => ['a', 'c']);
-    when(() => outbox.getPending()).thenReturn([bookmarkEntry('c', false)]);
+  test(
+    'drops an id the server still has but a pending remove clears',
+    () async {
+      await storage.saveBookmarkIds({'a', 'c'});
+      when(() => api.getBookmarkIds()).thenAnswer((_) async => ['a', 'c']);
+      when(() => outbox.getPending()).thenReturn([bookmarkEntry('c', false)]);
 
-    final result = await repository.reconcileIds();
+      final result = await repository.reconcileIds();
 
-    expect(result, {'a'});
-  });
+      expect(result, {'a'});
+    },
+  );
 
-  test('pushes an id unknown to both server and outbox back onto the outbox instead of dropping it', () async {
-    await storage.saveBookmarkIds({'a', 'orphan'});
-    when(() => api.getBookmarkIds()).thenAnswer((_) async => ['a']);
-    when(() => outbox.getPending()).thenReturn([]);
+  test(
+    'pushes an id unknown to both server and outbox back onto the outbox instead of dropping it',
+    () async {
+      await storage.saveBookmarkIds({'a', 'orphan'});
+      when(() => api.getBookmarkIds()).thenAnswer((_) async => ['a']);
+      when(() => outbox.getPending()).thenReturn([]);
 
-    final result = await repository.reconcileIds();
+      final result = await repository.reconcileIds();
 
-    expect(result, {'a', 'orphan'});
-    verify(() => outbox.enqueue(
-          OutboxOperation.setBookmark,
-          {'articleId': 'orphan', 'bookmarked': true},
-        )).called(1);
-  });
+      expect(result, {'a', 'orphan'});
+      verify(
+        () => outbox.enqueue(OutboxOperation.setBookmark, {
+          'articleId': 'orphan',
+          'bookmarked': true,
+        }),
+      ).called(1);
+    },
+  );
 }

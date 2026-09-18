@@ -76,7 +76,11 @@ class ServiceLocator {
 
     final outbox = OutboxRepositoryImpl(api, localStorage);
     register<OutboxRepository>(outbox);
-    register<ReactionsRepository>(ReactionsRepositoryImpl(api, outbox, localStorage));
-    register<BookmarksRepository>(BookmarksRepositoryImpl(api, localStorage, outbox));
+    register<ReactionsRepository>(
+      ReactionsRepositoryImpl(api, outbox, localStorage),
+    );
+    register<BookmarksRepository>(
+      BookmarksRepositoryImpl(api, localStorage, outbox),
+    );
   }
 }

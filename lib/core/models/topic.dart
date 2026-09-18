@@ -5,11 +5,7 @@ class Topic extends Equatable {
   final String name;
   final String icon;
 
-  const Topic({
-    required this.id,
-    required this.name,
-    required this.icon,
-  });
+  const Topic({required this.id, required this.name, required this.icon});
 
   factory Topic.fromJson(Map<String, dynamic> json) {
     return Topic(
@@ -20,11 +16,7 @@ class Topic extends Equatable {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'icon': icon,
-    };
+    return {'id': id, 'name': name, 'icon': icon};
   }
 
   @override

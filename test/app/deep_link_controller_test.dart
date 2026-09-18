@@ -36,14 +36,18 @@ void main() {
     // ArticleDetailsScreen (pushed by the routes under test) resolves its
     // own dependencies from ServiceLocator, same as a real feed-card tap.
     final connectivity = MockConnectivity();
-    when(() => connectivity.onConnectivityChanged).thenAnswer((_) => const Stream.empty());
+    when(
+      () => connectivity.onConnectivityChanged,
+    ).thenAnswer((_) => const Stream.empty());
     final images = MockCacheManager();
-    when(() => images.getFileStream(
-          any(),
-          key: any(named: 'key'),
-          headers: any(named: 'headers'),
-          withProgress: any(named: 'withProgress'),
-        )).thenAnswer((_) => Stream.error(Exception('No images in tests')));
+    when(
+      () => images.getFileStream(
+        any(),
+        key: any(named: 'key'),
+        headers: any(named: 'headers'),
+        withProgress: any(named: 'withProgress'),
+      ),
+    ).thenAnswer((_) => Stream.error(Exception('No images in tests')));
     ServiceLocator.instance.reset();
     await ServiceLocator.instance.init(
       storage: LocalStorage.inMemory(),
@@ -62,8 +66,12 @@ void main() {
     when(() => settingsRepository.getThemeMode()).thenReturn(ThemeMode.system);
     when(() => settingsRepository.getSelectedTopicIds()).thenReturn(const []);
     when(() => settingsRepository.getOnboardingCompleted()).thenReturn(true);
-    when(() => settingsRepository.getTopics()).thenAnswer((_) async => const []);
-    when(() => settingsRepository.setOnboardingCompleted(any())).thenAnswer((_) async {});
+    when(
+      () => settingsRepository.getTopics(),
+    ).thenAnswer((_) async => const []);
+    when(
+      () => settingsRepository.setOnboardingCompleted(any()),
+    ).thenAnswer((_) async {});
     settingsCubit = SettingsCubit(settingsRepository);
   });
 
@@ -74,64 +82,77 @@ void main() {
 
   Future<void> pumpHost(WidgetTester tester) async {
     final locator = ServiceLocator.instance;
-    await tester.pumpWidget(MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: settingsCubit),
-        BlocProvider(create: (_) => ReactionsBloc(locator.get())),
-        BlocProvider(create: (_) => BookmarksBloc(locator.get())),
-      ],
-      child: MaterialApp(navigatorKey: navigatorKey, home: const Scaffold(body: Text('home'))),
-    ));
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: settingsCubit),
+          BlocProvider(create: (_) => ReactionsBloc(locator.get())),
+          BlocProvider(create: (_) => BookmarksBloc(locator.get())),
+        ],
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          home: const Scaffold(body: Text('home')),
+        ),
+      ),
+    );
   }
 
-  testWidgets('pushes ArticleDetailsScreen when a valid link arrives and onboarding is already done (warm start)',
-      (tester) async {
-    await pumpHost(tester);
-    final controller = DeepLinkController(
-      navigatorKey: navigatorKey,
-      settings: settingsCubit,
-      appLinks: appLinks,
-    )..start();
-    addTearDown(controller.dispose);
-    await tester.pump();
+  testWidgets(
+    'pushes ArticleDetailsScreen when a valid link arrives and onboarding is already done (warm start)',
+    (tester) async {
+      await pumpHost(tester);
+      final controller = DeepLinkController(
+        navigatorKey: navigatorKey,
+        settings: settingsCubit,
+        appLinks: appLinks,
+      )..start();
+      addTearDown(controller.dispose);
+      await tester.pump();
 
-    linkStream.add(Uri.parse('newsfeed://article/a_flutter_roadmap'));
-    await tester.pumpAndSettle();
+      linkStream.add(Uri.parse('newsfeed://article/a_flutter_roadmap'));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(ArticleDetailsScreen), findsOneWidget);
-  });
+      expect(find.byType(ArticleDetailsScreen), findsOneWidget);
+    },
+  );
 
-  testWidgets('defers a cold-start link until onboarding completes, then pushes it', (tester) async {
-    when(() => settingsRepository.getOnboardingCompleted()).thenReturn(false);
-    settingsCubit = SettingsCubit(settingsRepository);
-    when(() => appLinks.getInitialLink())
-        .thenAnswer((_) async => Uri.parse('newsfeed://article/a_flutter_roadmap'));
+  testWidgets(
+    'defers a cold-start link until onboarding completes, then pushes it',
+    (tester) async {
+      when(() => settingsRepository.getOnboardingCompleted()).thenReturn(false);
+      settingsCubit = SettingsCubit(settingsRepository);
+      when(() => appLinks.getInitialLink()).thenAnswer(
+        (_) async => Uri.parse('newsfeed://article/a_flutter_roadmap'),
+      );
 
-    await pumpHost(tester);
-    final controller = DeepLinkController(
-      navigatorKey: navigatorKey,
-      settings: settingsCubit,
-      appLinks: appLinks,
-    )..start();
-    addTearDown(controller.dispose);
-    await tester.pumpAndSettle();
+      await pumpHost(tester);
+      final controller = DeepLinkController(
+        navigatorKey: navigatorKey,
+        settings: settingsCubit,
+        appLinks: appLinks,
+      )..start();
+      addTearDown(controller.dispose);
+      await tester.pumpAndSettle();
 
-    expect(find.byType(ArticleDetailsScreen), findsNothing);
+      expect(find.byType(ArticleDetailsScreen), findsNothing);
 
-    await settingsCubit.completeOnboarding();
-    // Cubit's stream notifies listeners on a microtask, not synchronously
-    // within emit() — the first pump flushes it. Bounded pumps rather than
-    // pumpAndSettle: ArticleDetailsScreen's article body loads real
-    // (unbundled) network images in this test harness, whose retry/backoff
-    // timers never fully settle.
-    await tester.pump();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      await settingsCubit.completeOnboarding();
+      // Cubit's stream notifies listeners on a microtask, not synchronously
+      // within emit() — the first pump flushes it. Bounded pumps rather than
+      // pumpAndSettle: ArticleDetailsScreen's article body loads real
+      // (unbundled) network images in this test harness, whose retry/backoff
+      // timers never fully settle.
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byType(ArticleDetailsScreen), findsOneWidget);
-  });
+      expect(find.byType(ArticleDetailsScreen), findsOneWidget);
+    },
+  );
 
-  testWidgets('a malformed link falls back to a snackbar, never navigating', (tester) async {
+  testWidgets('a malformed link falls back to a snackbar, never navigating', (
+    tester,
+  ) async {
     await pumpHost(tester);
     final controller = DeepLinkController(
       navigatorKey: navigatorKey,

@@ -15,7 +15,10 @@ class BookmarksBloc extends Bloc<BookmarksEvent, BookmarksState> {
     on<ToggleBookmark>(_onToggle);
   }
 
-  Future<void> _onLoad(LoadBookmarks event, Emitter<BookmarksState> emit) async {
+  Future<void> _onLoad(
+    LoadBookmarks event,
+    Emitter<BookmarksState> emit,
+  ) async {
     final localIds = _repository.getIds();
     emit(state.copyWith(ids: localIds, isLoading: true));
 
@@ -24,10 +27,20 @@ class BookmarksBloc extends Bloc<BookmarksEvent, BookmarksState> {
       _repository.getTopics().orFallback(state.topics),
     ).wait;
     final articles = await _repository.getArticles(ids);
-    emit(state.copyWith(ids: ids, articles: articles, topics: topics, isLoading: false));
+    emit(
+      state.copyWith(
+        ids: ids,
+        articles: articles,
+        topics: topics,
+        isLoading: false,
+      ),
+    );
   }
 
-  Future<void> _onToggle(ToggleBookmark event, Emitter<BookmarksState> emit) async {
+  Future<void> _onToggle(
+    ToggleBookmark event,
+    Emitter<BookmarksState> emit,
+  ) async {
     final article = event.article;
     final bookmarked = !state.contains(article.id);
     final ids = {...state.ids};

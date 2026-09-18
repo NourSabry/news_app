@@ -10,12 +10,14 @@ class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repository;
 
   SettingsCubit(SettingsRepository repository)
-      : _repository = repository,
-        super(SettingsState(
+    : _repository = repository,
+      super(
+        SettingsState(
           themeMode: repository.getThemeMode(),
           selectedTopicIds: repository.getSelectedTopicIds(),
           onboardingCompleted: repository.getOnboardingCompleted(),
-        ));
+        ),
+      );
 
   Future<void> loadTopics() async {
     if (state.topics.isNotEmpty || state.isLoadingTopics) return;

@@ -30,7 +30,9 @@ Stream<T> _switchMap<S, T>(Stream<S> source, Stream<T> Function(S) mapper) {
       outer = source.listen(
         (event) {
           inner?.cancel();
-          inner = mapper(event).listen(controller.add, onError: controller.addError);
+          inner = mapper(
+            event,
+          ).listen(controller.add, onError: controller.addError);
         },
         onError: controller.addError,
         onDone: controller.close,

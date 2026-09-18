@@ -12,7 +12,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
 
   @override
   ThemeMode getThemeMode() {
-    return ThemeMode.values.asNameMap()[_storage.getThemeMode()] ?? ThemeMode.system;
+    return ThemeMode.values.asNameMap()[_storage.getThemeMode()] ??
+        ThemeMode.system;
   }
 
   @override
@@ -22,7 +23,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
   List<String> getSelectedTopicIds() => _storage.getSelectedTopicIds();
 
   @override
-  Future<void> setSelectedTopicIds(List<String> ids) => _storage.setSelectedTopicIds(ids);
+  Future<void> setSelectedTopicIds(List<String> ids) =>
+      _storage.setSelectedTopicIds(ids);
 
   @override
   bool getOnboardingCompleted() => _storage.getOnboardingCompleted();

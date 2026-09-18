@@ -140,7 +140,8 @@ class _SearchScreenState extends State<SearchScreen> {
               FilterChipsRow(
                 filters: state.filters,
                 topicNames: {
-                  for (final id in state.filters.topicIds) id: state.topicNameFor(id),
+                  for (final id in state.filters.topicIds)
+                    id: state.topicNameFor(id),
                 },
                 onChanged: (filters) => _bloc.add(FiltersChanged(filters)),
                 onOpenFilters: () => _openFilterSheet(state),

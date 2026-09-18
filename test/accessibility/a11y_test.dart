@@ -17,10 +17,15 @@ import '../support/app_test_harness.dart';
 
 class MockFeedRepository extends Mock implements FeedRepository {}
 
-class MockConnectivityCubit extends MockCubit<ConnectivityStatus> implements ConnectivityCubit {}
+class MockConnectivityCubit extends MockCubit<ConnectivityStatus>
+    implements ConnectivityCubit {}
 
-FeedResponse _page(List<Article> data) =>
-    FeedResponse(data: data, page: 1, pageSize: data.length, total: data.length);
+FeedResponse _page(List<Article> data) => FeedResponse(
+  data: data,
+  page: 1,
+  pageSize: data.length,
+  total: data.length,
+);
 
 /// every widget-tree state below must satisfy Android tap targets
 /// (≥ 48×48dp), every tappable node must carry a label, and every visible
@@ -47,19 +52,25 @@ Future<FeedBloc> _feedBlocFor({
   return FeedBloc(repository, connectivity);
 }
 
-Future<void> _pumpFeedScreen(WidgetTester tester, FeedBloc bloc, {Brightness brightness = Brightness.light}) async {
-  await tester.pumpWidget(MaterialApp(
-    theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
-    // A Scaffold, not FeedScreen bare: without an opaque background behind
-    // it, textContrastGuideline samples nothing (alpha 0) and reports a
-    // false-positive failure — AppShell always provides one in the real app.
-    home: Scaffold(
-      body: BlocProvider.value(
-        value: bloc,
-        child: FeedScreen(onSearchTap: () {}),
+Future<void> _pumpFeedScreen(
+  WidgetTester tester,
+  FeedBloc bloc, {
+  Brightness brightness = Brightness.light,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
+      // A Scaffold, not FeedScreen bare: without an opaque background behind
+      // it, textContrastGuideline samples nothing (alpha 0) and reports a
+      // false-positive failure — AppShell always provides one in the real app.
+      home: Scaffold(
+        body: BlocProvider.value(
+          value: bloc,
+          child: FeedScreen(onSearchTap: () {}),
+        ),
       ),
     ),
-  ));
+  );
   await tester.pumpAndSettle();
 }
 
@@ -72,7 +83,9 @@ void main() {
 
   tearDown(() => handle.dispose());
 
-  testWidgets('Feed loaded meets tap target, label and contrast guidelines', (tester) async {
+  testWidgets('Feed loaded meets tap target, label and contrast guidelines', (
+    tester,
+  ) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     expect(find.text(flutterTitle), findsOneWidget);
@@ -80,12 +93,17 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Feed empty meets tap target, label and contrast guidelines', (tester) async {
+  testWidgets('Feed empty meets tap target, label and contrast guidelines', (
+    tester,
+  ) async {
     final repository = MockFeedRepository();
     final connectivity = MockConnectivityCubit();
-    when(() => repository.fetchPage(scope: null)).thenAnswer((_) async => _page(const []));
-    final bloc = await _feedBlocFor(repository: repository, connectivity: connectivity)
-      ..add(const LoadFeed());
+    when(
+      () => repository.fetchPage(scope: null),
+    ).thenAnswer((_) async => _page(const []));
+    final bloc =
+        await _feedBlocFor(repository: repository, connectivity: connectivity)
+          ..add(const LoadFeed());
     addTearDown(bloc.close);
 
     await _pumpFeedScreen(tester, bloc);
@@ -95,12 +113,17 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Feed error meets tap target, label and contrast guidelines', (tester) async {
+  testWidgets('Feed error meets tap target, label and contrast guidelines', (
+    tester,
+  ) async {
     final repository = MockFeedRepository();
     final connectivity = MockConnectivityCubit();
-    when(() => repository.fetchPage(scope: null)).thenThrow(Exception('offline'));
-    final bloc = await _feedBlocFor(repository: repository, connectivity: connectivity)
-      ..add(const LoadFeed());
+    when(
+      () => repository.fetchPage(scope: null),
+    ).thenThrow(Exception('offline'));
+    final bloc =
+        await _feedBlocFor(repository: repository, connectivity: connectivity)
+          ..add(const LoadFeed());
     addTearDown(bloc.close);
 
     await _pumpFeedScreen(tester, bloc);
@@ -109,7 +132,9 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Feed offline meets tap target, label and contrast guidelines', (tester) async {
+  testWidgets('Feed offline meets tap target, label and contrast guidelines', (
+    tester,
+  ) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     expect(find.text(flutterTitle), findsOneWidget);
@@ -117,15 +142,23 @@ void main() {
     // Through DevToolsCubit, not just api.simulateOffline directly — that's
     // what actually flips ConnectivityCubit, which is what FeedState.isOffline
     // reads (same as the real Developer Settings toggle).
-    tester.element(find.byType(FeedScreen)).read<DevToolsCubit>().setSimulateOffline(true);
-    tester.element(find.byType(FeedScreen)).read<FeedBloc>().add(const RefreshFeed());
+    tester
+        .element(find.byType(FeedScreen))
+        .read<DevToolsCubit>()
+        .setSimulateOffline(true);
+    tester
+        .element(find.byType(FeedScreen))
+        .read<FeedBloc>()
+        .add(const RefreshFeed());
     await tester.pumpAndSettle();
     expect(find.textContaining("You're offline"), findsOneWidget);
 
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Details meets tap target, label and contrast guidelines', (tester) async {
+  testWidgets('Details meets tap target, label and contrast guidelines', (
+    tester,
+  ) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     await tapAndSettle(tester, find.text(flutterTitle));
@@ -134,7 +167,9 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Saved meets tap target, label and contrast guidelines', (tester) async {
+  testWidgets('Saved meets tap target, label and contrast guidelines', (
+    tester,
+  ) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     // a_flutter_roadmap is bookmarked by default in the mock dataset —
@@ -144,7 +179,10 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    await tapAndSettle(tester, inCard(batteryTitle, find.byIcon(Icons.bookmark_outline_rounded)));
+    await tapAndSettle(
+      tester,
+      inCard(batteryTitle, find.byIcon(Icons.bookmark_outline_rounded)),
+    );
     await tapAndSettle(tester, navItem('Saved'));
     expect(find.byType(SavedScreen), findsOneWidget);
 

@@ -13,7 +13,11 @@ class SyncTile extends StatelessWidget {
         title: const Text('Sync now'),
         subtitle: Text(_subtitle(state)),
         trailing: state.isSyncing
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : null,
         enabled: state.hasPending && !state.isSyncing,
         onTap: context.read<OutboxCubit>().sync,

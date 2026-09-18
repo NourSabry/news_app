@@ -164,7 +164,11 @@ class _FilterSheetState extends State<FilterSheet> {
                     const _SectionLabel('TOPICS'),
                     _Choices(
                       children: [
-                        _choice('All topics', _draft.topicIds.isEmpty, _clearTopics),
+                        _choice(
+                          'All topics',
+                          _draft.topicIds.isEmpty,
+                          _clearTopics,
+                        ),
                         for (final topic in widget.topics)
                           _choice(
                             topic.name,

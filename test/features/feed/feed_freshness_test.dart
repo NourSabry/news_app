@@ -10,12 +10,16 @@ void main() {
   });
 
   test('fresh when synced within the TTL', () {
-    final state = FeedState(lastSyncedAt: now.subtract(const Duration(minutes: 10)));
+    final state = FeedState(
+      lastSyncedAt: now.subtract(const Duration(minutes: 10)),
+    );
     expect(state.freshnessAt(now), FeedFreshness.fresh);
   });
 
   test('stale once the cache is older than the TTL', () {
-    final state = FeedState(lastSyncedAt: now.subtract(const Duration(minutes: 31)));
+    final state = FeedState(
+      lastSyncedAt: now.subtract(const Duration(minutes: 31)),
+    );
     expect(state.freshnessAt(now), FeedFreshness.stale);
   });
 
