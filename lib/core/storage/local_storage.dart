@@ -11,7 +11,7 @@ class LocalStorage {
   final KeyValueStore _outbox;
   final KeyValueStore _meta;
 
-  /// The mock backend's own state (Part 1, B1) — a separate box so
+  /// The mock backend's own state — a separate box so
   /// "Clear cache" in Settings never touches it, only "Reset mock server".
   final KeyValueStore mockServerStore;
 
@@ -22,11 +22,11 @@ class LocalStorage {
     required KeyValueStore outbox,
     required KeyValueStore meta,
     required this.mockServerStore,
-  })  : _feedCache = feedCache,
-        _articles = articles,
-        _bookmarks = bookmarks,
-        _outbox = outbox,
-        _meta = meta;
+  }) : _feedCache = feedCache,
+       _articles = articles,
+       _bookmarks = bookmarks,
+       _outbox = outbox,
+       _meta = meta;
 
   factory LocalStorage.inMemory() {
     return LocalStorage(
@@ -105,7 +105,10 @@ class LocalStorage {
 
   List<OutboxEntry> getOutboxEntries() {
     return _outbox.values
-        .map((raw) => OutboxEntry.fromJson(json.decode(raw) as Map<String, dynamic>))
+        .map(
+          (raw) =>
+              OutboxEntry.fromJson(json.decode(raw) as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -159,7 +162,7 @@ class LocalStorage {
     await _meta.put('recent_searches', json.encode(queries));
   }
 
-  /// Client-side like overrides (B1) — restored on launch so the feed
+  /// Client-side like overrides — restored on launch so the feed
   /// shows the correct liked state before the network answers.
   Map<String, dynamic> getReactionOverrides() {
     final raw = _meta.get('reaction_overrides');
@@ -167,7 +170,10 @@ class LocalStorage {
     return Map<String, dynamic>.from(json.decode(raw) as Map);
   }
 
-  Future<void> saveReactionOverride(String articleId, Map<String, dynamic> override) async {
+  Future<void> saveReactionOverride(
+    String articleId,
+    Map<String, dynamic> override,
+  ) async {
     final all = getReactionOverrides();
     all[articleId] = override;
     await _meta.put('reaction_overrides', json.encode(all));

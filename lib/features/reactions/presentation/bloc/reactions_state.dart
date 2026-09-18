@@ -7,7 +7,7 @@ const _unset = Object();
 class ReactionsState extends Equatable {
   final Map<String, ArticleOverrides> overrides;
 
-  /// Article ids with a toggle currently in flight (G2) — further taps on
+  /// Article ids with a toggle currently in flight — further taps on
   /// the same article are ignored while it's in this set.
   final Set<String> inFlight;
 
@@ -47,7 +47,9 @@ class ReactionsState extends Equatable {
       overrides: nextOverrides,
       inFlight: inFlight,
       notice: identical(notice, _unset) ? this.notice : notice as String?,
-      retryArticle: identical(retryArticle, _unset) ? this.retryArticle : retryArticle as Article?,
+      retryArticle: identical(retryArticle, _unset)
+          ? this.retryArticle
+          : retryArticle as Article?,
     );
   }
 

@@ -1,6 +1,6 @@
 import 'article.dart';
 
-/// The result of fetching a single article (G3, §3.4.2): either the
+/// The result of fetching a single article: either the
 /// article, or a plain-language reason it's gone (`removed_by_publisher`).
 sealed class ArticleResult {
   const ArticleResult();

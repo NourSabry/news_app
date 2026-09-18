@@ -21,7 +21,7 @@ class ToggleLike extends ReactionsEvent {
   List<Object?> get props => [article];
 }
 
-/// Enacts an outbox sync conflict's only resolution — "keep server" (X1) —
+/// Enacts an outbox sync conflict's only resolution — "keep server" —
 /// by writing the server's state straight into overrides, the same as an
 /// online conflict already does inside `_onToggleLike`.
 class ApplyOverride extends ReactionsEvent {

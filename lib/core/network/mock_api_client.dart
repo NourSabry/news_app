@@ -5,7 +5,7 @@ import '../models/models.dart';
 import '../storage/key_value_store.dart';
 import 'api_client.dart';
 
-/// Emulates a real backend (Part 1, B1): its mutable state — bookmark ids
+/// Emulates a real backend: its mutable state — bookmark ids
 /// and per-article likes/isLiked/version — is written through to [_store]
 /// (the `mock_server` Hive box in the real app) so it survives restarts
 /// the same way a real server would.
@@ -33,12 +33,12 @@ class MockApiClient implements ApiClient {
   int cacheTtlMinutes = 30;
   int _refreshCount = 0;
 
-  /// Always unavailable (G3) — a fixed id for deep-link/error-path testing
-  /// (X3), not present in the feed dataset.
+  /// Always unavailable — a fixed id for deep-link/error-path testing
+  ///, not present in the feed dataset.
   static const unavailableArticleId = 'a_removed_story';
 
   /// The real feed article `getFeedUpdates` reports as deleted on the
-  /// second refresh (G3).
+  /// second refresh.
   static const _deletableArticleId = 'a_startup_funding';
   final Set<String> _deletedIds = {};
 
@@ -58,7 +58,9 @@ class MockApiClient implements ApiClient {
   Map<String, dynamic> get _articleState {
     if (_articleStateCache != null) return _articleStateCache!;
     final raw = _store.get(_articleStateKey);
-    _articleStateCache = raw == null ? {} : Map<String, dynamic>.from(json.decode(raw) as Map);
+    _articleStateCache = raw == null
+        ? {}
+        : Map<String, dynamic>.from(json.decode(raw) as Map);
     return _articleStateCache!;
   }
 
@@ -86,13 +88,14 @@ class MockApiClient implements ApiClient {
     'Breaking: Championship Final Rescheduled After Weather Delay',
   ];
 
-
   Future<void> _simulateNetwork() async {
     if (simulateOffline) {
       throw Exception('No internet connection');
     }
     if (latencyMs > 0) {
-      await Future.delayed(Duration(milliseconds: latencyMs + Random().nextInt(200)));
+      await Future.delayed(
+        Duration(milliseconds: latencyMs + Random().nextInt(200)),
+      );
     }
     if (simulateError) {
       throw Exception('Server error');
@@ -103,7 +106,9 @@ class MockApiClient implements ApiClient {
     if (_cachedArticles != null) return _cachedArticles!;
     final jsonString = await rootBundle.loadString('assets/mock/articles.json');
     final jsonList = json.decode(jsonString) as List<dynamic>;
-    final base = jsonList.map((e) => Article.fromJson(e as Map<String, dynamic>)).toList();
+    final base = jsonList
+        .map((e) => Article.fromJson(e as Map<String, dynamic>))
+        .toList();
     _cachedArticles = base.map(_withPersistedState).toList();
     return _cachedArticles!;
   }
@@ -178,7 +183,9 @@ class MockApiClient implements ApiClient {
       filtered = filtered.where((a) => a.source == source).toList();
     }
     if (trendingLabel != null && trendingLabel.isNotEmpty) {
-      filtered = filtered.where((a) => _matchesTrending(a, trendingLabel)).toList();
+      filtered = filtered
+          .where((a) => _matchesTrending(a, trendingLabel))
+          .toList();
     }
 
     filtered.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
@@ -239,18 +246,25 @@ class MockApiClient implements ApiClient {
     final lowerQuery = query.toLowerCase();
 
     final filtered = articles.where((a) {
-      final matchesQuery = a.title.toLowerCase().contains(lowerQuery) ||
+      final matchesQuery =
+          a.title.toLowerCase().contains(lowerQuery) ||
           a.summary.toLowerCase().contains(lowerQuery) ||
           a.tags.any((t) => t.toLowerCase().contains(lowerQuery)) ||
           a.source.toLowerCase().contains(lowerQuery) ||
           a.author.name.toLowerCase().contains(lowerQuery);
       final matchesTopic = topic == null || topic.isEmpty || a.topicId == topic;
-      final matchesSource = source == null || source.isEmpty || a.source == source;
-      final matchesFrom = publishedFrom == null || !a.publishedAt.isBefore(publishedFrom);
-      final matchesTo = publishedTo == null || !a.publishedAt.isAfter(publishedTo);
-      return matchesQuery && matchesTopic && matchesSource && matchesFrom && matchesTo;
-    }).toList()
-      ..sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+      final matchesSource =
+          source == null || source.isEmpty || a.source == source;
+      final matchesFrom =
+          publishedFrom == null || !a.publishedAt.isBefore(publishedFrom);
+      final matchesTo =
+          publishedTo == null || !a.publishedAt.isAfter(publishedTo);
+      return matchesQuery &&
+          matchesTopic &&
+          matchesSource &&
+          matchesFrom &&
+          matchesTo;
+    }).toList()..sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
 
     final startIndex = (page - 1) * pageSize;
     final endIndex = min(startIndex + pageSize, filtered.length);
@@ -314,7 +328,11 @@ class MockApiClient implements ApiClient {
       return {
         'status': 'conflict',
         'articleId': articleId,
-        'serverState': {'isLiked': true, 'likes': 186, 'version': expectedVersion + 2},
+        'serverState': {
+          'isLiked': true,
+          'likes': 186,
+          'version': expectedVersion + 2,
+        },
       };
     }
 
@@ -372,7 +390,7 @@ class MockApiClient implements ApiClient {
     _bumpEngagement(articles, 'a_flutter_roadmap');
 
     // On the second refresh (and not before), the publisher pulls a story
-    // (G3) — reported once, in deletedItems, same as a real delta feed.
+    // — reported once, in deletedItems, same as a real delta feed.
     final deleted = <String>[];
     if (_refreshCount >= 2 && _deletedIds.add(_deletableArticleId)) {
       articles.removeWhere((a) => a.id == _deletableArticleId);
@@ -425,15 +443,20 @@ class MockApiClient implements ApiClient {
     final applied = <String>[];
     final conflicts = <Map<String, dynamic>>[];
     for (final mutation in mutations) {
-      // Only likes conflict (X1) — a fixed server state that's always
+      // Only likes conflict — a fixed server state that's always
       // newer than whatever the client queued, mirroring the online
       // conflict path in toggleReaction above.
-      if (simulateConflict && mutation.operation == OutboxOperation.toggleReaction) {
+      if (simulateConflict &&
+          mutation.operation == OutboxOperation.toggleReaction) {
         final expectedVersion = mutation.payload['expectedVersion'] as int;
         conflicts.add({
           'idempotencyKey': mutation.idempotencyKey,
           'articleId': mutation.payload['articleId'] as String,
-          'serverState': {'isLiked': true, 'likes': 186, 'version': expectedVersion + 2},
+          'serverState': {
+            'isLiked': true,
+            'likes': 186,
+            'version': expectedVersion + 2,
+          },
         });
       } else {
         await _applyMutation(mutation);
@@ -449,9 +472,9 @@ class MockApiClient implements ApiClient {
     };
   }
 
-  /// Server-side outbox version (X1) — persisted in the mock_server box so
+  /// Server-side outbox version — persisted in the mock_server box so
   /// it survives a fresh `MockApiClient` over the same store, same as
-  /// bookmarks/likes (B1).
+  /// bookmarks/likes.
   Future<int> _bumpOutboxVersion() async {
     final current = int.tryParse(_store.get(_outboxVersionKey) ?? '') ?? 0;
     final next = current + 1;

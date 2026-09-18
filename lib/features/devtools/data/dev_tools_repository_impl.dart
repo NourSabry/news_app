@@ -6,7 +6,7 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
 
   DevToolsRepositoryImpl(this._api);
 
-  /// Client-side polling cadence (X2) — not mock-server behaviour, so
+  /// Client-side polling cadence — not mock-server behaviour, so
   /// unlike the flags above it isn't backed by [_api]; fine to reset to
   /// the default on a fresh app start.
   int _backgroundTickSeconds = 45;
@@ -42,7 +42,8 @@ class DevToolsRepositoryImpl implements DevToolsRepository {
   void setSimulateConflict(bool value) => _api.simulateConflict = value;
 
   @override
-  void setSimulateReactionFailure(bool value) => _api.simulateReactionFailure = value;
+  void setSimulateReactionFailure(bool value) =>
+      _api.simulateReactionFailure = value;
 
   @override
   void setLatencyMs(int value) => _api.latencyMs = value;

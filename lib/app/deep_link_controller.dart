@@ -6,7 +6,7 @@ import '../features/details/presentation/article_details_screen.dart';
 import '../features/settings/presentation/cubit/settings_cubit.dart';
 import 'app_router.dart';
 
-/// Deep links (X3) — `newsfeed://article/{id}` and
+/// Deep links — `newsfeed://article/{id}` and
 /// `https://newsfeed.app/article/{id}`.
 ///
 /// Cold start with onboarding not yet completed: the route is held until
@@ -31,7 +31,9 @@ class DeepLinkController {
 
   Future<void> start() async {
     _settingsSubscription = settings.stream.listen(_onSettingsChanged);
-    _linkSubscription = _appLinks.uriLinkStream.listen((uri) => _handle(uri.toString()));
+    _linkSubscription = _appLinks.uriLinkStream.listen(
+      (uri) => _handle(uri.toString()),
+    );
     final initial = await _appLinks.getInitialLink();
     if (initial != null) _handle(initial.toString());
   }
@@ -66,7 +68,11 @@ class DeepLinkController {
     if (navigator == null) return;
     switch (route) {
       case ArticleRoute(:final articleId):
-        navigator.push(MaterialPageRoute(builder: (_) => ArticleDetailsScreen.byId(articleId)));
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => ArticleDetailsScreen.byId(articleId),
+          ),
+        );
     }
   }
 

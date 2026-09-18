@@ -22,7 +22,7 @@ class Article extends Equatable {
   final List<String>? related;
   final int version;
 
-  /// True when the publisher removed this story (G3). Set locally when a
+  /// True when the publisher removed this story. Set locally when a
   /// fetch resolves to [ArticleUnavailable] — never round-trips through
   /// the API/cache JSON, since it isn't the article's own data.
   final bool isUnavailable;
@@ -102,9 +102,13 @@ class Article extends Equatable {
       author: Author.fromJson(json['author'] as Map<String, dynamic>),
       topicId: json['topicId'] as String,
       publishedAt: DateTime.parse(json['publishedAt'] as String),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
       image: json['image'] as String?,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+          [],
       likes: (json['likes'] as num?)?.toInt() ?? 0,
       comments: (json['comments'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
@@ -113,7 +117,9 @@ class Article extends Equatable {
       body: (json['body'] as List<dynamic>?)
           ?.map((e) => ContentBlock.fromJson(e as Map<String, dynamic>))
           .toList(),
-      related: (json['related'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      related: (json['related'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       version: (json['version'] as num?)?.toInt() ?? 1,
     );
   }
@@ -142,5 +148,12 @@ class Article extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, version, isLiked, isBookmarked, likes, isUnavailable];
+  List<Object?> get props => [
+    id,
+    version,
+    isLiked,
+    isBookmarked,
+    likes,
+    isUnavailable,
+  ];
 }

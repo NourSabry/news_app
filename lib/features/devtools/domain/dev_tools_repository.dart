@@ -1,4 +1,4 @@
-/// Debug-only controls for demoing offline/error/conflict paths (B3, G2).
+/// Debug-only controls for demoing offline/error/conflict paths.
 /// The presentation layer never touches `MockApiClient` directly — only
 /// this repository's implementation does.
 abstract class DevToolsRepository {
@@ -9,7 +9,7 @@ abstract class DevToolsRepository {
   int get latencyMs;
   int get cacheTtlMinutes;
 
-  /// Live-feed background poll interval in seconds (X2), default 45.
+  /// Live-feed background poll interval in seconds, default 45.
   int get backgroundTickSeconds;
 
   void setSimulateOffline(bool value);

@@ -10,8 +10,8 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   bool _simulatedOffline = false;
 
   ConnectivityCubit({Connectivity? connectivity})
-      : _connectivity = connectivity ?? Connectivity(),
-        super(ConnectivityStatus.connected) {
+    : _connectivity = connectivity ?? Connectivity(),
+      super(ConnectivityStatus.connected) {
     _init();
   }
 
@@ -22,15 +22,21 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   void _onChanged(List<ConnectivityResult> results) {
     if (_simulatedOffline) return;
     final isConnected = results.any((r) => r != ConnectivityResult.none);
-    emit(isConnected ? ConnectivityStatus.connected : ConnectivityStatus.disconnected);
+    emit(
+      isConnected
+          ? ConnectivityStatus.connected
+          : ConnectivityStatus.disconnected,
+    );
   }
 
-  /// Drives the same offline state a real connectivity drop would (B3) —
+  /// Drives the same offline state a real connectivity drop would —
   /// Developer settings' "Simulate offline" toggle, not a real network
   /// change. Real connectivity changes are ignored while this is on.
   void setSimulatedOffline(bool offline) {
     _simulatedOffline = offline;
-    emit(offline ? ConnectivityStatus.disconnected : ConnectivityStatus.connected);
+    emit(
+      offline ? ConnectivityStatus.disconnected : ConnectivityStatus.connected,
+    );
   }
 
   bool get isConnected => state == ConnectivityStatus.connected;
