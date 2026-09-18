@@ -98,6 +98,79 @@ sealed class AppTheme {
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         ),
       ),
+      // The range picker is the one stock Material surface a reader can
+      // still reach (Explore › Filters › Custom). Styled to the same
+      // language as the sheets: ink header, Fraunces headline, pill days.
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: p.background,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        ),
+        headerBackgroundColor: p.ink,
+        headerForegroundColor: p.background,
+        headerHeadlineStyle: AppTextStyles.headlineM,
+        headerHelpStyle: AppTextStyles.overline,
+        rangePickerBackgroundColor: p.background,
+        rangePickerSurfaceTintColor: Colors.transparent,
+        rangePickerElevation: 0,
+        rangePickerShape: const RoundedRectangleBorder(),
+        rangePickerHeaderBackgroundColor: p.ink,
+        rangePickerHeaderForegroundColor: p.background,
+        rangePickerHeaderHeadlineStyle: AppTextStyles.headlineM,
+        rangePickerHeaderHelpStyle: AppTextStyles.overline,
+        rangeSelectionBackgroundColor: p.accentSoft,
+        rangeSelectionOverlayColor: WidgetStatePropertyAll(
+          p.accent.withValues(alpha: 0.08),
+        ),
+        dividerColor: Colors.transparent,
+        weekdayStyle: AppTextStyles.overline.copyWith(color: p.inkMuted),
+        dayStyle: AppTextStyles.bodyS,
+        dayShape: const WidgetStatePropertyAll(StadiumBorder()),
+        dayForegroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? p.background
+              : states.contains(WidgetState.disabled)
+              ? p.inkFaint
+              : p.ink,
+        ),
+        dayBackgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? p.ink
+              : Colors.transparent,
+        ),
+        dayOverlayColor: WidgetStatePropertyAll(p.ink.withValues(alpha: 0.06)),
+        todayForegroundColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? p.background : p.accent,
+        ),
+        todayBackgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? p.ink
+              : Colors.transparent,
+        ),
+        todayBorder: BorderSide(color: p.accent, width: 1.5),
+        yearStyle: AppTextStyles.bodyS,
+        yearShape: const WidgetStatePropertyAll(StadiumBorder()),
+        yearForegroundColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? p.background : p.ink,
+        ),
+        yearBackgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? p.ink
+              : Colors.transparent,
+        ),
+        confirmButtonStyle: TextButton.styleFrom(
+          foregroundColor: p.ink,
+          textStyle: AppTextStyles.label,
+        ),
+        cancelButtonStyle: TextButton.styleFrom(
+          foregroundColor: p.inkMuted,
+          textStyle: AppTextStyles.label,
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: p.surface,
