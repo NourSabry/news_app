@@ -187,6 +187,47 @@ void main() {
   );
 
   blocTest<SearchBloc, SearchState>(
+    'applying a topic filter with no query browses that topic',
+    build: () {
+      when(() => repository.search(
+            query: '',
+            filters: const SearchFilters(topicIds: {'t_science'}),
+          )).thenAnswer((_) async => page([article('s')]));
+      return SearchBloc(repository);
+    },
+    act: (bloc) => bloc.add(const FiltersChanged(SearchFilters(topicIds: {'t_science'}))),
+    expect: () => [
+      const SearchState(filters: SearchFilters(topicIds: {'t_science'})),
+      const SearchState(
+        filters: SearchFilters(topicIds: {'t_science'}),
+        hasSearched: true,
+        isLoading: true,
+      ),
+      SearchState(
+        filters: const SearchFilters(topicIds: {'t_science'}),
+        hasSearched: true,
+        results: [article('s')],
+      ),
+    ],
+  );
+
+  blocTest<SearchBloc, SearchState>(
+    'removing the last filter from a browse drops the chip and returns to the landing',
+    build: () => SearchBloc(repository),
+    seed: () => SearchState(
+      filters: const SearchFilters(topicIds: {'t_science'}),
+      hasSearched: true,
+      results: [article('s')],
+    ),
+    act: (bloc) => bloc.add(const FiltersChanged(SearchFilters.none)),
+    verify: (bloc) {
+      expect(bloc.state.filters, SearchFilters.none);
+      expect(bloc.state.hasSearched, isFalse);
+      expect(bloc.state.results, isEmpty);
+    },
+  );
+
+  blocTest<SearchBloc, SearchState>(
     'an explicit filter set on SubmitSearch replaces a previously set topic',
     build: () {
       when(() => repository.search(query: 'x', filters: SearchFilters.none))

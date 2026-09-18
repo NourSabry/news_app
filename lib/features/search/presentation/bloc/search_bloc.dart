@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/event_transformers.dart';
 import '../../../../core/utils/future_extensions.dart';
+import '../../domain/search_filters.dart';
 import '../../domain/search_repository.dart';
 import 'search_event.dart';
 import 'search_state.dart';
@@ -155,10 +156,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     // Removing the last filter from a browse (no query) goes back to the
     // landing rather than searching for everything.
     if (state.query.isEmpty && event.filters.isEmpty) {
+      emit(state.copyWith(filters: SearchFilters.none));
       return _onClear(const ClearSearch(), emit);
     }
     emit(state.copyWith(filters: event.filters));
-    if (state.hasSearched) await _search(emit);
+    // Filters with no query are a browse in their own right; filters on a
+    // query that hasn't been submitted yet just wait for it.
+    if (state.hasSearched || state.query.isEmpty) await _search(emit);
   }
 
   Future<void> _onSourcesRequested(
