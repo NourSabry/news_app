@@ -41,17 +41,38 @@ class SearchRepositoryImpl implements SearchRepository {
   }
 
   @override
-  Future<List<String>> getSuggestions(String query) => _api.getSuggestions(query);
+  Future<List<String>> getSuggestions(String query) =>
+      _api.getSuggestions(query);
 
   @override
   Future<List<Topic>> getTopics() => _api.getTopics();
+
+  @override
+  Future<Map<String, String>> getSectionCovers() async {
+    final topics = await _api.getTopics();
+    final covers = <String, String>{};
+    await Future.wait(
+      topics.map((topic) async {
+        try {
+          final page = await _api.getFeed(topics: [topic.id], pageSize: 1);
+          final image = page.data.isEmpty ? null : page.data.first.image;
+          if (image != null && image.isNotEmpty) covers[topic.id] = image;
+        } catch (_) {
+          // The tile simply renders without a photo.
+        }
+      }),
+    );
+    return covers;
+  }
 
   @override
   List<String> getRecentSearches() => _storage.getRecentSearches();
 
   @override
   Future<void> addRecentSearch(String query) {
-    final others = getRecentSearches().where((q) => q.toLowerCase() != query.toLowerCase());
+    final others = getRecentSearches().where(
+      (q) => q.toLowerCase() != query.toLowerCase(),
+    );
     final updated = [query, ...others].take(maxRecentSearches).toList();
     return _storage.setRecentSearches(updated);
   }

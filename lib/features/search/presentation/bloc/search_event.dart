@@ -27,7 +27,7 @@ class SubmitSearch extends SearchEvent {
   /// Null keeps whatever filters are already set (Explore typing/tapping a
   /// suggestion); an explicit value — typically [SearchFilters.none] —
   /// replaces them. A query must never silently inherit filters left over
-  /// from a different entry point (B2).
+  /// from a different entry point.
   final SearchFilters? filters;
 
   const SubmitSearch(this.query, {this.filters});
@@ -41,7 +41,7 @@ class LoadMoreResults extends SearchEvent {
 }
 
 /// Applies a full filter set from the filter sheet or a removable chip
-/// (G1). Re-runs the current search if one has been submitted, keeping
+///. Re-runs the current search if one has been submitted, keeping
 /// the query.
 class FiltersChanged extends SearchEvent {
   final SearchFilters filters;

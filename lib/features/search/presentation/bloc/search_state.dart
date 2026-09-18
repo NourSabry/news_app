@@ -11,6 +11,7 @@ class SearchState extends Equatable {
   final String? nextCursor;
   final SearchFilters filters;
   final List<Topic> topics;
+  final Map<String, String> sectionCovers;
   final List<String> sources;
   final bool isLoadingSources;
   final List<String> recentSearches;
@@ -26,6 +27,7 @@ class SearchState extends Equatable {
     this.nextCursor,
     this.filters = SearchFilters.none,
     this.topics = const [],
+    this.sectionCovers = const {},
     this.sources = const [],
     this.isLoadingSources = false,
     this.recentSearches = const [],
@@ -36,7 +38,8 @@ class SearchState extends Equatable {
   });
 
   bool get hasMore => nextCursor != null;
-  bool get canLoadMore => hasSearched && hasMore && !isLoading && !isLoadingMore;
+  bool get canLoadMore =>
+      hasSearched && hasMore && !isLoading && !isLoadingMore;
 
   String topicNameFor(String topicId) => topics.nameFor(topicId);
 
@@ -47,6 +50,7 @@ class SearchState extends Equatable {
     Object? nextCursor = _unset,
     SearchFilters? filters,
     List<Topic>? topics,
+    Map<String, String>? sectionCovers,
     List<String>? sources,
     bool? isLoadingSources,
     List<String>? recentSearches,
@@ -59,33 +63,39 @@ class SearchState extends Equatable {
       query: query ?? this.query,
       suggestions: suggestions ?? this.suggestions,
       results: results ?? this.results,
-      nextCursor: identical(nextCursor, _unset) ? this.nextCursor : nextCursor as String?,
+      nextCursor: identical(nextCursor, _unset)
+          ? this.nextCursor
+          : nextCursor as String?,
       filters: filters ?? this.filters,
       topics: topics ?? this.topics,
+      sectionCovers: sectionCovers ?? this.sectionCovers,
       sources: sources ?? this.sources,
       isLoadingSources: isLoadingSources ?? this.isLoadingSources,
       recentSearches: recentSearches ?? this.recentSearches,
       hasSearched: hasSearched ?? this.hasSearched,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      errorMessage: identical(errorMessage, _unset) ? this.errorMessage : errorMessage as String?,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 
   @override
   List<Object?> get props => [
-        query,
-        suggestions,
-        results,
-        nextCursor,
-        filters,
-        topics,
-        sources,
-        isLoadingSources,
-        recentSearches,
-        hasSearched,
-        isLoading,
-        isLoadingMore,
-        errorMessage,
-      ];
+    query,
+    suggestions,
+    results,
+    nextCursor,
+    filters,
+    topics,
+    sectionCovers,
+    sources,
+    isLoadingSources,
+    recentSearches,
+    hasSearched,
+    isLoading,
+    isLoadingMore,
+    errorMessage,
+  ];
 }

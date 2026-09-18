@@ -12,6 +12,9 @@ abstract class SearchRepository {
 
   Future<List<Topic>> getTopics();
 
+  /// One representative image per topic id, for the Explore browse grid.
+  Future<Map<String, String>> getSectionCovers();
+
   /// Sources available for a topic (or all sources when [topicId] is
   /// null), for the filter sheet's Source section.
   Future<List<String>> getSources({String? topicId});

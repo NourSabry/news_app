@@ -10,43 +10,61 @@ const _datePresetChipLabels = {
   DateRangePreset.custom: 'Custom range',
 };
 
-/// Applied filters as removable ink-outlined pills (Part 6.7).
+/// The filter button plus any applied filters as removable pills, in one
+/// horizontally scrolling row.
 class FilterChipsRow extends StatelessWidget {
   final SearchFilters filters;
   final String topicName;
   final ValueChanged<SearchFilters> onChanged;
+  final VoidCallback onOpenFilters;
 
   const FilterChipsRow({
     super.key,
     required this.filters,
     required this.topicName,
     required this.onChanged,
+    required this.onOpenFilters,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (filters.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, 0, AppSpacing.gutter, AppSpacing.sm),
-      child: Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
+    return SizedBox(
+      height: 38,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: AppSpacing.screenPadding,
         children: [
-          if (filters.topicId != null && topicName.isNotEmpty)
+          EditionPill(
+            label: filters.isEmpty
+                ? 'Filters'
+                : 'Filters · ${filters.activeCount}',
+            leadingIcon: Icons.tune_rounded,
+            variant: filters.isEmpty
+                ? EditionPillVariant.tonal
+                : EditionPillVariant.filled,
+            onTap: onOpenFilters,
+          ),
+          if (filters.topicId != null && topicName.isNotEmpty) ...[
+            const SizedBox(width: AppSpacing.sm),
             EditionPill(
               label: topicName,
               onRemove: () => onChanged(filters.copyWith(topicId: null)),
             ),
-          if (filters.source != null)
+          ],
+          if (filters.source != null) ...[
+            const SizedBox(width: AppSpacing.sm),
             EditionPill(
               label: filters.source!,
               onRemove: () => onChanged(filters.copyWith(source: null)),
             ),
-          if (filters.date != null)
+          ],
+          if (filters.date != null) ...[
+            const SizedBox(width: AppSpacing.sm),
             EditionPill(
               label: _datePresetChipLabels[filters.date!.preset]!,
               onRemove: () => onChanged(filters.copyWith(date: null)),
             ),
+          ],
         ],
       ),
     );

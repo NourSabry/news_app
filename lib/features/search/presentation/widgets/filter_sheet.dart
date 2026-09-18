@@ -4,7 +4,7 @@ import '../../../../core/models/models.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/hairline.dart';
+import '../../../../core/widgets/edition_pill.dart';
 import '../../../../core/widgets/ink_button.dart';
 import '../../domain/search_filters.dart';
 import '../bloc/search_bloc.dart';
@@ -16,9 +16,8 @@ const _datePresetLabels = {
   DateRangePreset.custom: 'Custom',
 };
 
-/// The filter bottom sheet (G1): Topic, Source (scoped to the chosen
-/// topic) and Date sections, sheeted on `paperRaised` with a hairline top
-/// border.
+/// The filter sheet: Topic, Source (scoped to the chosen topic) and Date,
+/// each a wrap of pills. Applied on dismiss with the Apply button.
 class FilterSheet extends StatefulWidget {
   final SearchFilters initial;
   final List<Topic> topics;
@@ -60,9 +59,11 @@ class _FilterSheetState extends State<FilterSheet> {
     context.read<SearchBloc>().add(SourcesRequested(topicId));
   }
 
-  void _setSource(String? source) => setState(() => _draft = _draft.copyWith(source: source));
+  void _setSource(String? source) =>
+      setState(() => _draft = _draft.copyWith(source: source));
 
-  void _setDate(DateRange? date) => setState(() => _draft = _draft.copyWith(date: date));
+  void _setDate(DateRange? date) =>
+      setState(() => _draft = _draft.copyWith(date: date));
 
   Future<void> _pickCustomRange() async {
     final now = DateTime.now();
@@ -74,95 +75,150 @@ class _FilterSheetState extends State<FilterSheet> {
           ? DateTimeRange(start: _draft.date!.from, end: _draft.date!.to)
           : null,
     );
-    if (picked != null) _setDate(DateRange.custom(from: picked.start, to: picked.end));
+    if (picked != null) {
+      _setDate(DateRange.custom(from: picked.start, to: picked.end));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final paperRaised = isLight ? AppColors.lightPaperRaised : AppColors.darkPaperRaised;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
-    final sources = context.select<SearchBloc, List<String>>((bloc) => bloc.state.sources);
+    final p = context.palette;
+    final sources = context.select<SearchBloc, List<String>>(
+      (bloc) => bloc.state.sources,
+    );
 
-    return SafeArea(
-      child: Container(
-        decoration: BoxDecoration(color: paperRaised),
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+    return Container(
+      decoration: BoxDecoration(
+        color: p.background,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusXl),
+        ),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+      ),
+      child: SafeArea(
+        top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Hairline(),
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: p.surfaceHigh,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.lg, AppSpacing.gutter, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                AppSpacing.lg,
+                AppSpacing.gutter,
+                AppSpacing.sm,
+              ),
               child: Row(
                 children: [
-                  Expanded(child: Text('Filters', style: AppTextStyles.headlineM.copyWith(color: ink))),
-                  InkWell(
-                    onTap: () => setState(() => _draft = SearchFilters.none),
-                    child: Text('Clear all', style: AppTextStyles.label.copyWith(color: inkMuted)),
+                  Expanded(
+                    child: Text(
+                      'Filters',
+                      style: AppTextStyles.headlineM.copyWith(color: p.ink),
+                    ),
+                  ),
+                  Semantics(
+                    button: true,
+                    container: true,
+                    excludeSemantics: true,
+                    label: 'Clear all filters',
+                    child: InkWell(
+                      onTap: () => setState(() => _draft = SearchFilters.none),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        child: Text(
+                          'Clear all',
+                          style: AppTextStyles.label.copyWith(
+                            color: p.inkMuted,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.gutter,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const _SectionLabel('TOPIC'),
-                    _ChoiceRow(
-                      label: 'All topics',
-                      selected: _draft.topicId == null,
-                      onTap: () => _setTopic(null),
+                    _Choices(
+                      children: [
+                        _choice(
+                          'All topics',
+                          _draft.topicId == null,
+                          () => _setTopic(null),
+                        ),
+                        for (final topic in widget.topics)
+                          _choice(
+                            topic.name,
+                            _draft.topicId == topic.id,
+                            () => _setTopic(topic.id),
+                          ),
+                      ],
                     ),
-                    for (final topic in widget.topics)
-                      _ChoiceRow(
-                        label: topic.name,
-                        selected: _draft.topicId == topic.id,
-                        onTap: () => _setTopic(topic.id),
-                      ),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.xl),
                     const _SectionLabel('SOURCE'),
-                    _ChoiceRow(
-                      label: 'All sources',
-                      selected: _draft.source == null,
-                      onTap: () => _setSource(null),
+                    _Choices(
+                      children: [
+                        _choice(
+                          'All sources',
+                          _draft.source == null,
+                          () => _setSource(null),
+                        ),
+                        for (final source in sources)
+                          _choice(
+                            source,
+                            _draft.source == source,
+                            () => _setSource(source),
+                          ),
+                      ],
                     ),
-                    for (final source in sources)
-                      _ChoiceRow(
-                        label: source,
-                        selected: _draft.source == source,
-                        onTap: () => _setSource(source),
-                      ),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.xl),
                     const _SectionLabel('DATE'),
-                    _ChoiceRow(
-                      label: 'Any time',
-                      selected: _draft.date == null,
-                      onTap: () => _setDate(null),
-                    ),
-                    _ChoiceRow(
-                      label: _datePresetLabels[DateRangePreset.today]!,
-                      selected: _draft.date?.preset == DateRangePreset.today,
-                      onTap: () => _setDate(DateRange.today()),
-                    ),
-                    _ChoiceRow(
-                      label: _datePresetLabels[DateRangePreset.past7Days]!,
-                      selected: _draft.date?.preset == DateRangePreset.past7Days,
-                      onTap: () => _setDate(DateRange.past7Days()),
-                    ),
-                    _ChoiceRow(
-                      label: _datePresetLabels[DateRangePreset.past30Days]!,
-                      selected: _draft.date?.preset == DateRangePreset.past30Days,
-                      onTap: () => _setDate(DateRange.past30Days()),
-                    ),
-                    _ChoiceRow(
-                      label: _datePresetLabels[DateRangePreset.custom]!,
-                      selected: _draft.date?.preset == DateRangePreset.custom,
-                      onTap: _pickCustomRange,
+                    _Choices(
+                      children: [
+                        _choice(
+                          'Any time',
+                          _draft.date == null,
+                          () => _setDate(null),
+                        ),
+                        _choice(
+                          _datePresetLabels[DateRangePreset.today]!,
+                          _draft.date?.preset == DateRangePreset.today,
+                          () => _setDate(DateRange.today()),
+                        ),
+                        _choice(
+                          _datePresetLabels[DateRangePreset.past7Days]!,
+                          _draft.date?.preset == DateRangePreset.past7Days,
+                          () => _setDate(DateRange.past7Days()),
+                        ),
+                        _choice(
+                          _datePresetLabels[DateRangePreset.past30Days]!,
+                          _draft.date?.preset == DateRangePreset.past30Days,
+                          () => _setDate(DateRange.past30Days()),
+                        ),
+                        _choice(
+                          _datePresetLabels[DateRangePreset.custom]!,
+                          _draft.date?.preset == DateRangePreset.custom,
+                          _pickCustomRange,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.xl),
                   ],
@@ -170,15 +226,43 @@ class _FilterSheetState extends State<FilterSheet> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.md, AppSpacing.gutter, AppSpacing.lg),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                AppSpacing.md,
+                AppSpacing.gutter,
+                AppSpacing.lg,
+              ),
               child: InkButton(
-                label: 'Apply',
+                label: 'Show results',
                 onPressed: () => Navigator.of(context).pop(_draft),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _choice(String label, bool selected, VoidCallback onTap) {
+    return EditionPill(
+      label: label,
+      variant: selected ? EditionPillVariant.filled : EditionPillVariant.tonal,
+      onTap: onTap,
+    );
+  }
+}
+
+class _Choices extends StatelessWidget {
+  final List<Widget> children;
+
+  const _Choices({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: children,
     );
   }
 }
@@ -190,46 +274,11 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Text(text, style: AppTextStyles.overline.copyWith(color: inkMuted)),
-    );
-  }
-}
-
-class _ChoiceRow extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _ChoiceRow({required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final red = isLight ? AppColors.lightRed : AppColors.darkRed;
-
-    return Semantics(
-      button: true,
-      container: true,
-      excludeSemantics: true,
-      selected: selected,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              Expanded(child: Text(label, style: AppTextStyles.body.copyWith(color: ink))),
-              if (selected) Icon(Icons.check_rounded, size: 18, color: red),
-            ],
-          ),
-        ),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Text(
+        text,
+        style: AppTextStyles.overline.copyWith(color: context.palette.inkMuted),
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
-/// The Explore search field (Part 6.7): `paperRaised`, hairline border,
-/// red caret; the border turns `ink` when focused (via `AppTheme`).
+/// The Explore search field: a tall soft-surface input, no border.
 class SearchField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode? focusNode;
@@ -21,22 +21,24 @@ class SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final red = brightness == Brightness.light ? AppColors.lightRed : AppColors.darkRed;
-    final inkFaint = brightness == Brightness.light ? AppColors.lightInkFaint : AppColors.darkInkFaint;
+    final p = context.palette;
 
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) => TextField(
         controller: controller,
         focusNode: focusNode,
-        cursorColor: red,
+        cursorColor: p.accent,
+        style: AppTextStyles.body.copyWith(color: p.ink),
         textInputAction: TextInputAction.search,
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(
           hintText: 'Search stories, topics, sources',
-          prefixIcon: Icon(Icons.search_rounded, color: inkFaint),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: Icon(Icons.search_rounded, color: p.inkMuted),
+          ),
           suffixIcon: controller.text.isEmpty
               ? null
               : Semantics(
@@ -45,7 +47,7 @@ class SearchField extends StatelessWidget {
                   excludeSemantics: true,
                   label: 'Clear search',
                   child: IconButton(
-                    icon: Icon(Icons.close_rounded, color: inkFaint),
+                    icon: Icon(Icons.cancel_rounded, color: p.inkFaint),
                     onPressed: onClear,
                   ),
                 ),
