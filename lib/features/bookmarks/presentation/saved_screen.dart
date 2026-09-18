@@ -129,6 +129,7 @@ class SavedScreen extends StatelessWidget {
                       article: article,
                       topicName: entry.key,
                       variant: ArticleCardVariant.compact,
+                      showSectionTag: false,
                       onTap: () => _openArticle(context, article),
                     ),
                   ),

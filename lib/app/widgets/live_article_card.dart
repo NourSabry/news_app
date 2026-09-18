@@ -8,6 +8,7 @@ class LiveArticleCard extends StatelessWidget {
   final String topicName;
   final ArticleCardVariant variant;
   final VoidCallback? onTap;
+  final bool showSectionTag;
 
   const LiveArticleCard({
     super.key,
@@ -15,6 +16,7 @@ class LiveArticleCard extends StatelessWidget {
     this.topicName = '',
     this.variant = ArticleCardVariant.standard,
     this.onTap,
+    this.showSectionTag = true,
   });
 
   @override
@@ -25,6 +27,7 @@ class LiveArticleCard extends StatelessWidget {
       article: live,
       topicName: topicName,
       variant: variant,
+      showSectionTag: showSectionTag,
       onTap: onTap,
       onLike: isLikeInFlight ? null : () => context.toggleLike(live),
       onBookmark: () => context.toggleBookmark(live),

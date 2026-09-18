@@ -21,6 +21,9 @@ class EditionArticleCard extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onBookmark;
 
+  /// Hide the section tag when the surrounding list already groups by it.
+  final bool showSectionTag;
+
   const EditionArticleCard({
     super.key,
     required this.article,
@@ -29,6 +32,7 @@ class EditionArticleCard extends StatelessWidget {
     this.onTap,
     this.onLike,
     this.onBookmark,
+    this.showSectionTag = true,
   });
 
   bool get _hasImage => article.image != null && article.image!.isNotEmpty;
@@ -68,13 +72,13 @@ class EditionArticleCard extends StatelessWidget {
             ),
             ArticleCardVariant.standard => _StandardLayout(
               article: article,
-              topicName: topicName,
+              topicName: showSectionTag ? topicName : '',
               onLike: onLike,
               onBookmark: onBookmark,
             ),
             ArticleCardVariant.compact => _CompactLayout(
               article: article,
-              topicName: topicName,
+              topicName: showSectionTag ? topicName : '',
               stacked: textScale >= 1.5,
               onLike: onLike,
               onBookmark: onBookmark,
