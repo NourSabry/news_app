@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// A queued mutation the server rejected on sync because its own state had
-/// moved on (X1). There's no "force" in the sync response, so the only
+/// moved on. There's no "force" in the sync response, so the only
 /// resolution is to keep the server's value — this just carries what to
 /// show and what to apply.
 class OutboxConflict extends Equatable {
@@ -20,5 +20,11 @@ class OutboxConflict extends Equatable {
   });
 
   @override
-  List<Object?> get props => [articleId, articleTitle, serverIsLiked, serverLikes, serverVersion];
+  List<Object?> get props => [
+    articleId,
+    articleTitle,
+    serverIsLiked,
+    serverLikes,
+    serverVersion,
+  ];
 }

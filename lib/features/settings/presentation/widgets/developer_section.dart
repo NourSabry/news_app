@@ -4,7 +4,7 @@ import '../../../../core/utils/snack_bar.dart';
 import '../../../devtools/presentation/cubit/dev_tools_cubit.dart';
 import '../../../outbox/presentation/cubit/outbox_cubit.dart';
 
-/// Debug-only demo controls (B3), visible only in `kDebugMode`. Never
+/// Debug-only demo controls, visible only in `kDebugMode`. Never
 /// reaches into `MockApiClient` directly — everything goes through
 /// [DevToolsCubit].
 class DeveloperSection extends StatelessWidget {

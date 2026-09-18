@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/snack_bar.dart';
+import '../../../core/widgets/icon_circle_button.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'cubit/settings_cubit.dart';
 import 'widgets/developer_section.dart';
@@ -17,9 +18,9 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   static Future<void> open(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
   }
 
   @override
@@ -44,8 +45,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(action)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(action),
+          ),
         ],
       ),
     );
@@ -74,43 +81,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<SettingsCubit>().state;
-    final brightness = Theme.of(context).brightness;
-    final ink = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
+    final p = context.palette;
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(bottom: AppSpacing.xxxl),
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.lg, AppSpacing.gutter, 0),
-              child: Row(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                AppSpacing.sm,
+                AppSpacing.gutter,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Semantics(
-                    button: true,
-                    container: true,
-                    excludeSemantics: true,
+                  IconCircleButton(
+                    icon: Icons.arrow_back_rounded,
                     label: 'Back',
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back_rounded, color: ink),
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
+                    onTap: () => Navigator.of(context).maybePop(),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text('Settings', style: AppTextStyles.displayL.copyWith(color: ink)),
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    'Settings',
+                    style: AppTextStyles.displayXL.copyWith(color: p.ink),
+                  ),
                 ],
               ),
             ),
             SettingsSection(
-              title: 'Edition',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppSpacing.md),
-                  ThemeModeSelector(value: state.themeMode, onChanged: _cubit.setThemeMode),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildTopics(state),
-                ],
+              title: 'Appearance',
+              child: ThemeModeSelector(
+                value: state.themeMode,
+                onChanged: _cubit.setThemeMode,
+              ),
+            ),
+            SettingsSection(
+              title: 'Sections',
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                child: _buildTopics(state),
               ),
             ),
             SettingsSection(
@@ -121,7 +134,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.cleaning_services_outlined),
                     title: const Text('Clear cache'),
-                    subtitle: Text('${_cubit.cachedArticleCount} stories cached'),
+                    subtitle: Text(
+                      '${_cubit.cachedArticleCount} stories cached',
+                    ),
                     onTap: _clearCache,
                   ),
                 ],
@@ -149,14 +164,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildTopics(SettingsState state) {
     if (state.isLoadingTopics) {
       return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+        padding: EdgeInsets.all(AppSpacing.lg),
         child: ShimmerLoading(height: 96),
       );
     }
     if (state.topics.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-        child: InkWell(onTap: _cubit.loadTopics, child: const Text("Couldn't load topics · Tap to retry")),
+      return ListTile(
+        leading: const Icon(Icons.refresh_rounded),
+        title: const Text("Couldn't load sections"),
+        subtitle: const Text('Tap to retry'),
+        onTap: _cubit.loadTopics,
       );
     }
     return Column(

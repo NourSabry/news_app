@@ -13,10 +13,15 @@ class ArticleBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final firstParagraphIndex = blocks.indexWhere((b) => b.type != 'heading');
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.xl, AppSpacing.gutter, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        AppSpacing.xl,
+        AppSpacing.gutter,
+        0,
+      ),
       sliver: SliverList.separated(
         itemCount: blocks.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.lg),
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xl),
         itemBuilder: (_, index) => ContentBlockView(
           block: blocks[index],
           dropCap: index == firstParagraphIndex,
@@ -32,7 +37,12 @@ class ArticleBodyShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.xl, AppSpacing.gutter, 0),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        AppSpacing.xl,
+        AppSpacing.gutter,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -18,7 +18,9 @@ class BookmarksRepositoryImpl implements BookmarksRepository {
   Future<Set<String>> reconcileIds() async {
     final localIds = getIds();
     final serverIds = (await _api.getBookmarkIds()).toSet();
-    final pending = _outbox.getPending().where((e) => e.operation == OutboxOperation.setBookmark);
+    final pending = _outbox.getPending().where(
+      (e) => e.operation == OutboxOperation.setBookmark,
+    );
 
     final pendingAdds = <String>{};
     final pendingRemoves = <String>{};
@@ -39,10 +41,10 @@ class BookmarksRepositoryImpl implements BookmarksRepository {
         .difference(pendingRemoves);
     for (final articleId in unknownLocal) {
       merged.add(articleId);
-      await _outbox.enqueue(
-        OutboxOperation.setBookmark,
-        {'articleId': articleId, 'bookmarked': true},
-      );
+      await _outbox.enqueue(OutboxOperation.setBookmark, {
+        'articleId': articleId,
+        'bookmarked': true,
+      });
     }
 
     await _storage.saveBookmarkIds(merged);
@@ -58,10 +60,10 @@ class BookmarksRepositoryImpl implements BookmarksRepository {
     try {
       await _api.setBookmark(articleId: article.id, bookmarked: bookmarked);
     } catch (_) {
-      await _outbox.enqueue(
-        OutboxOperation.setBookmark,
-        {'articleId': article.id, 'bookmarked': bookmarked},
-      );
+      await _outbox.enqueue(OutboxOperation.setBookmark, {
+        'articleId': article.id,
+        'bookmarked': bookmarked,
+      });
     }
   }
 
@@ -75,7 +77,7 @@ class BookmarksRepositoryImpl implements BookmarksRepository {
     return articles.whereType<Article>().toList();
   }
 
-  /// Never drops a saved id silently (G3) — an unavailable story still
+  /// Never drops a saved id silently — an unavailable story still
   /// shows in Saved, greyed with "No longer available", using whatever
   /// was cached at bookmark time (bookmarking always caches the article).
   Future<Article?> _cachedOrFetched(String id) async {

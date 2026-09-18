@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/hairline.dart';
 
-/// An overline label + hairline section (Part 6.12).
+/// A titled group of settings on a soft rounded surface.
 class SettingsSection extends StatelessWidget {
   final String title;
   final Widget child;
@@ -13,19 +12,52 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
+    final p = context.palette;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.gutter, AppSpacing.xxl, AppSpacing.gutter, AppSpacing.sm),
-          child: Text(title.toUpperCase(), style: AppTextStyles.overline.copyWith(color: inkMuted)),
-        ),
-        const Padding(padding: EdgeInsets.symmetric(horizontal: AppSpacing.gutter), child: Hairline()),
-        child,
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        AppSpacing.xxl,
+        AppSpacing.gutter,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.xs,
+              bottom: AppSpacing.md,
+            ),
+            child: Text(
+              title.toUpperCase(),
+              style: AppTextStyles.overline.copyWith(color: p.inkMuted),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            child: ColoredBox(
+              color: p.surface,
+              child: ListTileTheme(
+                data: ListTileThemeData(
+                  iconColor: p.ink,
+                  textColor: p.ink,
+                  titleTextStyle: AppTextStyles.body.copyWith(color: p.ink),
+                  subtitleTextStyle: AppTextStyles.caption.copyWith(
+                    color: p.inkMuted,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: 2,
+                  ),
+                  minVerticalPadding: AppSpacing.md,
+                ),
+                child: child,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

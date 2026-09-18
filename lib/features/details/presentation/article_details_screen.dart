@@ -7,7 +7,6 @@ import '../../../core/di/service_locator.dart';
 import '../../../core/models/models.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/halftone_painter.dart';
 import '../../../core/widgets/state_view.dart';
 import '../../bookmarks/presentation/bloc/bookmarks_bloc.dart';
 import '../domain/details_repository.dart';
@@ -23,10 +22,9 @@ class ArticleDetailsScreen extends StatelessWidget {
 
   const ArticleDetailsScreen({super.key, required this.article});
 
-  /// Pushed by id alone (X3, deep links) — a placeholder preview seeds
-  /// [DetailsBloc] the same way a feed-card tap's real [Article] does, and
-  /// `LoadArticle` fetches the rest, including the G3 unavailable path for
-  /// an unknown or removed id.
+  /// Pushed by id alone (deep links). A placeholder seeds [DetailsBloc] the
+  /// same way a card tap's real [Article] does, and `LoadArticle` fetches the
+  /// rest — including the unavailable path for an unknown or removed id.
   factory ArticleDetailsScreen.byId(String id, {Key? key}) {
     return ArticleDetailsScreen(
       key: key,
@@ -45,8 +43,9 @@ class ArticleDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DetailsBloc(ServiceLocator.instance.get<DetailsRepository>(), article)
-        ..add(const LoadArticle()),
+      create: (_) =>
+          DetailsBloc(ServiceLocator.instance.get<DetailsRepository>(), article)
+            ..add(const LoadArticle()),
       child: _DetailsView(heroTag: 'article-${article.id}'),
     );
   }
@@ -66,7 +65,7 @@ class _DetailsViewState extends State<_DetailsView> {
   double _progress = 0;
   bool _showBottomBar = false;
 
-  static const _heroHeight = 320.0;
+  static const _heroHeight = DetailsHero.height;
 
   @override
   void initState() {
@@ -97,10 +96,12 @@ class _DetailsViewState extends State<_DetailsView> {
 
   void _share() {
     final article = context.read<DetailsBloc>().state.article;
-    SharePlus.instance.share(ShareParams(
-      uri: AppRouter.articleShareLink(article.id),
-      subject: article.title,
-    ));
+    SharePlus.instance.share(
+      ShareParams(
+        uri: AppRouter.articleShareLink(article.id),
+        subject: article.title,
+      ),
+    );
   }
 
   @override
@@ -114,29 +115,31 @@ class _DetailsViewState extends State<_DetailsView> {
       return Scaffold(
         body: SafeArea(
           child: StateView(
-            shape: HalftoneShape.radial,
-            halftoneOpacity: 0.5,
+            icon: Icons.unpublished_outlined,
+            accent: true,
             title: 'This story was pulled.',
             body: "The publisher removed it, so it's no longer available.",
             primaryActionLabel: 'Back to the feed',
-            onPrimaryAction: () => Navigator.of(context).popUntil((route) => route.isFirst),
+            onPrimaryAction: () =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
             secondaryActionLabel: isBookmarked ? 'Remove from saved' : null,
-            onSecondaryAction: isBookmarked ? () => context.toggleBookmark(state.article) : null,
+            onSecondaryAction: isBookmarked
+                ? () => context.toggleBookmark(state.article)
+                : null,
           ),
         ),
       );
     }
 
     final article = context.liveArticle(state.article);
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final red = isLight ? AppColors.lightRed : AppColors.darkRed;
+    final p = context.palette;
 
     return Scaffold(
       body: Stack(
         children: [
           CustomScrollView(
             controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
                 child: DetailsHero(
@@ -165,8 +168,26 @@ class _DetailsViewState extends State<_DetailsView> {
                     onTap: _openArticle,
                   ),
                 ),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: AppSpacing.dockClearance),
+              ),
             ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AnimatedSlide(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              offset: _showBottomBar ? Offset.zero : const Offset(0, 1.5),
+              child: DetailsBottomBar(
+                article: article,
+                onLike: () => context.toggleLike(article),
+                onBookmark: () => context.toggleBookmark(article),
+                onShare: _share,
+              ),
+            ),
           ),
           Positioned(
             top: 0,
@@ -178,23 +199,11 @@ class _DetailsViewState extends State<_DetailsView> {
                 value: _progress,
                 minHeight: 2,
                 backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation(red),
+                valueColor: AlwaysStoppedAnimation(p.accent),
               ),
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: _showBottomBar
-            ? DetailsBottomBar(
-                key: const ValueKey('bottom-bar'),
-                article: article,
-                onLike: () => context.toggleLike(article),
-                onBookmark: () => context.toggleBookmark(article),
-                onShare: _share,
-              )
-            : const SizedBox(key: ValueKey('bottom-bar-hidden')),
       ),
     );
   }
@@ -207,11 +216,12 @@ class _DetailsViewState extends State<_DetailsView> {
         child: SizedBox(
           height: 420,
           child: StateView(
-            shape: HalftoneShape.diagonal,
-            title: 'The presses are down.',
-            body: "We couldn't reach the newsroom. Check your connection and try again.",
+            icon: Icons.wifi_off_rounded,
+            title: "We couldn't load this story.",
+            body: 'Check your connection and try again.',
             primaryActionLabel: 'Try again',
-            onPrimaryAction: () => context.read<DetailsBloc>().add(const LoadArticle()),
+            onPrimaryAction: () =>
+                context.read<DetailsBloc>().add(const LoadArticle()),
           ),
         ),
       );

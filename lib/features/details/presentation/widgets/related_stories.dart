@@ -6,7 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../feed/presentation/widgets/article_cards.dart';
 
-/// "Also in {Topic}" — three Brief cards (Part 6.9).
+/// "More in {Topic}" — up to three compact cards under the article.
 class RelatedStories extends StatelessWidget {
   final String topicName;
   final List<Article> articles;
@@ -22,34 +22,33 @@ class RelatedStories extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (articles.isEmpty) return const SizedBox.shrink();
-    final brightness = Theme.of(context).brightness;
-    final ink = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
+    final p = context.palette;
 
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
+        AppSpacing.xxxl + AppSpacing.sm,
+        AppSpacing.gutter,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: AppSpacing.screenPadding,
-            child: Text('Also in $topicName', style: AppTextStyles.headlineS.copyWith(color: ink)),
+          Text(
+            topicName.isEmpty ? 'More stories' : 'More in $topicName',
+            style: AppTextStyles.headlineM.copyWith(color: p.ink),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Padding(
-            padding: AppSpacing.screenPadding,
-            child: Column(
-              children: [
-                for (final article in articles.take(3))
-                  LiveArticleCard(
-                    key: ValueKey(article.id),
-                    article: article,
-                    topicName: topicName,
-                    variant: ArticleCardVariant.brief,
-                    onTap: () => onTap(article),
-                  ),
-              ],
+          const SizedBox(height: AppSpacing.xl),
+          for (final (index, article) in articles.take(3).indexed) ...[
+            if (index > 0) const SizedBox(height: AppSpacing.xl),
+            LiveArticleCard(
+              key: ValueKey(article.id),
+              article: article,
+              topicName: topicName,
+              variant: ArticleCardVariant.compact,
+              onTap: () => onTap(article),
             ),
-          ),
+          ],
         ],
       ),
     );

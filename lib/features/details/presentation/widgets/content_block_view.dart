@@ -5,14 +5,17 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/cached_image.dart';
 
-/// One article body block (Part 6.9): paragraph, heading, image or quote.
-/// [dropCap] renders the block's first character large in `red` — only
-/// the very first paragraph of the body gets one.
+/// One article body block: paragraph, heading, image or quote. [dropCap]
+/// renders the first character large — only the opening paragraph gets one.
 class ContentBlockView extends StatelessWidget {
   final ContentBlock block;
   final bool dropCap;
 
-  const ContentBlockView({super.key, required this.block, this.dropCap = false});
+  const ContentBlockView({
+    super.key,
+    required this.block,
+    this.dropCap = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,19 +37,20 @@ class _Paragraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final ink = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
-    final style = AppTextStyles.body.copyWith(color: ink);
+    final p = context.palette;
+    final style = AppTextStyles.body.copyWith(color: p.ink);
 
     if (!dropCap || text.isEmpty) return Text(text, style: style);
 
-    final red = brightness == Brightness.light ? AppColors.lightRed : AppColors.darkRed;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(right: AppSpacing.sm),
-          child: Text(text[0], style: AppTextStyles.dropCap.copyWith(color: red)),
+          padding: const EdgeInsets.only(right: AppSpacing.sm, top: 6),
+          child: Text(
+            text[0],
+            style: AppTextStyles.dropCap.copyWith(color: p.ink),
+          ),
         ),
         Expanded(child: Text(text.substring(1), style: style)),
       ],
@@ -61,11 +65,12 @@ class _Heading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final ink = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: Text(text, style: AppTextStyles.headlineS.copyWith(color: ink)),
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Text(
+        text,
+        style: AppTextStyles.headlineM.copyWith(color: context.palette.ink),
+      ),
     );
   }
 }
@@ -78,22 +83,29 @@ class _Figure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final inkMuted = brightness == Brightness.light ? AppColors.lightInkMuted : AppColors.darkInkMuted;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CachedImage(
-          imageUrl: url,
-          height: 220,
-          borderRadius: AppSpacing.radiusImage,
-          semanticLabel: caption.isEmpty ? null : caption,
-        ),
-        if (caption.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.xs),
-          Text(caption, style: AppTextStyles.caption.copyWith(color: inkMuted)),
+    final p = context.palette;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 10,
+            child: CachedImage(
+              imageUrl: url,
+              borderRadius: AppSpacing.radiusMd,
+              semanticLabel: caption.isEmpty ? null : caption,
+            ),
+          ),
+          if (caption.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              caption,
+              style: AppTextStyles.caption.copyWith(color: p.inkMuted),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -105,13 +117,19 @@ class _Quote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final ink = brightness == Brightness.light ? AppColors.lightInk : AppColors.darkInk;
-    final red = brightness == Brightness.light ? AppColors.lightRed : AppColors.darkRed;
-    return Container(
-      padding: const EdgeInsets.only(left: 20),
-      decoration: BoxDecoration(border: Border(left: BorderSide(color: red, width: 3))),
-      child: Text(text, style: AppTextStyles.quote.copyWith(color: ink)),
+    final p = context.palette;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '“',
+            style: AppTextStyles.dropCap.copyWith(color: p.accent, height: 0.6),
+          ),
+          Text(text, style: AppTextStyles.quote.copyWith(color: p.ink)),
+        ],
+      ),
     );
   }
 }

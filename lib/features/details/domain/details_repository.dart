@@ -9,7 +9,7 @@ abstract class DetailsRepository {
 
   Future<List<Topic>> getTopics();
 
-  /// Last successful sync with the server (G4) — the age shown in the
+  /// Last successful sync with the server — the age shown in the
   /// "Saved copy · Xh ago" caption when [getCachedArticle] served the read.
   DateTime? getLastSyncTime();
 }

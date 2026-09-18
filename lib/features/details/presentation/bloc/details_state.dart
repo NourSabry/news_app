@@ -12,7 +12,7 @@ class DetailsState extends Equatable {
   final DateTime? lastSyncedAt;
   final String? errorMessage;
 
-  /// Plain-language reason the publisher pulled this story (G3), or null
+  /// Plain-language reason the publisher pulled this story, or null
   /// while it's still available.
   final String? unavailableReason;
 
@@ -47,9 +47,12 @@ class DetailsState extends Equatable {
       topics: topics ?? this.topics,
       isLoading: isLoading ?? this.isLoading,
       fromCache: fromCache ?? this.fromCache,
-      lastSyncedAt:
-          identical(lastSyncedAt, _unset) ? this.lastSyncedAt : lastSyncedAt as DateTime?,
-      errorMessage: identical(errorMessage, _unset) ? this.errorMessage : errorMessage as String?,
+      lastSyncedAt: identical(lastSyncedAt, _unset)
+          ? this.lastSyncedAt
+          : lastSyncedAt as DateTime?,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
       unavailableReason: identical(unavailableReason, _unset)
           ? this.unavailableReason
           : unavailableReason as String?,
@@ -58,13 +61,13 @@ class DetailsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        article,
-        related,
-        topics,
-        isLoading,
-        fromCache,
-        lastSyncedAt,
-        errorMessage,
-        unavailableReason,
-      ];
+    article,
+    related,
+    topics,
+    isLoading,
+    fromCache,
+    lastSyncedAt,
+    errorMessage,
+    unavailableReason,
+  ];
 }
