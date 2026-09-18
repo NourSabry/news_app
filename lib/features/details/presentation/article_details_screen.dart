@@ -96,10 +96,17 @@ class _DetailsViewState extends State<_DetailsView> {
 
   void _share() {
     final article = context.read<DetailsBloc>().state.article;
+    // iPad presents the share sheet as a popover anchored to this rect, and
+    // the platform rejects an empty one.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box == null
+        ? null
+        : (box.localToGlobal(Offset.zero) & box.size).deflate(box.size.shortestSide / 4);
     SharePlus.instance.share(
       ShareParams(
         uri: AppRouter.articleShareLink(article.id),
         subject: article.title,
+        sharePositionOrigin: origin,
       ),
     );
   }

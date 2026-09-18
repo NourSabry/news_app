@@ -41,8 +41,13 @@ class DetailsHero extends StatelessWidget {
               child: _Image(imageUrl: imageUrl),
             ),
           ),
-          SafeArea(
-            child: Padding(
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.sm,
@@ -66,6 +71,7 @@ class DetailsHero extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
             ),
           ),
         ],
