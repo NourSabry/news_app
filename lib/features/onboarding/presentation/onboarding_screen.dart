@@ -6,7 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/ink_button.dart';
 import '../../settings/presentation/cubit/settings_cubit.dart';
 import 'cubit/onboarding_cubit.dart';
-import 'widgets/masthead_page.dart';
+import 'widgets/welcome_page.dart';
 import 'widgets/page_dots.dart';
 import 'widgets/ready_page.dart';
 import 'widgets/sections_page.dart';
@@ -28,7 +28,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     context.read<OnboardingCubit>().loadHeadlines();
     context.read<SettingsCubit>().loadTopics().then((_) {
       if (!mounted) return;
-      final ids = context.read<SettingsCubit>().state.topics.map((t) => t.id).toList();
+      final ids = context
+          .read<SettingsCubit>()
+          .state
+          .topics
+          .map((t) => t.id)
+          .toList();
       context.read<OnboardingCubit>().loadTopicCounts(ids);
     });
   }
@@ -62,14 +67,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final paper = brightness == Brightness.light ? AppColors.lightPaper : AppColors.darkPaper;
+    final p = context.palette;
     final settings = context.watch<SettingsCubit>().state;
     final onboarding = context.watch<OnboardingCubit>().state;
-    final canContinue = _currentPage != 1 || settings.selectedTopicIds.isNotEmpty;
+    final canContinue =
+        _currentPage != 1 || settings.selectedTopicIds.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: paper,
+      backgroundColor: p.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -79,11 +84,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (page) => setState(() => _currentPage = page),
                 children: [
-                  MastheadPage(headlines: onboarding.headlines, topics: settings.topics),
+                  WelcomePage(headlines: onboarding.headlines),
                   SectionsPage(
                     topics: settings.topics,
                     selectedIds: settings.selectedTopicIds.toSet(),
                     topicCounts: onboarding.topicCounts,
+                    topicCovers: onboarding.topicCovers,
                     onToggle: context.read<SettingsCubit>().toggleTopic,
                   ),
                   ReadyPage(
@@ -95,23 +101,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                AppSpacing.md,
+                AppSpacing.gutter,
+                AppSpacing.lg,
+              ),
               child: Column(
                 children: [
                   PageDots(count: 3, index: _currentPage),
                   const SizedBox(height: AppSpacing.xl),
                   InkButton(
                     label: switch (_currentPage) {
-                      0 => 'Set up my edition',
+                      0 => 'Get started',
                       1 => 'Continue',
                       _ => 'Start reading',
                     },
                     onPressed: canContinue ? _onNext : null,
                   ),
-                  if (_currentPage == 0) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    InkButton(label: 'Skip for now', variant: InkButtonVariant.text, expand: false, onPressed: _skip),
-                  ],
+                  SizedBox(
+                    height: 52,
+                    child: _currentPage == 0
+                        ? Center(
+                            child: InkButton(
+                              label: 'Skip for now',
+                              variant: InkButtonVariant.text,
+                              expand: false,
+                              onPressed: _skip,
+                            ),
+                          )
+                        : null,
+                  ),
                 ],
               ),
             ),

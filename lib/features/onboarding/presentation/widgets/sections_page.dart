@@ -5,11 +5,12 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'section_tile.dart';
 
-/// Screen 2 — pick sections (Part 6.5).
+/// Screen 2 — pick sections.
 class SectionsPage extends StatelessWidget {
   final List<Topic> topics;
   final Set<String> selectedIds;
   final Map<String, int> topicCounts;
+  final Map<String, String> topicCovers;
   final ValueChanged<String> onToggle;
 
   const SectionsPage({
@@ -17,52 +18,63 @@ class SectionsPage extends StatelessWidget {
     required this.topics,
     required this.selectedIds,
     required this.topicCounts,
+    required this.topicCovers,
     required this.onToggle,
   });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
+    final p = context.palette;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: AppSpacing.xxxl),
-          Text('Which sections do you read?', style: AppTextStyles.displayL.copyWith(color: ink)),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Pick at least one. You can change this any time.',
-            style: AppTextStyles.body.copyWith(color: inkMuted),
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            AppSpacing.xxxl,
+            AppSpacing.gutter,
+            AppSpacing.xl,
           ),
-          const SizedBox(height: AppSpacing.xl),
-          Expanded(
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppSpacing.md,
-                mainAxisSpacing: AppSpacing.md,
-                childAspectRatio: 1.15,
-              ),
-              itemCount: topics.length,
-              itemBuilder: (_, index) {
-                final topic = topics[index];
-                return SectionTile(
-                  topic: topic,
-                  isSelected: selectedIds.contains(topic.id),
-                  articleCount: topicCounts[topic.id],
-                  onTap: () => onToggle(topic.id),
-                );
-              },
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'What do you\nread?',
+                  style: AppTextStyles.displayXL.copyWith(color: p.ink),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Pick at least one section. You can change this any time.',
+                  style: AppTextStyles.body.copyWith(color: p.inkMuted),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppSpacing.md,
+              mainAxisSpacing: AppSpacing.md,
+              childAspectRatio: 1.05,
+            ),
+            delegate: SliverChildBuilderDelegate((_, index) {
+              final topic = topics[index];
+              return SectionTile(
+                topic: topic,
+                isSelected: selectedIds.contains(topic.id),
+                articleCount: topicCounts[topic.id],
+                coverUrl: topicCovers[topic.id],
+                onTap: () => onToggle(topic.id),
+              );
+            }, childCount: topics.length),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+      ],
     );
   }
 }

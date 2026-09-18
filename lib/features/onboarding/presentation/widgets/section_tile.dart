@@ -4,13 +4,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/halftone_painter.dart';
+import '../../../../core/widgets/cached_image.dart';
 
-/// One topic tile in the onboarding sections grid (Part 6.5).
+/// One topic tile: a photo from that section under a dark scrim, the name
+/// in serif, and a check that fills in when selected.
 class SectionTile extends StatelessWidget {
   final Topic topic;
   final bool isSelected;
   final int? articleCount;
+  final String? coverUrl;
   final VoidCallback onTap;
 
   const SectionTile({
@@ -19,17 +21,14 @@ class SectionTile extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.articleCount,
+    this.coverUrl,
   });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isLight = brightness == Brightness.light;
-    final paperRaised = isLight ? AppColors.lightPaperRaised : AppColors.darkPaperRaised;
-    final ink = isLight ? AppColors.lightInk : AppColors.darkInk;
-    final inkFaint = isLight ? AppColors.lightInkFaint : AppColors.darkInkFaint;
-    final inkMuted = isLight ? AppColors.lightInkMuted : AppColors.darkInkMuted;
-    final tint = AppColors.sectionTint(topic.name, brightness);
+    final p = context.palette;
+    final tint = p.sectionTint(topic.name);
+    final duration = AppMotion.scaled(context, AppMotion.transition);
 
     return Semantics(
       button: true,
@@ -37,44 +36,91 @@ class SectionTile extends StatelessWidget {
       excludeSemantics: true,
       selected: isSelected,
       label: topic.name,
-      child: InkWell(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-        child: AnimatedOpacity(
-          duration: AppMotion.scaled(context, AppMotion.transition),
-          opacity: isSelected ? 1 : 0.7,
-          child: Container(
-            decoration: BoxDecoration(
-              color: isSelected ? Color.alphaBlend(tint.withValues(alpha: 0.12), paperRaised) : paperRaised,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusImage),
-              border: Border(left: BorderSide(color: isSelected ? tint : inkFaint, width: 4)),
-            ),
+        child: AnimatedScale(
+          duration: duration,
+          curve: AppMotion.curveSettle,
+          scale: isSelected ? 1 : 0.97,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
             child: Stack(
+              fit: StackFit.expand,
               children: [
-                Positioned(
-                  right: -8,
-                  bottom: -8,
-                  child: Halftone(shape: HalftoneShape.radial, size: 64, tint: tint, opacity: 0.5),
+                if (coverUrl != null)
+                  CachedImage(imageUrl: coverUrl, borderRadius: 0)
+                else
+                  ColoredBox(
+                    color: Color.alphaBlend(
+                      tint.withValues(alpha: 0.25),
+                      p.surface,
+                    ),
+                  ),
+                AnimatedContainer(
+                  duration: duration,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.black.withValues(
+                          alpha: isSelected ? 0.15 : 0.35,
+                        ),
+                        AppColors.black.withValues(
+                          alpha: isSelected ? 0.75 : 0.85,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Align(
                         alignment: Alignment.topRight,
-                        child: isSelected
-                            ? Icon(Icons.check_rounded, size: 18, color: ink)
-                            : const SizedBox(height: 18),
+                        child: AnimatedContainer(
+                          duration: duration,
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.white
+                                : AppColors.white.withValues(alpha: 0.18),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.white.withValues(
+                                alpha: isSelected ? 0 : 0.7,
+                              ),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  size: 16,
+                                  color: AppColors.lightInk,
+                                )
+                              : null,
+                        ),
                       ),
-                      Text(topic.name, style: AppTextStyles.headlineM.copyWith(color: ink)),
-                      if (articleCount != null)
+                      const Spacer(),
+                      Text(
+                        topic.name,
+                        style: AppTextStyles.headlineM.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                      if (articleCount != null) ...[
+                        const SizedBox(height: 2),
                         Text(
                           '$articleCount ${articleCount == 1 ? 'story' : 'stories'} this week',
-                          // inkMuted, not inkFaint (G6/T4) — see engagement_row.
-                          style: AppTextStyles.caption.copyWith(color: inkMuted),
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.white.withValues(alpha: 0.75),
+                          ),
                         ),
+                      ],
                     ],
                   ),
                 ),
