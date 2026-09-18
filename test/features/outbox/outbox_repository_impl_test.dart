@@ -35,7 +35,7 @@ void main() {
     repository = OutboxRepositoryImpl(api, storage);
   });
 
-  test('maps a server conflict into an OutboxConflict with the cached article title (X1)', () async {
+  test('maps a server conflict into an OutboxConflict with the cached article title', () async {
     await storage.cacheArticle(article);
     await storage.addOutboxEntry(likeEntry());
     when(() => api.syncOutbox(baseVersion: any(named: 'baseVersion'), mutations: any(named: 'mutations')))

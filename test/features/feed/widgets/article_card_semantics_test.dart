@@ -18,7 +18,7 @@ Article _article({bool isLiked = false, bool isBookmarked = false}) => Article(
     );
 
 void main() {
-  testWidgets('the card is a single Semantics node in the exact G6 format', (tester) async {
+  testWidgets('the card is a single Semantics node in the documented format', (tester) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -41,7 +41,7 @@ void main() {
     expect(node.flagsCollection.isButton, isTrue);
   });
 
-  testWidgets('a saved article appends ", saved" to the label (G6)', (tester) async {
+  testWidgets('a saved article appends ", saved" to the label', (tester) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -60,7 +60,7 @@ void main() {
     expect(node.label, endsWith(', saved'));
   });
 
-  testWidgets('the like and save buttons are separate, distinctly-labelled actions (G6)', (tester) async {
+  testWidgets('the like and save buttons are separate, distinctly-labelled actions', (tester) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

@@ -14,17 +14,17 @@ void main() {
     expect(state.freshnessAt(now), FeedFreshness.fresh);
   });
 
-  test('stale once the cache is older than the TTL (G4)', () {
+  test('stale once the cache is older than the TTL', () {
     final state = FeedState(lastSyncedAt: now.subtract(const Duration(minutes: 31)));
     expect(state.freshnessAt(now), FeedFreshness.stale);
   });
 
-  test('a TTL of 0 is stale on the next open, even moments after syncing (G4)', () {
+  test('a TTL of 0 is stale on the next open, even moments after syncing', () {
     final state = FeedState(lastSyncedAt: now, cacheTtlMinutes: 0);
     expect(state.freshnessAt(now), FeedFreshness.stale);
   });
 
-  test('offline wins over stale (G4)', () {
+  test('offline wins over stale', () {
     final state = FeedState(
       lastSyncedAt: now.subtract(const Duration(hours: 3)),
       isOffline: true,

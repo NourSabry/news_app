@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:news_app/app/app_router.dart';
 
 void main() {
-  test("newsfeed://article/x parses to ArticleRoute('x') (T6)", () {
+  test("newsfeed://article/x parses to ArticleRoute('x')", () {
     expect(AppRouter.parse('newsfeed://article/a_flutter_roadmap'), const ArticleRoute('a_flutter_roadmap'));
   });
 
@@ -22,7 +22,7 @@ void main() {
     expect(AppRouter.parse('https://newsfeed.app/article/'), isNull);
   });
 
-  test('garbage input is malformed → null (T6)', () {
+  test('garbage input is malformed → null', () {
     expect(AppRouter.parse('garbage'), isNull);
     expect(AppRouter.parse(''), isNull);
   });

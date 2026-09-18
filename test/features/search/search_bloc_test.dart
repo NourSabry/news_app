@@ -137,7 +137,7 @@ void main() {
 
   final loadMoreCompleter = Completer<FeedResponse>();
   blocTest<SearchBloc, SearchState>(
-    'a slow load-more page is dropped if a new search lands first (G5)',
+    'a slow load-more page is dropped if a new search lands first',
     build: () {
       when(() => repository.search(query: 'flutter', filters: SearchFilters.none, cursor: 'search_2'))
           .thenAnswer((_) => loadMoreCompleter.future);
@@ -150,7 +150,7 @@ void main() {
       bloc.add(const LoadMoreResults());
       await Future<void>.delayed(Duration.zero);
       // The new search lands and finishes before the delayed load-more
-      // page resolves — the out-of-order arrival G5 guards against.
+      // page resolves — the out-of-order arrival the generation guard protects against.
       bloc.add(const SubmitSearch('other'));
       await Future<void>.delayed(const Duration(milliseconds: 10));
       loadMoreCompleter.complete(page([article('late')]));
@@ -187,7 +187,7 @@ void main() {
   );
 
   blocTest<SearchBloc, SearchState>(
-    'an explicit filter set on SubmitSearch replaces a previously set topic (B2)',
+    'an explicit filter set on SubmitSearch replaces a previously set topic',
     build: () {
       when(() => repository.search(query: 'x', filters: SearchFilters.none))
           .thenAnswer((_) async => page(const []));
@@ -248,7 +248,7 @@ void main() {
   );
 
   blocTest<SearchBloc, SearchState>(
-    'filters are preserved across a query change (G1)',
+    'filters are preserved across a query change',
     build: () {
       when(() => repository.getSuggestions('flutter')).thenAnswer((_) async => const []);
       return SearchBloc(repository);
@@ -260,7 +260,7 @@ void main() {
   );
 
   blocTest<SearchBloc, SearchState>(
-    'SourcesRequested loads the source list for the filter sheet (G1)',
+    'SourcesRequested loads the source list for the filter sheet',
     build: () {
       when(() => repository.getSources(topicId: 't_technology'))
           .thenAnswer((_) async => ['Mobile Daily', 'TechWire']);

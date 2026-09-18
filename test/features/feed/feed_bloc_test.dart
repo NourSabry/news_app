@@ -48,7 +48,7 @@ void main() {
   });
 
   blocTest<FeedBloc, FeedState>(
-    'a trending tap scopes the feed without touching search (B2)',
+    'a trending tap scopes the feed without touching search',
     build: () {
       when(() => repository.fetchPage(scope: null))
           .thenAnswer((_) async => page([article('a'), article('b')]));
@@ -91,7 +91,7 @@ void main() {
   );
 
   blocTest<FeedBloc, FeedState>(
-    'reports offline (from ConnectivityCubit) when a fresh load fails, not just a network error (G4)',
+    'reports offline (from ConnectivityCubit) when a fresh load fails, not just a network error',
     build: () {
       when(() => connectivity.isConnected).thenReturn(false);
       when(() => repository.fetchPage(scope: null)).thenThrow(Exception('offline'));
@@ -109,7 +109,7 @@ void main() {
 
   final loadMoreCompleter = Completer<FeedResponse>();
   blocTest<FeedBloc, FeedState>(
-    'a slow load-more page is dropped if a topic change lands first (G5)',
+    'a slow load-more page is dropped if a topic change lands first',
     build: () {
       when(() => repository.fetchPage(cursor: 'next', scope: null))
           .thenAnswer((_) => loadMoreCompleter.future);
@@ -126,7 +126,7 @@ void main() {
       bloc.add(const LoadMoreFeed());
       await Future<void>.delayed(Duration.zero);
       // The topic change lands and completes fully before the load-more
-      // page (still in flight) resolves — the exact ordering G5 guards
+      // page (still in flight) resolves — the exact ordering the generation guard protects
       // against.
       bloc.add(const TopicSelectionChanged());
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -139,7 +139,7 @@ void main() {
   );
 
   blocTest<FeedBloc, FeedState>(
-    'a refresh that removes a story notices it and drops it from the feed (T1, G3)',
+    'a refresh that removes a story notices it and drops it from the feed',
     build: () {
       when(() => repository.fetchUpdates()).thenAnswer((_) async => const FeedDelta(
             deletedIds: ['a'],

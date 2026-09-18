@@ -22,9 +22,9 @@ class MockConnectivityCubit extends MockCubit<ConnectivityStatus> implements Con
 FeedResponse _page(List<Article> data) =>
     FeedResponse(data: data, page: 1, pageSize: data.length, total: data.length);
 
-/// T4: every widget-tree state below must satisfy Android tap targets
+/// every widget-tree state below must satisfy Android tap targets
 /// (≥ 48×48dp), every tappable node must carry a label, and every visible
-/// text/background pair must meet WCAG AA (G6). `meetsGuideline` reports
+/// text/background pair must meet WCAG AA. `meetsGuideline` reports
 /// exactly which node/pair fails, so a red run here is a real design bug,
 /// not a flaky assertion.
 Future<void> _checkGuidelines(WidgetTester tester) async {
@@ -72,7 +72,7 @@ void main() {
 
   tearDown(() => handle.dispose());
 
-  testWidgets('Feed loaded meets tap target, label and contrast guidelines (T4)', (tester) async {
+  testWidgets('Feed loaded meets tap target, label and contrast guidelines', (tester) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     expect(find.text(flutterTitle), findsOneWidget);
@@ -80,7 +80,7 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Feed empty meets tap target, label and contrast guidelines (T4)', (tester) async {
+  testWidgets('Feed empty meets tap target, label and contrast guidelines', (tester) async {
     final repository = MockFeedRepository();
     final connectivity = MockConnectivityCubit();
     when(() => repository.fetchPage(scope: null)).thenAnswer((_) async => _page(const []));
@@ -95,7 +95,7 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Feed error meets tap target, label and contrast guidelines (T4)', (tester) async {
+  testWidgets('Feed error meets tap target, label and contrast guidelines', (tester) async {
     final repository = MockFeedRepository();
     final connectivity = MockConnectivityCubit();
     when(() => repository.fetchPage(scope: null)).thenThrow(Exception('offline'));
@@ -109,7 +109,7 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Feed offline meets tap target, label and contrast guidelines (T4)', (tester) async {
+  testWidgets('Feed offline meets tap target, label and contrast guidelines', (tester) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     expect(find.text(flutterTitle), findsOneWidget);
@@ -125,7 +125,7 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Details meets tap target, label and contrast guidelines (T4)', (tester) async {
+  testWidgets('Details meets tap target, label and contrast guidelines', (tester) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
     await tapAndSettle(tester, find.text(flutterTitle));
@@ -134,10 +134,10 @@ void main() {
     await _checkGuidelines(tester);
   });
 
-  testWidgets('Saved meets tap target, label and contrast guidelines (T4)', (tester) async {
+  testWidgets('Saved meets tap target, label and contrast guidelines', (tester) async {
     await bootstrap(onboarded: true);
     await pumpApp(tester);
-    // a_flutter_roadmap is bookmarked by default in the mock dataset (B1) —
+    // a_flutter_roadmap is bookmarked by default in the mock dataset —
     // battery is not, so its bookmark icon reliably starts as the outline.
     await tester.scrollUntilVisible(
       find.text(batteryTitle),

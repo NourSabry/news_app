@@ -36,7 +36,7 @@ void main() {
     expect(article.version, 4);
   });
 
-  test('getFeed with a trendingLabel matches articles by tag word (B2)', () async {
+  test('getFeed with a trendingLabel matches articles by tag word', () async {
     final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
 
     final cleanEnergy = await client.getFeed(trendingLabel: 'Clean Energy');
@@ -47,7 +47,7 @@ void main() {
     expect(aiPolicy.data.map((a) => a.id), contains('a_ai_policy'));
   });
 
-  test('search honours a publishedAt range (G1)', () async {
+  test('search honours a publishedAt range', () async {
     final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
 
     final result = await client.search(
@@ -66,7 +66,7 @@ void main() {
     expect(result.data.map((a) => a.id), isNot(contains('a_solar_farms')));
   });
 
-  test('search also matches on source name and author name (G1)', () async {
+  test('search also matches on source name and author name', () async {
     final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
 
     final bySource = await client.search(query: 'TechWire');
@@ -77,7 +77,7 @@ void main() {
     expect(byAuthor.data.length, greaterThanOrEqualTo(3));
   });
 
-  test('getArticle(unavailableArticleId) is always unavailable (G3)', () async {
+  test('getArticle(unavailableArticleId) is always unavailable', () async {
     final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
 
     final result = await client.getArticle(MockApiClient.unavailableArticleId);
@@ -86,7 +86,7 @@ void main() {
     expect((result as ArticleUnavailable).reason, 'removed_by_publisher');
   });
 
-  test('a real feed article is reported deleted on the second refresh, not the first (G3)', () async {
+  test('a real feed article is reported deleted on the second refresh, not the first', () async {
     final client = MockApiClient(store: MemoryStore())..latencyMs = 0;
 
     final first = await client.getFeedUpdates(DateTime.now());
@@ -99,7 +99,7 @@ void main() {
     expect(afterDeletion, isA<ArticleUnavailable>());
   });
 
-  test('syncOutbox produces a conflict for a like when simulateConflict is on (X1)', () async {
+  test('syncOutbox produces a conflict for a like when simulateConflict is on', () async {
     final client = MockApiClient(store: MemoryStore())
       ..latencyMs = 0
       ..simulateConflict = true;
@@ -122,7 +122,7 @@ void main() {
     expect(article.isLiked, isFalse, reason: 'a rejected mutation must not be applied server-side');
   });
 
-  test('outbox_version persists across construction over the same store (X1)', () async {
+  test('outbox_version persists across construction over the same store', () async {
     final store = MemoryStore();
     final first = MockApiClient(store: store)..latencyMs = 0;
     final mutation = OutboxEntry(

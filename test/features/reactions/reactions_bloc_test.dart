@@ -50,7 +50,7 @@ void main() {
     when(() => repository.persistOverride(any(), any())).thenAnswer((_) async {});
   });
 
-  test('starts from overrides persisted by a previous session (B1)', () {
+  test('starts from overrides persisted by a previous session', () {
     when(() => repository.loadPersistedOverrides()).thenReturn({
       'a': const ArticleOverrides(isLiked: true, likes: 11, version: 1),
     });
@@ -135,7 +135,7 @@ void main() {
   );
 
   blocTest<ReactionsBloc, ReactionsState>(
-    'rolls back to no override on a server rejection and offers Retry (G2)',
+    'rolls back to no override on a server rejection and offers Retry',
     build: () {
       when(() => repository.toggleLike('a', expectedVersion: 1))
           .thenAnswer((_) async => const ReactionFailed('Reaction was not saved'));
@@ -153,7 +153,7 @@ void main() {
   );
 
   blocTest<ReactionsBloc, ReactionsState>(
-    'rolls back to the previous override (not "no override") on rejection (G2)',
+    'rolls back to the previous override (not "no override") on rejection',
     build: () {
       when(() => repository.toggleLike('a', expectedVersion: 3))
           .thenAnswer((_) async => const ReactionFailed('Reaction was not saved'));
@@ -174,7 +174,7 @@ void main() {
   );
 
   blocTest<ReactionsBloc, ReactionsState>(
-    'ignores a second tap on the same article while one is in flight (G2)',
+    'ignores a second tap on the same article while one is in flight',
     build: () {
       when(() => repository.toggleLike('a', expectedVersion: 1)).thenAnswer(
         (_) => Future.delayed(

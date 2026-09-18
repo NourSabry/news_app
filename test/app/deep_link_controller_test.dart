@@ -84,7 +84,7 @@ void main() {
     ));
   }
 
-  testWidgets('pushes ArticleDetailsScreen when a valid link arrives and onboarding is already done (warm start, X3)',
+  testWidgets('pushes ArticleDetailsScreen when a valid link arrives and onboarding is already done (warm start)',
       (tester) async {
     await pumpHost(tester);
     final controller = DeepLinkController(
@@ -101,7 +101,7 @@ void main() {
     expect(find.byType(ArticleDetailsScreen), findsOneWidget);
   });
 
-  testWidgets('defers a cold-start link until onboarding completes, then pushes it (X3)', (tester) async {
+  testWidgets('defers a cold-start link until onboarding completes, then pushes it', (tester) async {
     when(() => settingsRepository.getOnboardingCompleted()).thenReturn(false);
     settingsCubit = SettingsCubit(settingsRepository);
     when(() => appLinks.getInitialLink())
@@ -131,7 +131,7 @@ void main() {
     expect(find.byType(ArticleDetailsScreen), findsOneWidget);
   });
 
-  testWidgets('a malformed link falls back to a snackbar, never navigating (X3)', (tester) async {
+  testWidgets('a malformed link falls back to a snackbar, never navigating', (tester) async {
     await pumpHost(tester);
     final controller = DeepLinkController(
       navigatorKey: navigatorKey,

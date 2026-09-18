@@ -5,12 +5,14 @@ import 'package:news_app/features/feed/presentation/widgets/article_cards.dart';
 import 'support/app_test_harness.dart';
 
 void main() {
-  testWidgets('onboarding through feed, reactions, bookmarks and details', (tester) async {
+  testWidgets('onboarding through feed, reactions, bookmarks and details', (
+    tester,
+  ) async {
     await bootstrap();
     await pumpApp(tester);
 
-    expect(find.text('Set up my edition'), findsOneWidget);
-    await tapAndSettle(tester, find.text('Set up my edition'));
+    expect(find.text('Get started'), findsOneWidget);
+    await tapAndSettle(tester, find.text('Get started'));
     await tapAndSettle(tester, find.text('Technology'));
     await tapAndSettle(tester, find.text('Science'));
     await tapAndSettle(tester, find.text('Continue'));
@@ -19,11 +21,20 @@ void main() {
     expect(find.byType(EditionArticleCard), findsWidgets);
     expect(find.text(flutterTitle), findsOneWidget);
 
-    await tapAndSettle(tester, inCard(flutterTitle, find.byIcon(Icons.favorite_border_rounded)));
+    await tapAndSettle(
+      tester,
+      inCard(flutterTitle, find.byIcon(Icons.favorite_outline_rounded)),
+    );
     expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
 
-    await tapAndSettle(tester, inCard(batteryTitle, find.byIcon(Icons.bookmark_outline_rounded)));
-    expect(inCard(batteryTitle, find.byIcon(Icons.bookmark_rounded)), findsOneWidget);
+    await tapAndSettle(
+      tester,
+      inCard(batteryTitle, find.byIcon(Icons.bookmark_outline_rounded)),
+    );
+    expect(
+      inCard(batteryTitle, find.byIcon(Icons.bookmark_rounded)),
+      findsOneWidget,
+    );
 
     await tester.scrollUntilVisible(
       find.textContaining('2 sections'),
@@ -40,7 +51,10 @@ void main() {
     await tapAndSettle(tester, navItem('Saved'));
     expect(find.text(batteryTitle), findsOneWidget);
 
-    final dismissible = find.ancestor(of: find.text(batteryTitle), matching: find.byType(Dismissible));
+    final dismissible = find.ancestor(
+      of: find.text(batteryTitle),
+      matching: find.byType(Dismissible),
+    );
     await tester.drag(dismissible, const Offset(-600, 0));
     await tester.pumpAndSettle();
     expect(find.text(batteryTitle), findsNothing);
@@ -57,35 +71,44 @@ void main() {
     expect(find.text(batteryTitle), findsOneWidget);
   });
 
-  testWidgets('queues a like while offline and syncs it from the pending chip', (tester) async {
-    final api = await bootstrap(onboarded: true);
-    await pumpApp(tester);
-    expect(find.text(flutterTitle), findsOneWidget);
+  testWidgets(
+    'queues a like while offline and syncs it from the pending chip',
+    (tester) async {
+      final api = await bootstrap(onboarded: true);
+      await pumpApp(tester);
+      expect(find.text(flutterTitle), findsOneWidget);
 
-    api.simulateOffline = true;
-    await tapAndSettle(tester, inCard(flutterTitle, find.byIcon(Icons.favorite_border_rounded)));
-    expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
-    expect(find.text('1 pending change'), findsOneWidget);
+      api.simulateOffline = true;
+      await tapAndSettle(
+        tester,
+        inCard(flutterTitle, find.byIcon(Icons.favorite_outline_rounded)),
+      );
+      expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
+      expect(find.text('1 pending change'), findsOneWidget);
 
-    api.simulateOffline = false;
-    await tapAndSettle(tester, find.text('1 pending change'));
-    expect(find.text('1 pending change'), findsNothing);
-    expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
-  });
+      api.simulateOffline = false;
+      await tapAndSettle(tester, find.text('1 pending change'));
+      expect(find.text('1 pending change'), findsNothing);
+      expect(inCard(flutterTitle, find.text('185')), findsOneWidget);
+    },
+  );
 
-  testWidgets('silently checks for new stories every tick while Home is visible (X2)', (tester) async {
-    await bootstrap(onboarded: true);
-    await pumpApp(tester);
+  testWidgets(
+    'silently checks for new stories every tick while Home is visible',
+    (tester) async {
+      await bootstrap(onboarded: true);
+      await pumpApp(tester);
 
-    expect(find.text('0 new'), findsOneWidget);
+      expect(find.text('0 new stories'), findsOneWidget);
 
-    // AppShell's background tick defaults to 45s; MockApiClient.getFeedUpdates
-    // always reports one fresh "breaking" item, so the pending pill should
-    // appear on its own — no pull-to-refresh, no scroll.
-    await tester.pump(const Duration(seconds: 45));
-    await tester.pumpAndSettle();
+      // AppShell's background tick defaults to 45s; MockApiClient.getFeedUpdates
+      // always reports one fresh "breaking" item, so the pending pill should
+      // appear on its own — no pull-to-refresh, no scroll.
+      await tester.pump(const Duration(seconds: 45));
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('1 new'), findsOneWidget);
-    expect(find.text('0 new'), findsNothing);
-  });
+      expect(find.textContaining('1 new story'), findsOneWidget);
+      expect(find.text('0 new stories'), findsNothing);
+    },
+  );
 }

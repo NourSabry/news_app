@@ -107,7 +107,7 @@ void main() {
   );
 
   blocTest<OutboxCubit, OutboxState>(
-    'surfaces conflicts the server rejected (X1)',
+    'surfaces conflicts the server rejected',
     setUp: () => when(() => repository.sync()).thenAnswer((_) async {
       pending.clear();
       return const OutboxSyncResult(appliedCount: 1, conflicts: [_conflict]);

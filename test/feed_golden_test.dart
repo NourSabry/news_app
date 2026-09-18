@@ -19,7 +19,7 @@ import 'package:news_app/features/feed/presentation/feed_screen.dart';
 import 'package:news_app/features/reactions/domain/reactions_repository.dart';
 import 'package:news_app/features/reactions/presentation/bloc/reactions_bloc.dart';
 
-/// T5: `test/goldens/` for the five main feed states × light/dark ×
+/// `test/goldens/` for the five main feed states × light/dark ×
 /// text scale 1.0/1.5 = 20 goldens, fixed device size (390×844), bundled
 /// fonts. Run `flutter test --update-goldens` after an intentional visual
 /// change; a red diff on an unintentional one is the point.
@@ -79,7 +79,7 @@ List<BlocProvider> _cardProviders() {
   ];
 }
 
-/// Builds the Scaffold for each of T5's five states. "loading" never lets
+/// Builds the Scaffold for each of the five feed states. "loading" never lets
 /// its fetch resolve, so the bloc stays on the skeleton indefinitely once
 /// `screenMatchesGolden`'s bounded `customPump` flushes the first emit —
 /// a bare `Future.delayed` here would hang forever instead, the same

@@ -49,7 +49,7 @@ void main() {
   });
 
   blocTest<DevToolsCubit, DevToolsState>(
-    'toggling simulate offline also drives ConnectivityCubit (B3)',
+    'toggling simulate offline also drives ConnectivityCubit',
     build: () => DevToolsCubit(repository, connectivity),
     act: (cubit) => cubit.setSimulateOffline(true),
     expect: () => [const DevToolsState(simulateOffline: true)],
@@ -81,7 +81,7 @@ void main() {
   );
 
   blocTest<DevToolsCubit, DevToolsState>(
-    'setSimulateReactionFailure updates state and the repository (G2)',
+    'setSimulateReactionFailure updates state and the repository',
     build: () => DevToolsCubit(repository, connectivity),
     act: (cubit) => cubit.setSimulateReactionFailure(true),
     expect: () => [const DevToolsState(simulateReactionFailure: true)],
@@ -89,7 +89,7 @@ void main() {
   );
 
   blocTest<DevToolsCubit, DevToolsState>(
-    'setCacheTtlMinutes updates state and the repository (G4)',
+    'setCacheTtlMinutes updates state and the repository',
     build: () => DevToolsCubit(repository, connectivity),
     act: (cubit) => cubit.setCacheTtlMinutes(0),
     expect: () => [const DevToolsState(cacheTtlMinutes: 0)],
@@ -97,7 +97,7 @@ void main() {
   );
 
   blocTest<DevToolsCubit, DevToolsState>(
-    'setBackgroundTickSeconds updates state and the repository (X2)',
+    'setBackgroundTickSeconds updates state and the repository',
     build: () => DevToolsCubit(repository, connectivity),
     act: (cubit) => cubit.setBackgroundTickSeconds(10),
     expect: () => [const DevToolsState(backgroundTickSeconds: 10)],

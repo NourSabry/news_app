@@ -31,7 +31,7 @@ void main() {
     when(() => outbox.enqueue(any(), any())).thenAnswer((_) async {});
   });
 
-  test('merges server ids with a pending outbox add (B1)', () async {
+  test('merges server ids with a pending outbox add', () async {
     await storage.saveBookmarkIds({'a'});
     when(() => api.getBookmarkIds()).thenAnswer((_) async => ['a']);
     when(() => outbox.getPending()).thenReturn([bookmarkEntry('b', true)]);

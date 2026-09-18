@@ -83,7 +83,7 @@ void main() {
   );
 
   blocTest<DetailsBloc, DetailsState>(
-    'shows the unavailable reason and skips related stories (G3)',
+    'shows the unavailable reason and skips related stories',
     build: () {
       when(() => repository.getCachedArticle('a')).thenReturn(null);
       when(() => repository.fetchArticle('a'))
