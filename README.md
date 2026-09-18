@@ -22,8 +22,9 @@ These are the golden images the test suite checks pixel-for-pixel, not hand-pick
   — after an intentional visual change, regenerate with `flutter test --update-goldens` and review
   the diff before committing.
 - CI (`.github/workflows/ci.yml`) runs `dart format --set-exit-if-changed`, `flutter analyze
-  --fatal-infos` and the full test suite on every push and pull request; golden diffs are uploaded
-  as an artifact when a run fails.
+  --fatal-infos` and the unit/widget suite on Linux, and the golden suite on macOS — goldens are
+  pixel-exact to the platform that recorded them, so they run where they were recorded. Golden
+  diffs are uploaded as an artifact when a run fails.
 - **Deep links**: `newsfeed://article/{id}` (and `https://newsfeed.app/article/{id}`, see
   [Tradeoffs](#tradeoffs--known-limitations)).
   ```sh

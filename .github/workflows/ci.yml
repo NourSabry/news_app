@@ -33,7 +33,35 @@ jobs:
         run: flutter analyze --fatal-infos
 
       - name: Test
-        run: flutter test --coverage --reporter expanded
+        run: flutter test --exclude-tags golden --coverage --reporter expanded
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+
+  goldens:
+    # Goldens were recorded on macOS; Linux rasterises fonts differently
+    # and fails every one of them by a few pixels, so they run on the same
+    # platform they were recorded on.
+    name: Goldens
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Golden tests
+        run: flutter test --tags golden --reporter expanded
 
       - name: Upload golden failures
         if: failure()
@@ -42,10 +70,3 @@ jobs:
           name: golden-failures
           path: test/**/failures/
           if-no-files-found: ignore
-
-      - name: Upload coverage
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage/lcov.info

@@ -1,3 +1,9 @@
+// Goldens are pixel-exact to the platform that recorded them (font
+// rasterisation differs between macOS and Linux), so CI runs this file on a
+// macOS runner and excludes it everywhere else.
+@Tags(['golden'])
+library;
+
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
