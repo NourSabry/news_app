@@ -53,14 +53,14 @@ class FiltersChanged extends SearchEvent {
 }
 
 /// Loads the source list for the filter sheet's Source section, scoped
-/// to [topicId] (or all sources when null).
+/// to [topicIds] (or all sources when empty).
 class SourcesRequested extends SearchEvent {
-  final String? topicId;
+  final Set<String> topicIds;
 
-  const SourcesRequested(this.topicId);
+  const SourcesRequested(this.topicIds);
 
   @override
-  List<Object?> get props => [topicId];
+  List<Object?> get props => [topicIds];
 }
 
 class ClearSearch extends SearchEvent {

@@ -164,22 +164,22 @@ void main() {
     build: () {
       when(() => repository.search(
             query: 'flutter',
-            filters: const SearchFilters(topicId: 't_technology'),
+            filters: const SearchFilters(topicIds: {'t_technology'}),
           )).thenAnswer((_) async => page([article('c')]));
       return SearchBloc(repository);
     },
     seed: searched,
-    act: (bloc) => bloc.add(const FiltersChanged(SearchFilters(topicId: 't_technology'))),
+    act: (bloc) => bloc.add(const FiltersChanged(SearchFilters(topicIds: {'t_technology'}))),
     expect: () => [
-      searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
+      searched().copyWith(filters: const SearchFilters(topicIds: {'t_technology'})),
       searched().copyWith(
-        filters: const SearchFilters(topicId: 't_technology'),
+        filters: const SearchFilters(topicIds: {'t_technology'}),
         isLoading: true,
         results: const [],
         nextCursor: null,
       ),
       searched().copyWith(
-        filters: const SearchFilters(topicId: 't_technology'),
+        filters: const SearchFilters(topicIds: {'t_technology'}),
         results: [article('c')],
         nextCursor: null,
       ),
@@ -193,7 +193,7 @@ void main() {
           .thenAnswer((_) async => page(const []));
       return SearchBloc(repository);
     },
-    seed: () => searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
+    seed: () => searched().copyWith(filters: const SearchFilters(topicIds: {'t_technology'})),
     act: (bloc) => bloc.add(const SubmitSearch('x', filters: SearchFilters.none)),
     expect: () => [
       searched().copyWith(query: 'x', filters: SearchFilters.none),
@@ -212,17 +212,17 @@ void main() {
   blocTest<SearchBloc, SearchState>(
     'submitting without an explicit filter set keeps the current filters',
     build: () {
-      when(() => repository.search(query: 'x', filters: const SearchFilters(topicId: 't_technology')))
+      when(() => repository.search(query: 'x', filters: const SearchFilters(topicIds: {'t_technology'})))
           .thenAnswer((_) async => page(const []));
       return SearchBloc(repository);
     },
-    seed: () => searched().copyWith(filters: const SearchFilters(topicId: 't_technology')),
+    seed: () => searched().copyWith(filters: const SearchFilters(topicIds: {'t_technology'})),
     act: (bloc) => bloc.add(const SubmitSearch('x')),
     expect: () => [
-      searched().copyWith(query: 'x', filters: const SearchFilters(topicId: 't_technology')),
+      searched().copyWith(query: 'x', filters: const SearchFilters(topicIds: {'t_technology'})),
       searched().copyWith(
         query: 'x',
-        filters: const SearchFilters(topicId: 't_technology'),
+        filters: const SearchFilters(topicIds: {'t_technology'}),
         hasSearched: true,
         isLoading: true,
         results: const [],
@@ -230,7 +230,7 @@ void main() {
       ),
       searched().copyWith(
         query: 'x',
-        filters: const SearchFilters(topicId: 't_technology'),
+        filters: const SearchFilters(topicIds: {'t_technology'}),
         results: const [],
         nextCursor: null,
       ),
@@ -253,20 +253,20 @@ void main() {
       when(() => repository.getSuggestions('flutter')).thenAnswer((_) async => const []);
       return SearchBloc(repository);
     },
-    seed: () => const SearchState(filters: SearchFilters(topicId: 't_technology')),
+    seed: () => const SearchState(filters: SearchFilters(topicIds: {'t_technology'})),
     act: (bloc) => bloc.add(const QueryChanged('flutter')),
     wait: debounceWait,
-    verify: (bloc) => expect(bloc.state.filters, const SearchFilters(topicId: 't_technology')),
+    verify: (bloc) => expect(bloc.state.filters, const SearchFilters(topicIds: {'t_technology'})),
   );
 
   blocTest<SearchBloc, SearchState>(
     'SourcesRequested loads the source list for the filter sheet',
     build: () {
-      when(() => repository.getSources(topicId: 't_technology'))
+      when(() => repository.getSources(topicIds: {'t_technology'}))
           .thenAnswer((_) async => ['Mobile Daily', 'TechWire']);
       return SearchBloc(repository);
     },
-    act: (bloc) => bloc.add(const SourcesRequested('t_technology')),
+    act: (bloc) => bloc.add(const SourcesRequested({'t_technology'})),
     expect: () => [
       const SearchState(isLoadingSources: true),
       const SearchState(sources: ['Mobile Daily', 'TechWire']),

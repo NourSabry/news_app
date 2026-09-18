@@ -14,14 +14,14 @@ const _datePresetChipLabels = {
 /// horizontally scrolling row.
 class FilterChipsRow extends StatelessWidget {
   final SearchFilters filters;
-  final String topicName;
+  final Map<String, String> topicNames;
   final ValueChanged<SearchFilters> onChanged;
   final VoidCallback onOpenFilters;
 
   const FilterChipsRow({
     super.key,
     required this.filters,
-    required this.topicName,
+    required this.topicNames,
     required this.onChanged,
     required this.onOpenFilters,
   });
@@ -44,11 +44,11 @@ class FilterChipsRow extends StatelessWidget {
                 : EditionPillVariant.filled,
             onTap: onOpenFilters,
           ),
-          if (filters.topicId != null && topicName.isNotEmpty) ...[
+          for (final id in filters.topicIds) ...[
             const SizedBox(width: AppSpacing.sm),
             EditionPill(
-              label: topicName,
-              onRemove: () => onChanged(filters.copyWith(topicId: null)),
+              label: topicNames[id] ?? id,
+              onRemove: () => onChanged(filters.toggleTopic(id)),
             ),
           ],
           if (filters.source != null) ...[

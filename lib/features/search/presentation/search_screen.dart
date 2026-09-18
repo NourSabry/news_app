@@ -139,9 +139,9 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               FilterChipsRow(
                 filters: state.filters,
-                topicName: state.filters.topicId == null
-                    ? ''
-                    : state.topicNameFor(state.filters.topicId!),
+                topicNames: {
+                  for (final id in state.filters.topicIds) id: state.topicNameFor(id),
+                },
                 onChanged: (filters) => _bloc.add(FiltersChanged(filters)),
                 onOpenFilters: () => _openFilterSheet(state),
               ),
@@ -154,7 +154,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildBody(SearchState state) {
-    if (state.query.isEmpty) {
+    if (state.query.isEmpty && !state.hasSearched) {
       return ExploreLanding(
         queries: state.recentSearches,
         topics: state.topics,
@@ -162,7 +162,7 @@ class _SearchScreenState extends State<SearchScreen> {
         onQueryTap: (query) => _bloc.add(SubmitSearch(query)),
         onClear: () => _bloc.add(const ClearRecentSearches()),
         onTopicTap: (topic) => _bloc.add(
-          SubmitSearch('', filters: SearchFilters(topicId: topic.id)),
+          SubmitSearch('', filters: SearchFilters(topicIds: {topic.id})),
         ),
       );
     }

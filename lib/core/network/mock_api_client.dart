@@ -236,7 +236,7 @@ class MockApiClient implements ApiClient {
     required String query,
     int page = 1,
     int pageSize = 10,
-    String? topic,
+    List<String> topics = const [],
     String? source,
     DateTime? publishedFrom,
     DateTime? publishedTo,
@@ -252,7 +252,7 @@ class MockApiClient implements ApiClient {
           a.tags.any((t) => t.toLowerCase().contains(lowerQuery)) ||
           a.source.toLowerCase().contains(lowerQuery) ||
           a.author.name.toLowerCase().contains(lowerQuery);
-      final matchesTopic = topic == null || topic.isEmpty || a.topicId == topic;
+      final matchesTopic = topics.isEmpty || topics.contains(a.topicId);
       final matchesSource =
           source == null || source.isEmpty || a.source == source;
       final matchesFrom =

@@ -20,7 +20,7 @@ class SearchRepositoryImpl implements SearchRepository {
   }) {
     return _api.search(
       query: query,
-      topic: filters.topicId,
+      topics: filters.topicIds.toList(),
       source: filters.source,
       publishedFrom: filters.date?.from,
       publishedTo: filters.date?.to,
@@ -29,10 +29,12 @@ class SearchRepositoryImpl implements SearchRepository {
   }
 
   @override
-  Future<List<String>> getSources({String? topicId}) async {
-    final byTopic = await _api.getSources(topicId: topicId);
-    if (topicId != null) return byTopic[topicId] ?? [];
-    return byTopic.values.expand((sources) => sources).toSet().toList()..sort();
+  Future<List<String>> getSources({Set<String> topicIds = const {}}) async {
+    final byTopic = await _api.getSources();
+    final selected = topicIds.isEmpty
+        ? byTopic.values
+        : topicIds.map((id) => byTopic[id] ?? const <String>[]);
+    return selected.expand((sources) => sources).toSet().toList()..sort();
   }
 
   int _pageFrom(String? cursor) {

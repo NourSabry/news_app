@@ -20,7 +20,7 @@ abstract class ApiClient {
     required String query,
     int page = 1,
     int pageSize = 10,
-    String? topic,
+    List<String> topics = const [],
     String? source,
     DateTime? publishedFrom,
     DateTime? publishedTo,

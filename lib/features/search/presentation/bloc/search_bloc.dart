@@ -152,6 +152,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     FiltersChanged event,
     Emitter<SearchState> emit,
   ) async {
+    // Removing the last filter from a browse (no query) goes back to the
+    // landing rather than searching for everything.
+    if (state.query.isEmpty && event.filters.isEmpty) {
+      return _onClear(const ClearSearch(), emit);
+    }
     emit(state.copyWith(filters: event.filters));
     if (state.hasSearched) await _search(emit);
   }
@@ -162,7 +167,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   ) async {
     emit(state.copyWith(isLoadingSources: true));
     final sources = await _repository
-        .getSources(topicId: event.topicId)
+        .getSources(topicIds: event.topicIds)
         .orFallback(const []);
     emit(state.copyWith(sources: sources, isLoadingSources: false));
   }

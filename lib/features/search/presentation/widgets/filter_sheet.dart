@@ -51,12 +51,17 @@ class _FilterSheetState extends State<FilterSheet> {
   @override
   void initState() {
     super.initState();
-    context.read<SearchBloc>().add(SourcesRequested(_draft.topicId));
+    context.read<SearchBloc>().add(SourcesRequested(_draft.topicIds));
   }
 
-  void _setTopic(String? topicId) {
-    setState(() => _draft = _draft.copyWith(topicId: topicId, source: null));
-    context.read<SearchBloc>().add(SourcesRequested(topicId));
+  void _toggleTopic(String topicId) {
+    setState(() => _draft = _draft.toggleTopic(topicId).copyWith(source: null));
+    context.read<SearchBloc>().add(SourcesRequested(_draft.topicIds));
+  }
+
+  void _clearTopics() {
+    setState(() => _draft = _draft.copyWith(topicIds: const {}, source: null));
+    context.read<SearchBloc>().add(const SourcesRequested({}));
   }
 
   void _setSource(String? source) =>
@@ -156,19 +161,15 @@ class _FilterSheetState extends State<FilterSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _SectionLabel('TOPIC'),
+                    const _SectionLabel('TOPICS'),
                     _Choices(
                       children: [
-                        _choice(
-                          'All topics',
-                          _draft.topicId == null,
-                          () => _setTopic(null),
-                        ),
+                        _choice('All topics', _draft.topicIds.isEmpty, _clearTopics),
                         for (final topic in widget.topics)
                           _choice(
                             topic.name,
-                            _draft.topicId == topic.id,
-                            () => _setTopic(topic.id),
+                            _draft.topicIds.contains(topic.id),
+                            () => _toggleTopic(topic.id),
                           ),
                       ],
                     ),

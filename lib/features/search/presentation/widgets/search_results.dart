@@ -76,8 +76,7 @@ class _ResultsCaption extends StatelessWidget {
     final p = context.palette;
     final count = state.results.length;
     final parts = [
-      if (state.filters.topicId != null)
-        state.topicNameFor(state.filters.topicId!),
+      for (final id in state.filters.topicIds) state.topicNameFor(id),
       if (state.filters.source != null) state.filters.source!,
       if (state.filters.date != null)
         _datePresetCaptionLabels[state.filters.date!.preset]!,

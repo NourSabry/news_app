@@ -56,37 +56,43 @@ class DateRange extends Equatable {
 
 const _unset = Object();
 
-/// Search filters: topic, source and date, all optional. `SubmitSearch`
+/// Search filters: topics, source and date, all optional. `SubmitSearch`
 /// carries this so a query never silently inherits filters from a different
 /// entry point — callers outside Explore must pass an explicit set
 /// (typically [SearchFilters.none]); Explore itself passes null to keep
 /// whatever the user already chose.
 class SearchFilters extends Equatable {
-  final String? topicId;
+  final Set<String> topicIds;
   final String? source;
   final DateRange? date;
 
-  const SearchFilters({this.topicId, this.source, this.date});
+  const SearchFilters({this.topicIds = const {}, this.source, this.date});
 
   static const none = SearchFilters();
 
-  bool get isEmpty => topicId == null && source == null && date == null;
+  bool get isEmpty => topicIds.isEmpty && source == null && date == null;
 
   int get activeCount =>
-      [topicId, source, date].where((value) => value != null).length;
+      topicIds.length + [source, date].where((value) => value != null).length;
+
+  SearchFilters toggleTopic(String topicId) {
+    final next = {...topicIds};
+    next.contains(topicId) ? next.remove(topicId) : next.add(topicId);
+    return copyWith(topicIds: next);
+  }
 
   SearchFilters copyWith({
-    Object? topicId = _unset,
+    Set<String>? topicIds,
     Object? source = _unset,
     Object? date = _unset,
   }) {
     return SearchFilters(
-      topicId: identical(topicId, _unset) ? this.topicId : topicId as String?,
+      topicIds: topicIds ?? this.topicIds,
       source: identical(source, _unset) ? this.source : source as String?,
       date: identical(date, _unset) ? this.date : date as DateRange?,
     );
   }
 
   @override
-  List<Object?> get props => [topicId, source, date];
+  List<Object?> get props => [topicIds, source, date];
 }
