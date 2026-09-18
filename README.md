@@ -1,5 +1,7 @@
 # The Edition
 
+[![CI](https://github.com/NourSabry/news_app/actions/workflows/ci.yml/badge.svg)](https://github.com/NourSabry/news_app/actions/workflows/ci.yml)
+
 A Flutter news reader: a personal, paginated feed that keeps working offline, with optimistic
 reactions, a durable outbox that syncs when you're back online, search with filters, bookmarks,
 and deep links. There is no real backend — `MockApiClient` plays that part and keeps its own
@@ -16,9 +18,12 @@ These are the golden images the test suite checks pixel-for-pixel, not hand-pick
 - Flutter 3.38 (stable) or newer, Dart `^3.10`.
 - `flutter pub get`, then `flutter run`. First launch opens onboarding; pick a few sections and
   "Start reading" lands on a feed that's already loaded.
-- `flutter analyze` is clean; `flutter test` runs 134 tests. Golden images live in `test/goldens/`
+- `flutter analyze` is clean; `flutter test` runs 136 tests. Golden images live in `test/goldens/`
   — after an intentional visual change, regenerate with `flutter test --update-goldens` and review
   the diff before committing.
+- CI (`.github/workflows/ci.yml`) runs `dart format --set-exit-if-changed`, `flutter analyze
+  --fatal-infos` and the full test suite on every push and pull request; golden diffs are uploaded
+  as an artifact when a run fails.
 - **Deep links**: `newsfeed://article/{id}` (and `https://newsfeed.app/article/{id}`, see
   [Tradeoffs](#tradeoffs--known-limitations)).
   ```sh
