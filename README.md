@@ -8,10 +8,14 @@ and deep links. There is no real backend — `MockApiClient` plays that part and
 persisted state, so likes and bookmarks survive a restart the way they would against a real API.
 
 |  |  |  |
-|---|---|---|
 
+<img width="423" height="961" alt="Screenshot 2026-09-18 at 7 32 33 PM" src="https://github.com/user-attachments/assets/e6880a35-289f-4280-8e1e-e39150385805" />
+<img width="443" height="934" alt="Screenshot 2026-09-18 at 7 32 47 PM" src="https://github.com/user-attachments/assets/c7b7a511-af22-43ef-bb57-59119ef6a1f6" />
+<img width="437" height="955" alt="Screenshot 2026-09-18 at 7 33 03 PM" src="https://github.com/user-attachments/assets/7bc28b46-e576-44fa-9828-2f3f80f5abe0" />
+<img width="458" height="974" alt="Screenshot 2026-09-18 at 7 33 54 PM" src="https://github.com/user-attachments/assets/b8bfb644-15b2-4d41-96e7-fa3b8a877ad7" />
+<img width="453" height="976" alt="Screenshot 2026-09-18 at 7 33 39 PM" src="https://github.com/user-attachments/assets/dd733545-105c-4348-be81-5a8f13addf01" />
+<img width="446" height="959" alt="Screenshot 2026-09-18 at 7 33 25 PM" src="https://github.com/user-attachments/assets/79b3707f-08c7-424e-bf74-264b649c4d30" />
 
-These are the golden images the test suite checks pixel-for-pixel, not hand-picked screenshots.
 
 ## Setup
 
